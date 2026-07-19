@@ -1,0 +1,28 @@
+{
+  "approved": true,
+  "finishedAt": "2026-07-19T13:23:28.133Z",
+  "kind": "validacao-persistencia-google-sheets",
+  "nodeVersion": "v26.5.0",
+  "phase": "005",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T13:23:24.530Z",
+  "steps": {
+    "cleanup": {
+      "linhasRemovidas": 2,
+      "posLimpezaVazia": true,
+      "sucesso": true
+    },
+    "readBack": {
+      "itemCount": 2,
+      "present": true
+    },
+    "write": {
+      "linhasGravadas": 2,
+      "motivoFalha": null,
+      "sucesso": true
+    }
+  },
+  "summary": {
+    "note": "Persistência Sheets validada com fixture sintética; evidência sem PII nem conteúdo de células."
+  }
+}

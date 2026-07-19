@@ -2,7 +2,7 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto buscará as agendas futuras dos profissionais e manterá a aba `Agenda` atualizada de forma automatizada.
 
-> **Fase atual:** 004 — Extração de dados da agenda (`Concluída`). Parser Cheerio → modelos tipados a partir de `table#agenda`. Próxima: Fase 005 — Integração Google Sheets (`Planejada`).
+> **Fase atual:** 005 — Integração Google Sheets (`Concluída`). Persistência via `AgendaRepository`. Próxima: Fase 006 — Orquestração multi-profissionais (`Planejada`).
 
 ## Leitura recomendada
 
@@ -96,9 +96,19 @@ npm run validate:agenda-parser
 npm run discover:agenda-html
 ```
 
+### Persistência Google Sheets
+
+```bash
+npm run test:sheets
+npm run discover:sheets
+npm run validate:sheets
+```
+
+Configure `GOOGLE_SHEETS_SPREADSHEET_ID`, o caminho do JSON da Service Account e compartilhe a planilha com o e-mail da conta (Editor). A aba `Agenda` deve existir.
+
 ### Estado da validação real
 
-Em 19/07/2026, a validação reproduzível aprovou autenticação, logout, navegação até o HTML de resultado e extração tipada da agenda, com evidências em `docs/evidencias/`. As Fases 003A, 003B e 004 estão `Concluída`.
+Em 19/07/2026, a validação reproduzível aprovou autenticação, logout, navegação até o HTML de resultado, extração tipada da agenda e persistência no Google Sheets, com evidências em `docs/evidencias/`. As Fases 003A, 003B, 004 e 005 estão `Concluída`.
 
 Para reexecutar:
 
@@ -106,9 +116,10 @@ Para reexecutar:
 npm run validate:login
 npm run validate:agenda
 npm run validate:agenda-parser
+npm run validate:sheets
 ```
 
-Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md) e [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md).
+Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md), [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md), [.fases/004-extracao-agenda.md](.fases/004-extracao-agenda.md) e [.fases/005-integracao-google-sheets.md](.fases/005-integracao-google-sheets.md).
 
 ## Arquitetura definitiva
 
@@ -142,7 +153,7 @@ npm run build
 
 ## Roadmap e próximos passos
 
-Próximas fases: **005 — Integração Google Sheets**, **006 — Orquestração multi-profissionais** e **007 — Agendamento automático (cron)**. Veja o [roadmap detalhado](docs/ROADMAP.md).
+Próximas fases: **006 — Orquestração multi-profissionais** e **007 — Agendamento automático (cron)**. Veja o [roadmap detalhado](docs/ROADMAP.md).
 
 ### Convenção de status
 

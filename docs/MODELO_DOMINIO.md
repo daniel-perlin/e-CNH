@@ -88,6 +88,19 @@ Representa o retorno lógico do parser HTML → domínio (Fase 004). Independent
 
 O HTML bruto permanece responsabilidade do `ECNHClient` (`ResultadoConsultaAgenda` conceitual da navegação). O parser não realiza requests.
 
+## ResultadoPersistenciaAgenda
+
+Representa o retorno lógico da persistência domínio → destino (Fase 005). Independente de Google Sheets.
+
+| Elemento | Descrição |
+| -------- | --------- |
+| sucesso | Persistência concluída. |
+| linhasGravadas | Quantidade de linhas escritas na operação. |
+| linhasRemovidas | Quantidade de linhas removidas do par Data+Profissional. |
+| motivoFalha | `contexto-incompleto`, `data-consulta-ausente`, `cabecalho-incompativel` ou `erro-infraestrutura`. |
+
+O contexto de persistência inclui `profissional` (coluna da planilha). A senha do profissional nunca entra nesta camada.
+
 ## Relação entre as camadas
 
 ```text
@@ -97,7 +110,7 @@ ECNHClient -> HTML bruto / ResultadoLogin
               parseAgendaHtml -> ResultadoExtracaoAgenda
                          │
                          ▼
-                  Serviços -> Google Sheets
+              AgendaRepository -> destino (Google Sheets)
 ```
 
-`ECNHClient` entrega transporte e HTML; o parser transforma HTML em modelos de domínio; serviços orquestram o fluxo; a integração com Google Sheets usa os modelos sem acessar o portal diretamente.
+`ECNHClient` entrega transporte e HTML; o parser transforma HTML em modelos de domínio; `AgendaRepository` persiste/recupera esses modelos. A implementação `GoogleSheetsAgendaRepository` usa `AgendaSheetMapper` (puro) e não é conhecida pelo domínio.

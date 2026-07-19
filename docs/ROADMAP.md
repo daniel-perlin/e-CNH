@@ -10,11 +10,11 @@ Cada fase deve resolver um único problema e não antecipar funcionalidades post
 | Fase 003A — Autenticação HTTP               | `Concluída`    | Autenticação HTTP, sessão, CookieJar, verificação, logout HTTP e testes; sem agenda.    |
 | Fase 003B — Navegação autenticada           | `Concluída`    | Página de agenda, endpoints, parâmetros e HTML bruto; sem extração estruturada.                             |
 | Fase 004 — Extração de dados da agenda      | `Concluída`     | Parser HTML, modelos tipados e testes unitários; sem integração com planilha.                               |
-| Fase 005 — Integração Google Sheets         | `Planejada`    | Leitura/escrita e contrato da aba `Agenda`.                                                                 |
+| Fase 005 — Integração Google Sheets         | `Concluída`    | Leitura/escrita e contrato da aba `Agenda` via `AgendaRepository`.                                          |
 | Fase 006 — Orquestração multi-profissionais | `Planejada`    | Caso de uso que coordena múltiplos profissionais e o fluxo completo de sincronização; execução sob demanda. |
 | Fase 007 — Agendamento automático (cron)    | `Planejada`    | Job agendado e proteção contra sobreposição de execuções.                                                   |
 
-> **Situação da Fase 004:** `Concluída` em 19/07/2026. Parser Cheerio extrai `Agenda` / `ItemAgenda` / `Paciente` a partir de `table#agenda`, com evidências sanitizadas. Próxima fase: 005 — Integração Google Sheets.
+> **Situação da Fase 005:** `Concluída` em 19/07/2026. Service Account, aba `Agenda` e persistência idempotente validadas com evidências sanitizadas. Próxima fase: 006 — Orquestração multi-profissionais.
 
 ## Convenção de status
 

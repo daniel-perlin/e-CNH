@@ -24,3 +24,10 @@ Os arquivos podem conter somente metadados técnicos, hashes e sinais booleanos.
 - Descoberta HTML: `004-descoberta-html-*.json`
 - Descoberta domínio: `004-descoberta-dominio-*.json`
 - Validação do parser: `004-validacao-parser-*.json`
+
+## Validação oficial da Fase 005
+
+- Documento da fase: [005-integracao-google-sheets.md](../../.fases/005-integracao-google-sheets.md)
+- Descoberta API (estática): `005-descoberta-api-sheets-2026-07-19.json`
+- Descoberta de conexão: `005-descoberta-conexao-sheets-*.json`
+- Validação de persistência: `005-validacao-sheets-*.json`

@@ -1,0 +1,38 @@
+{
+  "approved": true,
+  "finishedAt": "2026-07-19T12:52:00.000Z",
+  "kind": "descoberta-api-google-sheets",
+  "nodeVersion": "estudo-local",
+  "phase": "005",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T12:52:00.000Z",
+  "summary": {
+    "note": "Descoberta estática da dependência googleapis já presente no projeto; sem chamada de rede e sem credenciais.",
+    "package": "googleapis@^144.0.0",
+    "authStrategy": "Service Account via GoogleAuth + keyFile",
+    "scopeRequired": "https://www.googleapis.com/auth/spreadsheets",
+    "apiVersion": "sheets/v4",
+    "operationsPlanejadas": [
+      "spreadsheets.get (metadados / abas)",
+      "spreadsheets.values.get",
+      "spreadsheets.values.clear",
+      "spreadsheets.values.update"
+    ],
+    "layoutAba": "Agenda",
+    "colunas": [
+      "Profissional",
+      "Data",
+      "Hora",
+      "CPF",
+      "Nome",
+      "Telefone",
+      "E-mail",
+      "Tipo de Processo",
+      "Categoria",
+      "Status do Exame Médico",
+      "Status do Exame Psicológico"
+    ],
+    "estrategiaAtualizacao": "substituir linhas com mesmo Data+Profissional e regravar",
+    "pendenciaAmbiente": "GOOGLE_SHEETS_SPREADSHEET_ID e arquivo de Service Account ainda não configurados no .env local no início da fase"
+  }
+}

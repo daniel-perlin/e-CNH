@@ -2,14 +2,95 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Fase 004 — Extração de dados da agenda (`Concluída`)  
-> **Próxima fase:** Fase 005 — Integração Google Sheets (`Planejada`)  
-> **Última atualização:** 2026-07-19 08:40 BRT  
-> **Última sessão executada:** 19/07/2026 • 08:40 — Extração tipada da agenda
+> **Fase atual:** Fase 005 — Integração Google Sheets (`Concluída`)  
+> **Próxima fase:** Fase 006 — Orquestração multi-profissionais (`Planejada`)  
+> **Última atualização:** 2026-07-19 10:23 BRT  
+> **Última sessão executada:** 19/07/2026 • 10:23 — Validação real Google Sheets
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 10:23
+
+### 🎯 Objetivo
+
+Validar a persistência real no Google Sheets e concluir a Fase 005.
+
+### ✅ O que mudou
+
+- `npm run discover:sheets` aprovado: Service Account autenticou; planilha e aba `Agenda` encontradas.
+- `npm run validate:sheets` aprovado: escrita de 2 linhas sintéticas, leitura de volta e limpeza.
+- Evidências sanitizadas registradas em `docs/evidencias/`.
+- Documentação obrigatória atualizada; Fase 005 promovida a `Validada` e `Concluída`.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** autenticação Service Account + escopo Sheets funciona neste ambiente.
+- **Evidência confirmada:** `GoogleSheetsAgendaRepository` grava e recupera via aba `Agenda` sem PII na evidência.
+- **ADR-012:** persistência atrás de `AgendaRepository` com mapper puro e chave `Data`+`Profissional`.
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/005-descoberta-conexao-sheets-2026-07-19T13-23-22-770Z.json`
+- `docs/evidencias/005-validacao-sheets-2026-07-19T13-23-24-530Z.json`
+- `.fases/005-integracao-google-sheets.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/MODELO_DOMINIO.md`
+- `docs/DECISOES.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/API.md`
+- `docs/evidencias/README.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 09:55
+
+### 🎯 Objetivo
+
+Implementar a camada de persistência Google Sheets (Fase 005), sem orquestração nem regras de negócio.
+
+### ✅ O que mudou
+
+- Criados `AgendaRepository` (interface), `AgendaSheetMapper` (puro) e `GoogleSheetsAgendaRepository`.
+- Encapsulado `googleapis` em `GoogleSheetsClient` com port injetável para testes.
+- Layout da aba `Agenda` com coluna `Profissional`; substituição idempotente por `Data` + `Profissional`.
+- Configuração via `GOOGLE_SHEETS_*` / `GOOGLE_APPLICATION_CREDENTIALS`.
+- Testes unitários (9) aprovados sem rede; scripts `discover:sheets` e `validate:sheets`.
+- Fase 005 promovida a `Implementada`; validação real bloqueada por ausência de credenciais no `.env`.
+
+### 🧠 Decisões
+
+- **Decisão:** consumidores dependem só de `AgendaRepository`; Sheets fica atrás da implementação.
+- **Decisão:** mapper puro separado do repositório (domínio ↔ linhas).
+- **Decisão:** chave de substituição = `dataConsulta` + `profissional` (preserva outros profissionais na mesma data).
+- **Pendência de validação:** conexão real Service Account + planilha ainda não executada neste ambiente.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-repository.ts`
+- `src/repositories/agenda-sheet-headers.ts`
+- `src/repositories/agenda-sheet-mapper.ts`
+- `src/repositories/agenda-sheet-mapper.test.ts`
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `src/repositories/in-memory-google-sheets-values.ts`
+- `src/client/google-sheets-client.ts`
+- `src/config/google-sheets-config.ts`
+- `src/scripts/discover-sheets.ts`
+- `src/scripts/validate-sheets.ts`
+- `package.json`
+- `.env.example`
+- `.gitignore`
+- `docs/evidencias/005-descoberta-api-sheets-2026-07-19.json`
+- `.fases/005-integracao-google-sheets.md`
+- `docs/ROADMAP.md`
+- `CHANGELOG.md`
 
 ---
 

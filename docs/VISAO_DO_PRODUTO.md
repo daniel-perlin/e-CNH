@@ -61,7 +61,7 @@ Fluxo-alvo quando todas as fases previstas estiverem concluídas:
 | Autenticação HTTP e sessão               | **Concluída** (Fase 003A — Autenticação HTTP), incluindo logout HTTP                               |
 | Navegação autenticada e download de HTML | **Concluída** (Fase 003B — Navegação autenticada); HTML bruto de resultado obtido                  |
 | Extração de dados da agenda              | **Concluída** (Fase 004 — Extração de dados da agenda)                                              |
-| Integração Google Sheets                 | **Pendente** (Fase 005 — Integração Google Sheets)                                                 |
+| Integração Google Sheets                 | **Concluída** (Fase 005 — Integração Google Sheets)                                                 |
 | Orquestração multi-profissionais         | **Pendente** (Fase 006 — Orquestração multi-profissionais)                                         |
 | Agendamento automático (cron)            | **Pendente** (Fase 007 — Agendamento automático)                                                   |
 

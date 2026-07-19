@@ -1,0 +1,25 @@
+{
+  "approved": true,
+  "finishedAt": "2026-07-19T13:23:24.236Z",
+  "kind": "descoberta-conexao-google-sheets",
+  "nodeVersion": "v26.5.0",
+  "phase": "005",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T13:23:22.770Z",
+  "steps": {
+    "connection": {
+      "hasConfiguredSheetName": true,
+      "sheetCount": 2,
+      "spreadsheetIdPresent": true,
+      "titleLength": 13
+    },
+    "config": {
+      "credentialsPathConfigured": true,
+      "sheetName": "Agenda",
+      "spreadsheetIdConfigured": true
+    }
+  },
+  "summary": {
+    "note": "Conexão Service Account confirmada; metadados da planilha lidos sem registrar conteúdo de células."
+  }
+}
