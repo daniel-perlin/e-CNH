@@ -5,16 +5,28 @@ import { StructuredLogger } from '../types/logger.js';
 import { formatCpfForPortal } from '../utils/cpf.js';
 import { AuthTransport } from './auth-transport.js';
 import {
+  ConsultarAgendaParams,
   ConsultarAgendaPsicologoParams,
   ECNHAgendaProtocol
 } from './ecnh-agenda-protocol.js';
 import { ECNHAuthenticationProtocol } from './ecnh-auth-protocol.js';
 import { ConfigurationError } from './errors.js';
+import {
+  type PerfilProfissionalId,
+  type PerfilProfissionalPortal
+} from './perfil-profissional-portal.js';
 import { SessionManager } from './session-manager.js';
+
+export type { ConsultarAgendaParams, ConsultarAgendaPsicologoParams };
 
 export interface ECNHClientOptions {
   baseUrl: string;
   logger?: StructuredLogger;
+  /**
+   * Perfil esperado (ex.: configurado em `ECNH_USER_<n>_PROFILE`).
+   * Se informado, deve coincidir com o marcador do HTML pós-login.
+   */
+  perfilEsperado?: PerfilProfissionalId;
 }
 
 /** Cliente do portal e-CNH responsável por autenticação, sessão e navegação HTTP. */
@@ -22,9 +34,11 @@ export class ECNHClient {
   private readonly agendaProtocol = new ECNHAgendaProtocol();
   private readonly authenticationProtocol = new ECNHAuthenticationProtocol();
   private readonly logger: StructuredLogger;
+  private readonly perfilEsperado: PerfilProfissionalId | undefined;
   private readonly sessionManager = new SessionManager();
   private readonly transport: AuthTransport;
   private lastAuthenticatedHtml: string | undefined;
+  private perfilResolvido: PerfilProfissionalPortal | undefined;
 
   public constructor(options: ECNHClientOptions) {
     if (options.baseUrl.trim().length === 0) {
@@ -32,6 +46,7 @@ export class ECNHClient {
     }
 
     this.logger = options.logger ?? createLogger();
+    this.perfilEsperado = options.perfilEsperado;
     this.transport = new AuthTransport(options.baseUrl, this.logger, this.sessionManager);
   }
 
@@ -39,21 +54,33 @@ export class ECNHClient {
     const credentials = this.validateCredentials(cpf, password);
     this.logger.info({ event: 'ecnh.login.started' }, 'Iniciando autenticação e-CNH');
 
-    const result = await this.authenticationProtocol.login(credentials, this.transport);
+    const result = await this.authenticationProtocol.login(credentials, this.transport, {
+      perfilEsperado: this.perfilEsperado
+    });
     if (result.status === 'sucesso') {
       this.lastAuthenticatedHtml = result.html;
-      const session = this.sessionManager.markAuthenticated();
-      this.logger.info({ event: 'ecnh.login.succeeded' }, 'Autenticação e-CNH concluída');
+      this.perfilResolvido = result.perfil;
+      const session = this.sessionManager.markAuthenticated(result.perfil.id);
+      this.logger.info(
+        { event: 'ecnh.login.succeeded', perfilId: result.perfil.id },
+        'Autenticação e-CNH concluída'
+      );
       return { session, status: 'sucesso' };
     }
 
     this.lastAuthenticatedHtml = undefined;
+    this.perfilResolvido = undefined;
     this.sessionManager.clear();
     this.logger.warn(
       { event: 'ecnh.login.failed', status: result.status },
       'Autenticação e-CNH não foi confirmada'
     );
     return result;
+  }
+
+  /** Perfil do portal resolvido no último login bem-sucedido. */
+  public obterPerfilPortal(): PerfilProfissionalId | undefined {
+    return this.perfilResolvido?.id;
   }
 
   /**
@@ -66,26 +93,34 @@ export class ECNHClient {
   }
 
   /**
-   * Obtém o HTML bruto da agenda diária via POST `method=consultarAgendaPsicologo`.
-   * Retorna somente o documento HTML; parsing de pacientes fica fora desta fase.
+   * Obtém o HTML bruto da agenda diária via POST no method do perfil resolvido.
+   * Retorna somente o documento HTML; parsing de pacientes fica fora desta camada.
    */
-  public async obterHtmlAgenda(params: ConsultarAgendaPsicologoParams): Promise<string> {
+  public async obterHtmlAgenda(params: ConsultarAgendaParams): Promise<string> {
     const html = this.requireAuthenticatedHtml('obterHtmlAgenda');
+    const perfil = this.requirePerfilResolvido('obterHtmlAgenda');
     this.logger.info(
-      { event: 'ecnh.agenda.consulta.started', path: '/gefor/GFR/divisao/divisaoEquitativa.do' },
+      {
+        event: 'ecnh.agenda.consulta.started',
+        method: perfil.methodConsultarAgenda,
+        path: '/gefor/GFR/divisao/divisaoEquitativa.do',
+        perfilId: perfil.id
+      },
       'Iniciando consulta HTTP da agenda e-CNH'
     );
 
-    const agendaHtml = await this.agendaProtocol.consultarAgendaPsicologo(
+    const agendaHtml = await this.agendaProtocol.consultarAgenda(
       this.transport,
       html,
+      perfil,
       params
     );
 
     this.logger.info(
       {
         event: 'ecnh.agenda.consulta.completed',
-        htmlBytes: Buffer.byteLength(agendaHtml, 'latin1')
+        htmlBytes: Buffer.byteLength(agendaHtml, 'latin1'),
+        perfilId: perfil.id
       },
       'Consulta HTTP da agenda e-CNH concluída'
     );
@@ -114,6 +149,7 @@ export class ECNHClient {
       );
     } finally {
       this.lastAuthenticatedHtml = undefined;
+      this.perfilResolvido = undefined;
       this.sessionManager.clear();
       this.logger.info({ event: 'ecnh.logout.completed' }, 'Sessão e-CNH encerrada localmente');
     }
@@ -126,6 +162,15 @@ export class ECNHClient {
       );
     }
     return this.lastAuthenticatedHtml;
+  }
+
+  private requirePerfilResolvido(operation: string): PerfilProfissionalPortal {
+    if (this.perfilResolvido === undefined) {
+      throw new ConfigurationError(
+        `ECNHClient.${operation} requer perfil de portal resolvido no login.`
+      );
+    }
+    return this.perfilResolvido;
   }
 
   private validateCredentials(cpf: string, password: string): LoginCredentials {

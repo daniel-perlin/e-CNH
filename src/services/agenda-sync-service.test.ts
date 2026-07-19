@@ -44,7 +44,10 @@ class FakePortalClient implements AgendaSyncPortalClient {
     this.datas = options.datas ?? ['13/07/2026'];
     this.loginResult = options.loginResult ?? {
       status: 'sucesso',
-      session: { authenticatedAt: new Date('2026-07-19T12:00:00.000Z') }
+      session: {
+        authenticatedAt: new Date('2026-07-19T12:00:00.000Z'),
+        perfilId: 'psicologo'
+      }
     };
     this.obterHtmlImpl =
       options.obterHtml ?? (async (data) => `<html data-consulta="${data}"></html>`);
@@ -385,7 +388,10 @@ describe('AgendaSyncService.sincronizarProfissionais', () => {
               ? { status: 'senha_invalida', message: 'credencial rejeitada' }
               : {
                   status: 'sucesso',
-                  session: { authenticatedAt: new Date('2026-07-19T12:00:00.000Z') }
+                  session: {
+                    authenticatedAt: new Date('2026-07-19T12:00:00.000Z'),
+                    perfilId: 'psicologo'
+                  }
                 }
         });
       },

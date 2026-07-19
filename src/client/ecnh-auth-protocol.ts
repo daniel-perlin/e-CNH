@@ -2,15 +2,25 @@ import { AxiosError } from 'axios';
 
 import { LoginCredentials, LoginResult } from '../types/auth.js';
 import { AuthTransport } from './auth-transport.js';
+import {
+  type PerfilProfissionalId,
+  type PerfilProfissionalPortal,
+  obterPerfilPorId,
+  resolverPerfilNoHtml
+} from './perfil-profissional-portal.js';
 
 const LOGIN_PATH = '/gefor/SGU/login.do';
 const LOGOUT_PATH = `${LOGIN_PATH}?method=finalizarLogin`;
-const AUTHENTICATED_PAGE_MARKER = 'Imprimir Agenda Diária do Psicólogo';
 const SESSION_COOKIE_NAME = 'JSESSIONID';
 
 export type AuthenticationLoginOutcome =
-  | { html: string; status: 'sucesso' }
+  | { html: string; perfil: PerfilProfissionalPortal; status: 'sucesso' }
   | Exclude<LoginResult, { status: 'sucesso' }>;
+
+export interface AuthenticationLoginOptions {
+  /** Perfil esperado (config); se definido, deve coincidir com o HTML. */
+  perfilEsperado?: PerfilProfissionalId;
+}
 
 /**
  * Protocolo confirmado no DevTools para a autenticação HTTP do e-CNH.
@@ -18,7 +28,8 @@ export type AuthenticationLoginOutcome =
 export class ECNHAuthenticationProtocol {
   public async login(
     credentials: LoginCredentials,
-    transport: AuthTransport
+    transport: AuthTransport,
+    options: AuthenticationLoginOptions = {}
   ): Promise<AuthenticationLoginOutcome> {
     try {
       const loginUrl = transport.resolveUrl(LOGIN_PATH);
@@ -89,17 +100,32 @@ export class ECNHAuthenticationProtocol {
       });
 
       const hasSessionCookie = await transport.hasCookie(SESSION_COOKIE_NAME);
-      const containsAuthenticatedPage = response.data.includes(AUTHENTICATED_PAGE_MARKER);
+      const perfilDetectado = resolverPerfilNoHtml(response.data);
 
-      if (hasSessionCookie && containsAuthenticatedPage) {
-        return { html: response.data, status: 'sucesso' };
+      if (!hasSessionCookie || perfilDetectado === undefined) {
+        return {
+          message:
+            'O portal respondeu ao login, mas os sinais de autenticação confirmados não foram encontrados.',
+          status: 'erro_desconhecido'
+        };
       }
 
-      return {
-        message:
-          'O portal respondeu ao login, mas os sinais de autenticação confirmados não foram encontrados.',
-        status: 'erro_desconhecido'
-      };
+      if (
+        options.perfilEsperado !== undefined &&
+        options.perfilEsperado !== perfilDetectado.id
+      ) {
+        return {
+          message: `Perfil configurado (${options.perfilEsperado}) diverge do HTML autenticado (${perfilDetectado.id}).`,
+          status: 'erro_desconhecido'
+        };
+      }
+
+      const perfil =
+        options.perfilEsperado !== undefined
+          ? obterPerfilPorId(options.perfilEsperado)
+          : perfilDetectado;
+
+      return { html: response.data, perfil, status: 'sucesso' };
     } catch (error) {
       return this.fromTransportError(error);
     }

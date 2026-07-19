@@ -1,6 +1,7 @@
 import { CookieJar } from 'tough-cookie';
 
 import { AuthenticatedSession } from '../types/auth.js';
+import type { PerfilProfissionalId } from './perfil-profissional-portal.js';
 
 /** Mantém o CookieJar e o estado da sessão durante a vida de um ECNHClient. */
 export class SessionManager {
@@ -18,8 +19,8 @@ export class SessionManager {
     return cookies.some((cookie) => cookie.key === name);
   }
 
-  public markAuthenticated(): AuthenticatedSession {
-    this.authenticatedSession = { authenticatedAt: new Date() };
+  public markAuthenticated(perfilId: PerfilProfissionalId): AuthenticatedSession {
+    this.authenticatedSession = { authenticatedAt: new Date(), perfilId };
     return this.authenticatedSession;
   }
 }

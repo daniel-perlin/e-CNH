@@ -9,13 +9,16 @@ import { AuthTransport } from '../client/auth-transport.js';
 import { ECNHClient } from '../client/ecnh-client.js';
 import { ConfigurationError } from '../client/errors.js';
 import {
+  htmlContemMarcadorAutenticado,
+  REGISTRO_PERFIS_PORTAL
+} from '../client/perfil-profissional-portal.js';
+import {
   listEnabledLoginCredentials,
   resolveLoginCredentials,
   type ResolvedLoginCredentials
 } from '../config/login-credentials.js';
 import { StructuredLogger } from '../types/logger.js';
 
-const AUTHENTICATED_PAGE_MARKER = 'Imprimir Agenda Diária do Psicólogo';
 const DEFAULT_ATTEMPTS = 5;
 const DEFAULT_DELAY_MS = 5_000;
 const EVIDENCE_DIRECTORY = 'docs/evidencias';
@@ -45,6 +48,7 @@ interface AttemptEvidence {
   finishedAt: string;
   logoutHttpAttempted: boolean;
   number: number;
+  perfilId?: string;
   requests: RequestEvidence[];
   resultStatus: string;
   sessionCookiePresent: boolean;
@@ -107,15 +111,7 @@ async function main(): Promise<void> {
       await wait(delayMs);
     }
     const credentials = credentialPool[number - 1];
-    attempts.push(
-      await executeAttempt(
-        number,
-        baseUrl,
-        credentials.cpf,
-        credentials.password,
-        credentials.source
-      )
-    );
+    attempts.push(await executeAttempt(number, baseUrl, credentials));
   }
 
   const approvedAttempts = attempts.filter((attempt) => attempt.approved).length;
@@ -125,7 +121,7 @@ async function main(): Promise<void> {
       consecutiveApprovedAttempts: attemptsCount,
       delayMsBetweenAttempts: delayMs,
       distinctCredentialsPerAttempt: true,
-      finalMarker: AUTHENTICATED_PAGE_MARKER,
+      finalMarkers: REGISTRO_PERFIS_PORTAL.map((perfil) => perfil.marcadorAutenticado),
       loginFormAbsent: true,
       protectedFormPresent: true,
       requestSequence: [`GET ${INITIAL_LOGIN_PATH}`, `POST ${LOGIN_PATH}`, `POST ${LOGIN_PATH}`],
@@ -168,9 +164,7 @@ async function main(): Promise<void> {
 async function executeAttempt(
   number: number,
   baseUrl: string,
-  cpf: string,
-  password: string,
-  credentialsSource: string
+  credentials: ResolvedLoginCredentials
 ): Promise<AttemptEvidence> {
   const state: AttemptState = { requests: [], sessionCookiePresent: false };
   const startedAt = new Date();
@@ -178,8 +172,12 @@ async function executeAttempt(
   activeAttempt = state;
 
   try {
-    const client = new ECNHClient({ baseUrl, logger: createEvidenceLogger(state) });
-    const result = await client.login(cpf, password);
+    const client = new ECNHClient({
+      baseUrl,
+      logger: createEvidenceLogger(state),
+      perfilEsperado: credentials.perfilEsperado
+    });
+    const result = await client.login(credentials.cpf, credentials.password);
     const durationMs = roundDuration(performance.now() - startedAtPerformance);
     const approved = isAttemptApproved(result.status, state);
 
@@ -189,11 +187,12 @@ async function executeAttempt(
 
     return {
       approved,
-      credentialsSource,
+      credentialsSource: credentials.source,
       durationMs,
       finishedAt: new Date().toISOString(),
       logoutHttpAttempted: result.status === 'sucesso',
       number,
+      perfilId: result.status === 'sucesso' ? result.session.perfilId : undefined,
       requests: state.requests,
       resultStatus: result.status,
       sessionCookiePresent: state.sessionCookiePresent,
@@ -257,7 +256,7 @@ function createRequestEvidence<T>(
     ...evidence,
     bodyBytes: body.length,
     bodySha256: createHash('sha256').update(body).digest('hex'),
-    containsAuthenticatedMarker: response.data.includes(AUTHENTICATED_PAGE_MARKER),
+    containsAuthenticatedMarker: htmlContemMarcadorAutenticado(response.data),
     containsLoginForm: response.data.includes('LoginActionForm'),
     containsProtectedForm: response.data.includes('DivisaoEquitativaForm')
   };

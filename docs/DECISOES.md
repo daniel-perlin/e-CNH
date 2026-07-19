@@ -85,4 +85,15 @@
   - lock global compartilhado entre `npm run job:agenda` e `npm run sync:agenda`;
   - `AgendaSyncJob` apenas adquire lock, chama `sincronizarProfissionais` e libera; se o lock estiver ocupado, pula e registra `warn` (sem fila);
   - wiring compartilhado em `src/composition` para evitar duplicação entre pontos de entrada.
-- **Consequência:** `AgendaSyncService`, client, parser e repositório permanecem sem conhecer cron ou arquivo de lock. Limitação: o lock de arquivo assume um único host ou volume compartilhado; cluster multi-host sem FS comum fica fora do MVP. Fases 008 e 009 não são antecipadas.
+- **Consequência:** `AgendaSyncService`, client, parser e repositório permanecem sem conhecer cron ou arquivo de lock. Limitação: o lock de arquivo assume um único host ou volume compartilhado; cluster multi-host sem FS comum fica fora do MVP. Iniciativas antigas de Painel Operacional / Observabilidade (ex-Fases 008/009) foram **descontinuadas** e removidas do backlog ativo.
+
+## ADR-014 — Perfis profissionais do portal via Strategy
+
+- **Status:** aceito
+- **Contexto:** o MVP autenticava apenas pelo marcador/método do Psicólogo; Médicos autenticados eram classificados como `erro_desconhecido`.
+- **Decisão:**
+  - introduzir `PerfilProfissionalPortal` (marcador + `method` de consulta) com registro extensível;
+  - resolver o perfil no HTML pós-login; `ECNH_USER_<n>_PROFILE` (ou `ROLE`) opcional valida/override;
+  - um único `ECNHClient` / `AgendaProtocol` parametrizado — sem subclasses nem `if/else` espalhados;
+  - propagar `perfilId` em `ResultadoSincronizacaoProfissional` (sem PII).
+- **Consequência:** Psicólogo permanece compatível sem config; Médico autentica e consulta com `consultarAgendaMedico`. Novos perfis exigem evidência + entrada no registro. Evidência sanitizada durável de Médico ainda é pendência de validação.

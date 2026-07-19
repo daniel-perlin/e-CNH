@@ -24,7 +24,19 @@ As Fases **000 a 007** constituem o **MVP do projeto**.
 
 > **Situação da Fase 007:** oficialmente `Concluída` em 19/07/2026. Daemon (`job:agenda`), `SyncLock` global e `AgendaSyncJob` validados com evidência sanitizada.
 
-O MVP do projeto foi concluído na Fase 007. Todas as evoluções futuras passam a ser gerenciadas em [docs/BACKLOG.md](BACKLOG.md).
+O MVP do projeto foi concluído na Fase 007. As melhorias incrementais B001–B005 foram registradas e concluídas no [BACKLOG](BACKLOG.md).
+
+### Evolução arquitetural em curso (foco do projeto)
+
+| Item | Status | Entrega |
+| ---- | ------ | ------- |
+| Fase 003C / **B012** — Arquitetura de perfis profissionais do portal | `Implementada` | Strategy extensível (`PerfilProfissionalPortal`); Psicólogo e Médico como primeiros perfis; expansão futura prevista; validação real Médico pendente |
+
+O objetivo desta evolução **não** é apenas “suportar Médico além de Psicólogo”, e sim permitir **novos perfis do portal** com mínimo impacto nas camadas superiores.
+
+B010 e B011 permanecem no backlog, a **reavaliar após a validação completa de B012**.
+
+Detalhes: [.fases/003c-perfis-profissionais-portal.md](../.fases/003c-perfis-profissionais-portal.md) · [BACKLOG.md](BACKLOG.md).
 
 ## Convenção de status (MVP)
 

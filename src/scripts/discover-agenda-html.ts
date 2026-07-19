@@ -7,6 +7,7 @@ import * as cheerio from 'cheerio';
 
 import { ECNHClient } from '../client/ecnh-client.js';
 import { ConfigurationError } from '../client/errors.js';
+import { htmlContemMarcadorAutenticado } from '../client/perfil-profissional-portal.js';
 import {
   listEnabledLoginCredentials,
   resolveLoginCredentials
@@ -15,7 +16,6 @@ import {
 type CheerioRoot = ReturnType<typeof cheerio.load>;
 type CheerioSelection = ReturnType<CheerioRoot>;
 
-const AUTHENTICATED_PAGE_MARKER = 'Imprimir Agenda Diária do Psicólogo';
 const EVIDENCE_DIRECTORY = 'docs/evidencias';
 const RESULT_LEGEND = 'Resultado';
 
@@ -38,7 +38,8 @@ async function main(): Promise<void> {
   const startedAt = new Date();
   const client = new ECNHClient({
     baseUrl,
-    logger: createQuietLogger()
+    logger: createQuietLogger(),
+    perfilEsperado: credentials.perfilEsperado
   });
 
   const loginResult = await client.login(credentials.cpf, credentials.password);
@@ -239,7 +240,7 @@ function inventoryAgendaHtml(html: string): HtmlInventory {
     .get();
 
   return {
-    authenticatedMarkerPresent: html.includes(AUTHENTICATED_PAGE_MARKER),
+    authenticatedMarkerPresent: htmlContemMarcadorAutenticado(html),
     fieldsetResultado,
     forms,
     legendResultadoPresent: legends.includes(RESULT_LEGEND),

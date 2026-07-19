@@ -20,7 +20,7 @@ Representa um médico ou psicólogo credenciado que possui acesso individual ao 
 | cpf                 | Identificador usado na autenticação.          | Sensível; nunca exibir em logs.                   |
 | senha               | Segredo usado no login.                       | Entrada efêmera; nunca persistir ou retornar.     |
 | clínica             | Clínica ou unidade associada ao profissional. | A confirmar conforme a fonte de dados.            |
-| função              | Papel profissional, como médico ou psicólogo. | A confirmar conforme a fonte de dados.            |
+| função              | Papel profissional no portal (`psicologo` / `medico`). | Resolvido no HTML pós-login; opcionalmente `ECNH_USER_<n>_PROFILE`. |
 | status do login     | Estado lógico da autenticação mais recente.   | Derivado de `ResultadoLogin`; não contém segredo. |
 
 ## Paciente
@@ -72,7 +72,7 @@ Representa o retorno lógico de uma tentativa de autenticação. É independente
 | erro do sistema   | A tentativa falhou por condição conhecida do portal ou infraestrutura. |
 | erro desconhecido | A tentativa não pôde ser classificada com segurança.                   |
 
-**Evidência confirmada:** sucesso é validado pela presença conjunta de `JSESSIONID` e do marcador HTML pós-login documentado em `API.md`.
+**Evidência confirmada:** sucesso é validado pela presença conjunta de `JSESSIONID` e de um marcador HTML de perfil conhecido (Psicólogo ou Médico). O `perfilId` entra na sessão autenticada e no resultado de sincronização.
 
 **Pendência de validação:** os sinais HTTP/HTML de senha inválida e usuário bloqueado ainda não foram observados e não devem ser presumidos. Na ausência dos sinais confirmados de sucesso, o MVP retorna `erro desconhecido`.
 

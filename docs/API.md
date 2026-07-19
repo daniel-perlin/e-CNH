@@ -29,7 +29,7 @@ POST /gefor/SGU/login.do • method=autenticar
 | Parâmetros observados    | `method=autenticar`, `novaSenha=`, `novaSenha1=`, `alteraSenha=false`, `idGrupoUsuario=-1`, `idCFC=`, `idUnidTransito=-1`, `msgPublicacao=`, `consultaAgenda=true`, `autenticadoCyberark=false`, `codigo=<cpf>`, `senha=<senha>` |
 | Resposta                 | HTML completo, não JSON                                                                                                                                                                                                          |
 | Estilo de integração     | SSR e navegação por formulários HTML tradicionais                                                                                                                                                                                |
-| Página após autenticação | contém "Imprimir Agenda Diária do Psicólogo"                                                                                                                                                                                     |
+| Página após autenticação | contém marcador do perfil (`... do Psicólogo` ou `... do Médico`)                                                                                              |
 
 O cliente reproduz as três etapas, os corpos URL-encoded e a ordem observada. Consulte a [evidência HAR](EVIDENCIA_HAR_AUTENTICACAO.md).
 
@@ -74,7 +74,7 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 | Página protegida inicial  | —          | (resposta do `method=autenticar`)            | —                                                                                       | HTML com `DivisaoEquitativaForm`  | Fato observado |
 | Refresh de profissionais  | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=refreshMedicosByUnidadeTransito`, `idUnidadeTransitoConsulta`                   | JSON `[{ value, label }]`         | Fato observado |
 | Refresh de datas          | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=refreshAgendaMedicaByMedico`, `idUsuarioMedicoConsulta`, `dataReferencia`       | JSON `[{ value, label }]`         | Fato observado |
-| Consulta de agenda        | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=consultarAgendaPsicologo`, unidade, usuário, `dataReferencia`, `data`           | HTML com legend `Resultado`       | Fato observado |
+| Consulta de agenda        | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=consultarAgendaPsicologo` ou `consultarAgendaMedico`, unidade, usuário, datas | HTML com legend `Resultado`       | Fato observado |
 | Logout                    | `GET`      | `/gefor/SGU/login.do?method=finalizarLogin`  | `method=finalizarLogin`                                                                 | HTML de login                     | Fato observado |
 
 ## Navegação e HTML
@@ -103,8 +103,8 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 
 | Caso | Comportamento | Estado no sistema | Backlog | Impacto observado |
 | ---- | ------------- | ----------------- | ------- | ----------------- |
-| Sessão já autenticada | Popup pedindo encerrar a sessão anterior antes de autenticar | Não tratado | B010 | Bloqueia sync do Italo |
-| Múltiplas unidades | Tela "Escolha de Perfil e/ou Visão" (Caio → CIR-SAO PAULO → ENVIAR) | Não tratado | B011 | Bloqueia sync do Caio |
+| Sessão já autenticada | Popup pedindo encerrar a sessão anterior antes de autenticar | Não tratado | B010 (reavaliar após B012) | Bloqueia sync do Italo |
+| Múltiplas unidades | Tela "Escolha de Perfil e/ou Visão" (Caio → CIR-SAO PAULO → ENVIAR) | Não tratado | B011 (reavaliar após B012) | Bloqueia sync do Caio |
 
 Não inferir endpoints, payloads ou seletores destes fluxos até nova descoberta autorizada com evidência HTTP.
 
@@ -112,11 +112,13 @@ Não inferir endpoints, payloads ou seletores destes fluxos até nova descoberta
 
 O `ECNHClient` implementa a sequência GET → POST → POST confirmada no HAR. Os dois POSTs usam `Content-Type` URL-encoded. `tough-cookie`, `HttpCookieAgent` e `HttpsCookieAgent` preservam o mesmo CookieJar e os mesmos agentes entre as três requisições.
 
-O login só é classificado como sucesso quando os dois sinais confirmados estão presentes: cookie `JSESSIONID` e o marcador HTML "Imprimir Agenda Diária do Psicólogo". Ausência desses sinais é retornada como `erro desconhecido`; senha inválida e usuário bloqueado continuam sem mapeamento porque seus sinais HTTP/HTML não foram confirmados.
+O login só é classificado como sucesso quando há cookie `JSESSIONID` e o marcador HTML de um perfil conhecido do registro (`Imprimir Agenda Diária do Psicólogo` ou `... do Médico`). Ausência desses sinais é retornada como `erro desconhecido`; senha inválida e usuário bloqueado continuam sem mapeamento porque seus sinais HTTP/HTML não foram confirmados.
 
 O CPF é normalizado para `DDD.DDD.DDD-DD` na fronteira de autenticação, conforme o HAR.
 
 O logout envia `GET /gefor/SGU/login.do?method=finalizarLogin`, conforme o item "Sair" de `/gefor/global/menu_items.jsp`, e em seguida descarta a sessão local.
+
+`obterHtmlAgenda` usa o `method` do perfil resolvido (`consultarAgendaPsicologo` ou `consultarAgendaMedico`). Opcionalmente, `ECNH_USER_<n>_PROFILE` (ou `ROLE`) valida o perfil esperado contra o HTML. Ver ADR-014 e a Fase 003C.
 
 ## Validação reproduzível da Fase 003A em 19/07/2026
 
@@ -138,7 +140,7 @@ Critério, comando e limitações estão em [VALIDACAO_REPRODUZIVEL_003A.md](VAL
 O `ECNHClient` preserva o HTML autenticado após o login e expõe:
 
 - `listarDatasAgendamento()` — lê opções `DD/MM/YYYY` do select pós-login;
-- `obterHtmlAgenda({ data, dataReferencia })` — envia o POST `consultarAgendaPsicologo` e devolve o HTML bruto.
+- `obterHtmlAgenda({ data, dataReferencia })` — envia o POST do method do perfil resolvido e devolve o HTML bruto.
 
 Não há parser de pacientes nesta fase. Comandos: `npm run discover:agenda`, `npm run test:agenda`, `npm run validate:agenda`.
 

@@ -9,12 +9,12 @@ import * as cheerio from 'cheerio';
 
 import { AuthTransport } from '../client/auth-transport.js';
 import { ConfigurationError } from '../client/errors.js';
+import { htmlContemMarcadorAutenticado } from '../client/perfil-profissional-portal.js';
 import { SessionManager } from '../client/session-manager.js';
 import { resolveLoginCredentials, listEnabledLoginCredentials } from '../config/login-credentials.js';
 import { StructuredLogger } from '../types/logger.js';
 import { formatCpfForPortal } from '../utils/cpf.js';
 
-const AUTHENTICATED_PAGE_MARKER = 'Imprimir Agenda Diária do Psicólogo';
 const EVIDENCE_DIRECTORY = 'docs/evidencias';
 const INITIAL_LOGIN_PATH = '/gefor/SGU/login.do?method=iniciarLogin';
 const LOGIN_PATH = '/gefor/SGU/login.do';
@@ -358,7 +358,7 @@ async function performLogin(
   });
 
   const hasSessionCookie = await transport.hasCookie(SESSION_COOKIE_NAME);
-  return hasSessionCookie && response.data.includes(AUTHENTICATED_PAGE_MARKER);
+  return hasSessionCookie && htmlContemMarcadorAutenticado(response.data);
 }
 
 function findLogoutCandidates(html: string): LogoutCandidate[] {
@@ -814,7 +814,7 @@ async function probeCandidate(
       candidate,
       containsAuthenticatedMarker:
         typeof response.data === 'string'
-          ? response.data.includes(AUTHENTICATED_PAGE_MARKER)
+          ? htmlContemMarcadorAutenticado(response.data)
           : undefined,
       containsLoginForm:
         typeof response.data === 'string' ? response.data.includes('LoginActionForm') : undefined,

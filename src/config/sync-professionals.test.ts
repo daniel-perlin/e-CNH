@@ -44,6 +44,41 @@ describe('resolveEnabledSyncProfessionals', () => {
     assert.equal(profissionais[0]?.nome, 'Profissional Beta');
   });
 
+  it('mapeia PROFILE ou ROLE opcional para perfilEsperado', () => {
+    const comProfile = resolveEnabledSyncProfessionals({
+      ECNH_USER_1_ENABLED: 'true',
+      ECNH_USER_1_NAME: 'Alpha',
+      ECNH_USER_1_CPF: '111.111.111-11',
+      ECNH_USER_1_PASSWORD: 'a',
+      ECNH_USER_1_PROFILE: 'medico'
+    });
+    assert.equal(comProfile[0]?.perfilEsperado, 'medico');
+
+    const comRole = resolveEnabledSyncProfessionals({
+      ECNH_USER_2_ENABLED: 'true',
+      ECNH_USER_2_NAME: 'Beta',
+      ECNH_USER_2_CPF: '222.222.222-22',
+      ECNH_USER_2_PASSWORD: 'b',
+      ECNH_USER_2_ROLE: 'Psicologo'
+    });
+    assert.equal(comRole[0]?.perfilEsperado, 'psicologo');
+  });
+
+  it('falha com PROFILE inválido', () => {
+    assert.throws(
+      () =>
+        resolveEnabledSyncProfessionals({
+          ECNH_USER_1_ENABLED: 'true',
+          ECNH_USER_1_NAME: 'Alpha',
+          ECNH_USER_1_CPF: '111.111.111-11',
+          ECNH_USER_1_PASSWORD: 'a',
+          ECNH_USER_1_PROFILE: 'dentista'
+        }),
+      (error: unknown) =>
+        error instanceof ConfigurationError && error.message.includes('PROFILE/ROLE inválido')
+    );
+  });
+
   it('falha quando ENABLED=true sem configuração obrigatória', () => {
     assert.throws(
       () =>

@@ -94,11 +94,16 @@ Esse MVP corresponde, no roadmap técnico, às **Fases 000 a 007**. O MVP foi **
 
 ## Evolução pós-MVP
 
-O produto principal já está concluído. Não existem mais fases obrigatórias do MVP.
+O produto principal (MVP) já está concluído. Não existem mais fases obrigatórias do MVP.
 
-Melhorias futuras — incrementais ou estratégicas — passam a ser controladas exclusivamente pelo catálogo em [BACKLOG.md](BACKLOG.md). Novas funcionalidades **deixam de seguir** a estrutura rígida de fases do MVP (`Planejada` → `Implementada` → `Validada` → `Concluída`).
+A evolução do produto ocorre em duas frentes documentadas no [BACKLOG.md](BACKLOG.md):
 
-Itens do backlog são **Nice to Have**: não são necessários para o funcionamento do sistema.
+1. **Melhorias incrementais (B001–B005)** — já concluídas; refinaram o produto operacional (normalização, cadastro ativo, etc.).
+2. **Evolução arquitetural (foco atual: B012)** — a fronteira do portal passa a admitir **múltiplos perfis profissionais** (Psicólogo, Médico e perfis futuros), com mínimo impacto nas demais camadas. O objetivo **não** é apenas cobrir Médico e Psicólogo, e sim permitir expansão com registro de perfis.
+
+Limitações operacionais de homologação (**B010**, **B011**) permanecem no backlog e devem ser **reavaliadas após a validação completa de B012**.
+
+Itens antigos de Painel Operacional / Observabilidade foram **removidos do escopo do produto**.
 
 ## Arquitetura funcional (alto nível)
 
@@ -156,7 +161,7 @@ Os itens abaixo **não fazem parte** deste produto, salvo decisão explícita fu
 | Notificações a pacientes (SMS, e-mail, WhatsApp)              | Fora da cadeia de valor da consolidação de agenda                        |
 | Edição ou cancelamento de agendamentos no portal              | Somente leitura e sincronização                                          |
 | Armazenamento persistente de senhas ou cookies no repositório | Proibido por segurança e governança do projeto                           |
-| Inferência de endpoints, campos ou contratos sem evidência    | Engenharia reversa autorizada precede implementação                      |
+| Painel operacional / observabilidade avançada na planilha   | Removidos do escopo do produto (ex-B006–B009)              |
 
 ---
 

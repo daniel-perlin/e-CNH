@@ -1,10 +1,16 @@
 import { ConfigurationError } from '../client/errors.js';
+import {
+  type PerfilProfissionalId,
+  parsePerfilProfissionalId
+} from '../client/perfil-profissional-portal.js';
 
 import { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
 
 export interface ResolvedLoginCredentials {
   cpf: string;
   password: string;
+  /** Perfil opcional (`PROFILE`/`ROLE`) para validação cruzada no login. */
+  perfilEsperado?: PerfilProfissionalId;
   source: string;
 }
 
@@ -51,6 +57,7 @@ export function resolveLoginCredentials(
     return {
       cpf: cpf.trim(),
       password,
+      perfilEsperado: resolvePerfilEsperadoEnv(env, index),
       source: `ECNH_USER_${index}`
     };
   }
@@ -87,6 +94,7 @@ export function listEnabledLoginCredentials(
     users.push({
       cpf: cpf.trim(),
       password,
+      perfilEsperado: resolvePerfilEsperadoEnv(env, index),
       source: `ECNH_USER_${index}`
     });
   }
@@ -126,6 +134,27 @@ function readUserCredentials(
   return {
     cpf,
     password,
+    perfilEsperado: resolvePerfilEsperadoEnv(env, index),
     source: `ECNH_USER_${index}`
   };
+}
+
+function resolvePerfilEsperadoEnv(
+  env: NodeJS.ProcessEnv,
+  index: number
+): PerfilProfissionalId | undefined {
+  const profileRaw = env[`ECNH_USER_${index}_PROFILE`];
+  const roleRaw = env[`ECNH_USER_${index}_ROLE`];
+  const raw = profileRaw !== undefined && profileRaw.trim().length > 0 ? profileRaw : roleRaw;
+  if (raw === undefined || raw.trim().length === 0) {
+    return undefined;
+  }
+
+  const parsed = parsePerfilProfissionalId(raw);
+  if (parsed === undefined) {
+    throw new ConfigurationError(
+      `ECNH_USER_${index}_PROFILE/ROLE inválido: use psicologo ou medico.`
+    );
+  }
+  return parsed;
 }

@@ -1,4 +1,5 @@
 import type { ECNHClient } from '../client/ecnh-client.js';
+import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
 import type {
   ContextoExtracaoAgenda,
   MotivoFalhaExtracaoAgenda,
@@ -19,13 +20,15 @@ void _ecnhClientCompativelComPorta;
 
 /**
  * Porta mínima do portal e-CNH para a orquestração.
- * `ECNHClient` satisfaz este contrato sem alteração.
+ * `ECNHClient` satisfaz este contrato sem alteração estrutural.
  */
 export interface AgendaSyncPortalClient {
   listarDatasAgendamento(): string[];
   login(cpf: string, password: string): Promise<LoginResult>;
   logout(): Promise<void>;
   obterHtmlAgenda(params: { data: string; dataReferencia: string }): Promise<string>;
+  /** Opcional: perfil resolvido após login (ECNHClient implementa). */
+  obterPerfilPortal?(): PerfilProfissionalId | undefined;
 }
 
 /** Parser HTML → domínio injetável (`parseAgendaHtml`). */
@@ -50,6 +53,11 @@ export interface EntradaSincronizacaoProfissional {
   identificadorSeguro: string;
   /** Senha usada apenas no login. */
   password: string;
+  /**
+   * Perfil esperado opcional; quando a fábrica cria o client, deve ser repassado
+   * via `ECNHClientOptions.perfilEsperado`. A detecção efetiva ocorre no HTML.
+   */
+  perfilEsperado?: PerfilProfissionalId;
   /** Nome gravado na coluna Profissional da planilha. */
   profissional: string;
 }
@@ -74,6 +82,8 @@ export interface ResultadoSincronizacaoProfissional {
   loginStatus?: LoginResult['status'];
   /** Indica se `logout` foi executado (mesmo após falha parcial). */
   logoutExecutado: boolean;
+  /** Perfil de portal resolvido no login (sem PII). */
+  perfilId?: PerfilProfissionalId;
   sucesso: boolean;
 }
 
@@ -87,9 +97,11 @@ export interface ResultadoSincronizacao {
 export interface AgendaSyncServiceOptions {
   /**
    * Cliente do portal ou fábrica de clientes.
-   * A fábrica permite uma sessão por profissional no loop multi-profissional.
+   * A fábrica recebe a entrada do profissional (para `perfilEsperado` etc.).
    */
-  client: AgendaSyncPortalClient | (() => AgendaSyncPortalClient);
+  client:
+    | AgendaSyncPortalClient
+    | ((entrada: EntradaSincronizacaoProfissional) => AgendaSyncPortalClient);
   agendaRepository: AgendaRepository;
   logger?: StructuredLogger;
   parseAgendaHtml: AgendaSyncHtmlParser;
@@ -101,7 +113,9 @@ export interface AgendaSyncServiceOptions {
  */
 export class AgendaSyncService {
   private readonly agendaRepository: AgendaRepository;
-  private readonly client: AgendaSyncPortalClient | (() => AgendaSyncPortalClient);
+  private readonly client:
+    | AgendaSyncPortalClient
+    | ((entrada: EntradaSincronizacaoProfissional) => AgendaSyncPortalClient);
   private readonly logger: StructuredLogger | undefined;
   private readonly parseAgendaHtml: AgendaSyncHtmlParser;
 
@@ -119,7 +133,7 @@ export class AgendaSyncService {
   public async sincronizarProfissional(
     entrada: EntradaSincronizacaoProfissional
   ): Promise<ResultadoSincronizacaoProfissional> {
-    const client = this.resolveClient();
+    const client = this.resolveClient(entrada);
     const resultado: ResultadoSincronizacaoProfissional = {
       datas: [],
       identificadorSeguro: entrada.identificadorSeguro,
@@ -147,6 +161,9 @@ export class AgendaSyncService {
         );
         return resultado;
       }
+
+      resultado.perfilId =
+        loginResult.session.perfilId ?? client.obterPerfilPortal?.() ?? undefined;
 
       const datasDisponiveis = client.listarDatasAgendamento();
       const datasParaSincronizar = selecionarDatas(datasDisponiveis, entrada.datas);
@@ -217,8 +234,8 @@ export class AgendaSyncService {
     return { profissionais, sucessoGeral };
   }
 
-  private resolveClient(): AgendaSyncPortalClient {
-    return typeof this.client === 'function' ? this.client() : this.client;
+  private resolveClient(entrada: EntradaSincronizacaoProfissional): AgendaSyncPortalClient {
+    return typeof this.client === 'function' ? this.client(entrada) : this.client;
   }
 
   private async sincronizarData(

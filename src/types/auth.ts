@@ -1,3 +1,5 @@
+import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
+
 export interface LoginCredentials {
   cpf: string;
   password: string;
@@ -5,6 +7,8 @@ export interface LoginCredentials {
 
 export interface AuthenticatedSession {
   authenticatedAt: Date;
+  /** Perfil de portal resolvido no login (sem PII). */
+  perfilId: PerfilProfissionalId;
 }
 
 export type LoginResult =

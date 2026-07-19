@@ -10,7 +10,10 @@ async function main(): Promise<void> {
   }
 
   const credentials = resolveLoginCredentials();
-  const client = new ECNHClient({ baseUrl });
+  const client = new ECNHClient({
+    baseUrl,
+    perfilEsperado: credentials.perfilEsperado
+  });
   const result = await client.login(credentials.cpf, credentials.password);
 
   if (result.status !== 'sucesso') {
@@ -19,7 +22,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log(`Autenticação confirmada (${credentials.source}); sessão mantida no CookieJar.`);
+  console.log(
+    `Autenticação confirmada (${credentials.source}, perfil=${result.session.perfilId}); sessão mantida no CookieJar.`
+  );
   await client.logout();
   console.log('Logout HTTP (method=finalizarLogin) enviado e sessão local encerrada.');
 }

@@ -2,12 +2,16 @@ import * as cheerio from 'cheerio';
 
 import { AuthTransport } from './auth-transport.js';
 import { ConfigurationError } from './errors.js';
+import {
+  type PerfilProfissionalPortal,
+  perfilPsicologo
+} from './perfil-profissional-portal.js';
 
 const DIVISAO_PATH = '/gefor/GFR/divisao/divisaoEquitativa.do';
 const LOGIN_PATH = '/gefor/SGU/login.do';
-const CONSULT_METHOD = 'consultarAgendaPsicologo';
 
-export interface ConsultarAgendaPsicologoParams {
+/** Parâmetros da consulta de agenda diária (independente do perfil). */
+export interface ConsultarAgendaParams {
   /** Data de agendamento no formato `DD/MM/YYYY`, conforme o select `#agendamentos`. */
   data: string;
   /**
@@ -17,35 +21,41 @@ export interface ConsultarAgendaPsicologoParams {
   dataReferencia: string;
 }
 
+/** @deprecated Use `ConsultarAgendaParams`. Mantido para compatibilidade. */
+export type ConsultarAgendaPsicologoParams = ConsultarAgendaParams;
+
 /**
- * Protocolo HTTP confirmado para consulta da agenda diária do psicólogo.
- *
- * Evidência: POST `method=consultarAgendaPsicologo` em
- * `/gefor/GFR/divisao/divisaoEquitativa.do`, a partir do formulário
- * `DivisaoEquitativaForm` devolvido no HTML autenticado.
+ * Protocolo HTTP da consulta de agenda diária.
+ * O `method` Struts vem do `PerfilProfissionalPortal` resolvido no login.
  */
 export class ECNHAgendaProtocol {
-  public async consultarAgendaPsicologo(
+  public async consultarAgenda(
     transport: AuthTransport,
     postLoginHtml: string,
-    params: ConsultarAgendaPsicologoParams
+    perfil: PerfilProfissionalPortal,
+    params: ConsultarAgendaParams
   ): Promise<string> {
     const data = params.data.trim();
     const dataReferencia = params.dataReferencia.trim();
 
     if (!isSlashDate(data)) {
       throw new ConfigurationError(
-        'consultarAgendaPsicologo requer data de agendamento no formato DD/MM/YYYY.'
+        'consultarAgenda requer data de agendamento no formato DD/MM/YYYY.'
       );
     }
 
     if (!isSlashDate(dataReferencia) && !isCompactDate(dataReferencia)) {
       throw new ConfigurationError(
-        'consultarAgendaPsicologo requer dataReferencia no formato DD/MM/YYYY ou DDMMYYYY.'
+        'consultarAgenda requer dataReferencia no formato DD/MM/YYYY ou DDMMYYYY.'
       );
     }
 
-    const payload = buildConsultationPayload(postLoginHtml, data, dataReferencia);
+    const payload = buildConsultationPayload(
+      postLoginHtml,
+      perfil.methodConsultarAgenda,
+      data,
+      dataReferencia
+    );
     const origin = new URL(transport.resolveUrl(LOGIN_PATH)).origin;
 
     const response = await transport.request<string>({
@@ -61,6 +71,17 @@ export class ECNHAgendaProtocol {
     });
 
     return response.data;
+  }
+
+  /**
+   * @deprecated Use `consultarAgenda` com perfil resolvido.
+   */
+  public async consultarAgendaPsicologo(
+    transport: AuthTransport,
+    postLoginHtml: string,
+    params: ConsultarAgendaParams
+  ): Promise<string> {
+    return this.consultarAgenda(transport, postLoginHtml, perfilPsicologo, params);
   }
 
   /**
@@ -84,6 +105,7 @@ export class ECNHAgendaProtocol {
 
 function buildConsultationPayload(
   postLoginHtml: string,
+  consultMethod: string,
   data: string,
   dataReferencia: string
 ): URLSearchParams {
@@ -120,7 +142,7 @@ function buildConsultationPayload(
   }
 
   return new URLSearchParams([
-    ['method', CONSULT_METHOD],
+    ['method', consultMethod],
     ['idUnidadeTransitoConsulta', idUnidade],
     ['idUsuarioMedicoConsulta', idUsuario],
     ['dataReferencia', dataReferencia],

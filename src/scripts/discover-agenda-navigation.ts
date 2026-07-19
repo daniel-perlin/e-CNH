@@ -9,6 +9,7 @@ import * as cheerio from 'cheerio';
 
 import { AuthTransport } from '../client/auth-transport.js';
 import { ConfigurationError } from '../client/errors.js';
+import { htmlContemMarcadorAutenticado } from '../client/perfil-profissional-portal.js';
 import { SessionManager } from '../client/session-manager.js';
 import {
   listEnabledLoginCredentials,
@@ -17,7 +18,6 @@ import {
 import { StructuredLogger } from '../types/logger.js';
 import { formatCpfForPortal } from '../utils/cpf.js';
 
-const AUTHENTICATED_PAGE_MARKER = 'Imprimir Agenda Diária do Psicólogo';
 const EVIDENCE_DIRECTORY = 'docs/evidencias';
 const INITIAL_LOGIN_PATH = '/gefor/SGU/login.do?method=iniciarLogin';
 const LOGIN_PATH = '/gefor/SGU/login.do';
@@ -450,7 +450,7 @@ async function performLogin(
   });
 
   const hasSessionCookie = await transport.hasCookie(SESSION_COOKIE_NAME);
-  return hasSessionCookie && response.data.includes(AUTHENTICATED_PAGE_MARKER);
+  return hasSessionCookie && htmlContemMarcadorAutenticado(response.data);
 }
 
 function inventoryForms(html: string): FormInventory[] {
@@ -907,7 +907,7 @@ function buildStructuralSignals(html: string): StructuralSignals {
     .filter((value) => value.length > 0);
 
   return {
-    authenticatedMarkerPresent: html.includes(AUTHENTICATED_PAGE_MARKER),
+    authenticatedMarkerPresent: htmlContemMarcadorAutenticado(html),
     dateOptionCount,
     formNames: [...new Set(formNames)],
     htmlBytes: Buffer.byteLength(html, 'latin1'),

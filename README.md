@@ -2,22 +2,25 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto consulta as agendas dos profissionais e mantém na aba `Agenda` apenas os **pacientes com agendamento ativo** (hoje ou futuro).
 
-> **Fase atual:** 007 — Agendamento automático (cron) (`Concluída`). Daemon `job:agenda` + lock global + `sync:agenda`. MVP do produto concluído. Evoluções futuras em [docs/BACKLOG.md](docs/BACKLOG.md).
+> **Foco atual:** B012 — Arquitetura de perfis profissionais do portal (`Implementada` no código; validação pendente). Ver [docs/BACKLOG.md](docs/BACKLOG.md).
+>
+> **MVP:** concluído na Fase 007 (daemon `job:agenda` + lock + `sync:agenda`).
 
 ## Estado do Projeto
 
 - **MVP concluído** (Fases 000–007)
 - **Sistema operacional** (sincronização sob demanda e agendada)
+- **Etapa atual:** evolução arquitetural para **múltiplos perfis profissionais do portal** (B012) — não limitada a Médico/Psicólogo; preparada para perfis futuros
 - **Aba Agenda:** cadastro de pacientes ativos (CPF único; remove datas passadas automaticamente)
-- **Evoluções futuras** registradas em [docs/BACKLOG.md](docs/BACKLOG.md) (Nice to Have; sem fases obrigatórias após a 007)
+- **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005 foram incrementais; B010/B011 pendentes de reavaliação após B012
 
 ## Leitura recomendada
 
 - [Visão do produto](docs/VISAO_DO_PRODUTO.md) — objetivo, usuários, fluxo operacional, MVP, escopo e evolução pós-MVP
 - [Arquitetura](docs/ARQUITETURA.md) — camadas técnicas, responsabilidades e limites de integração
-- [Roadmap](docs/ROADMAP.md) — construção do MVP (Fases 000–007)
-- [Backlog](docs/BACKLOG.md) — evoluções futuras (incrementais e estratégicas)
-- [Limitações conhecidas do portal (homologação)](docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) — sessão já autenticada e escolha de Perfil/Visão (B010/B011; sem automação)
+- [Roadmap](docs/ROADMAP.md) — construção do MVP (Fases 000–007) e evolução B012
+- [Backlog](docs/BACKLOG.md) — foco atual B012; catálogo pós-MVP
+- [Limitações conhecidas do portal (homologação)](docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) — sessão já autenticada e escolha de unidade (B010/B011; reavaliar após B012)
 - [Diagnóstico da autenticação HTTP](docs/DIAGNOSTICO_AUTENTICACAO_HTTP.md) — hipóteses, evidências pendentes e plano para validar a Fase 003A
 - [Matriz de divergências da autenticação](docs/MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md) — comparação detalhada entre navegador e `ECNHClient`
 - [Auditoria do POST `method=autenticar`](docs/AUDITORIA_POST_AUTENTICAR.md) — payload, headers, cookies, redirects e charset produzidos pelo cliente

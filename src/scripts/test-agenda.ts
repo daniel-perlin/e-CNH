@@ -11,7 +11,10 @@ async function main(): Promise<void> {
   }
 
   const credentials = resolveLoginCredentials();
-  const client = new ECNHClient({ baseUrl });
+  const client = new ECNHClient({
+    baseUrl,
+    perfilEsperado: credentials.perfilEsperado
+  });
 
   const loginResult = await client.login(credentials.cpf, credentials.password);
   console.log(`login=${loginResult.status}`);
@@ -19,6 +22,8 @@ async function main(): Promise<void> {
     process.exitCode = 1;
     return;
   }
+
+  console.log(`perfilId=${loginResult.session.perfilId}`);
 
   try {
     const dates = client.listarDatasAgendamento();

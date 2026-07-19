@@ -7,12 +7,12 @@ import * as cheerio from 'cheerio';
 
 import { ECNHClient } from '../client/ecnh-client.js';
 import { ConfigurationError } from '../client/errors.js';
+import { htmlContemMarcadorAutenticado } from '../client/perfil-profissional-portal.js';
 import {
   listEnabledLoginCredentials,
   resolveLoginCredentials
 } from '../config/login-credentials.js';
 
-const AUTHENTICATED_PAGE_MARKER = 'Imprimir Agenda Diária do Psicólogo';
 const EVIDENCE_DIRECTORY = 'docs/evidencias';
 const EXPECTED_RESULT_HEADERS = [
   'Hora',
@@ -78,7 +78,8 @@ async function main(): Promise<void> {
   const startedAt = new Date();
   const client = new ECNHClient({
     baseUrl,
-    logger: createQuietLogger()
+    logger: createQuietLogger(),
+    perfilEsperado: credentials.perfilEsperado
   });
 
   const loginResult = await client.login(credentials.cpf, credentials.password);
@@ -206,7 +207,7 @@ function inspectAgendaHtml(html: string): StructuralSignals {
     .get();
 
   return {
-    authenticatedMarkerPresent: html.includes(AUTHENTICATED_PAGE_MARKER),
+    authenticatedMarkerPresent: htmlContemMarcadorAutenticado(html),
     expectedHeadersPresent: missingHeaders.length === 0,
     legendResultadoPresent: legends.includes('Resultado'),
     loginFormPresent: html.includes('LoginActionForm'),

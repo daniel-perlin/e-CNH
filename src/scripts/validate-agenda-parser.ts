@@ -31,7 +31,8 @@ async function main(): Promise<void> {
   const startedAt = new Date();
   const client = new ECNHClient({
     baseUrl,
-    logger: createQuietLogger()
+    logger: createQuietLogger(),
+    perfilEsperado: credentials.perfilEsperado
   });
 
   const loginResult = await client.login(credentials.cpf, credentials.password);

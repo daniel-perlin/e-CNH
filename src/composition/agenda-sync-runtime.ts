@@ -56,10 +56,11 @@ export function criarAgendaSyncRuntime(
   const logger = options.logger;
   const service = new AgendaSyncService({
     agendaRepository,
-    client: () =>
+    client: (entrada) =>
       new ECNHClient({
         baseUrl,
-        logger
+        logger,
+        perfilEsperado: entrada.perfilEsperado
       }),
     logger,
     parseAgendaHtml

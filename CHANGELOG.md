@@ -2,14 +2,88 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Fase 007 — Agendamento automático (cron) (`Concluída`) — MVP concluído  
-> **Próxima fase:** sem fase obrigatória; evoluções em `docs/BACKLOG.md`  
-> **Última atualização:** 2026-07-19 13:26 BRT  
-> **Última sessão executada:** 19/07/2026 • 13:26 — Limitações B010/B011 e reteste Italo
+> **Fase atual:** B012 — Arquitetura de perfis profissionais do portal (`Implementada`; validação pendente)  
+> **Próxima prioridade:** validar Médico e concluir B012; reavaliar B010/B011 depois  
+> **Última atualização:** 2026-07-19 14:30 BRT  
+> **Última sessão executada:** 19/07/2026 • 14:30 — Limpeza do backlog e foco em B012
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 14:30
+
+### 🎯 Objetivo
+
+Limpar e reorganizar o backlog e a documentação, com B012 como foco arquitetural do projeto.
+
+### ✅ O que mudou
+
+- Removidos do escopo/catálogo ativo: B006–B009 (Painel / Observabilidade).
+- B012 reposicionado como foco atual: “Arquitetura de perfis profissionais do portal”.
+- B010 e B011 mantidos, com reavaliação explícita após validação de B012.
+- Fases 008/009 marcadas como `Descontinuada`.
+- README, ROADMAP, ARQUITETURA, VISÃO e documentos de homologação alinhados.
+
+### 🧠 Decisões
+
+- Painel operacional e observabilidade avançada saem do produto.
+- B001–B005 = melhorias incrementais concluídas; etapa atual = evolução arquitetural multi-perfil.
+- Nenhuma implementação de código nesta sessão.
+
+### 📂 Arquivos impactados
+
+- `docs/BACKLOG.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md`
+- `docs/API.md`
+- `docs/FLUXO_HTTP.md`
+- `docs/DECISOES.md`
+- `.fases/003c-perfis-profissionais-portal.md`
+- `.fases/008-painel-operacional.md`
+- `.fases/009-observabilidade-metricas.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 14:20
+
+### 🎯 Objetivo
+
+Implementar a proposta aprovada de perfis profissionais extensíveis no portal (Psicólogo/Médico), sem if/else espalhados.
+
+### ✅ O que mudou
+
+- Criados `PerfilProfissionalPortal`, registro e resolução por marcador HTML.
+- Auth e agenda passam a usar o perfil resolvido (`consultarAgendaPsicologo` / `consultarAgendaMedico`).
+- `PROFILE`/`ROLE` opcional na config; fábrica do sync repassa `perfilEsperado`.
+- `perfilId` propagado em `ResultadoSincronizacaoProfissional`.
+- Documentados ADR-014, Fase 003C, B012 e `.env.example`.
+
+### 🧠 Decisões
+
+- Strategy + registro (ADR-014); resolução híbrida HTML + PROFILE opcional.
+- Fase 003C / B012; status `Implementada` até evidência sanitizada de Médico.
+- Parser/Sheets inalterados na estrutura.
+
+### 📂 Arquivos impactados
+
+- `src/client/perfil-profissional-portal.ts`
+- `src/client/ecnh-auth-protocol.ts`
+- `src/client/ecnh-agenda-protocol.ts`
+- `src/client/ecnh-client.ts`
+- `src/config/sync-professionals.ts`
+- `src/config/login-credentials.ts`
+- `src/services/agenda-sync-service.ts`
+- `src/composition/agenda-sync-runtime.ts`
+- `.fases/003c-perfis-profissionais-portal.md`
+- `docs/DECISOES.md`, `docs/BACKLOG.md`, `docs/ROADMAP.md`, `docs/API.md`
+- `CHANGELOG.md`, `.env.example`
 
 ---
 
