@@ -1,6 +1,6 @@
 # Visão do produto
 
-Este documento descreve o **e-CNH** do ponto de vista funcional: problema, usuários, fluxo operacional, escopo e evolução. Para detalhes técnicos de integração, consulte [ARQUITETURA.md](ARQUITETURA.md), [API.md](API.md) e [ROADMAP.md](ROADMAP.md).
+Este documento descreve o **e-CNH** do ponto de vista funcional: problema, usuários, fluxo operacional, escopo e evolução. Para detalhes técnicos de integração, consulte [ARQUITETURA.md](ARQUITETURA.md), [API.md](API.md) e [ROADMAP.md](ROADMAP.md). Melhorias futuras: [BACKLOG.md](BACKLOG.md).
 
 ## Objetivo do projeto
 
@@ -88,7 +88,15 @@ A **primeira versão útil para o operador administrativo** ocorrerá quando o s
 4. escrever ou atualizar a aba `Agenda` na planilha;
 5. executar o fluxo de forma repetível (manual ou agendada).
 
-Esse MVP corresponde, no roadmap técnico, à conclusão das **Fases 003B a 005** para um profissional, seguida da **Fase 006** (orquestração multi-profissionais) e, por fim, da **Fase 007** (agendamento automático).
+Esse MVP corresponde, no roadmap técnico, às **Fases 000 a 007**. O MVP foi **oficialmente concluído** na Fase 007: o produto principal está entregue e o sistema está operacional.
+
+## Evolução pós-MVP
+
+O produto principal já está concluído. Não existem mais fases obrigatórias do MVP.
+
+Melhorias futuras — incluindo as antigas Fases 008 e 009 e quaisquer novas funcionalidades — passam a ser controladas pelo catálogo oficial em [BACKLOG.md](BACKLOG.md). Novas funcionalidades **deixam de seguir** a estrutura rígida de fases do MVP (`Planejada` → `Implementada` → `Validada` → `Concluída`).
+
+Itens do backlog são **Nice to Have**: não são necessários para o funcionamento do sistema.
 
 ## Arquitetura funcional (alto nível)
 
@@ -121,32 +129,6 @@ Visão orientada a **capacidades**, não a bibliotecas ou pastas de código:
 
 Para o desenho técnico das camadas, consulte [ARQUITETURA.md](ARQUITETURA.md).
 
-## Evoluções pós-MVP (Nice to Have)
-
-> **Limite do MVP:** o MVP do projeto termina na Fase 007. As Fases 008 e 009 **não** fazem parte do MVP, **não** são pré-requisitos para o sistema funcional e permanecem **estacionadas (`Backlog` / parked)** até a conclusão da Fase 007 e nova priorização.
-
-| Fase | Nome | Status | Visão |
-| ---- | ---- | ------ | ----- |
-| 008 | Painel Operacional | `Backlog` | Abas `Controle` e `Execuções` na planilha; metadados de sync; Apps Script opcional para “Sincronizar Agora”. Detalhes: [.fases/008-painel-operacional.md](../.fases/008-painel-operacional.md) |
-| 009 | Observabilidade e Métricas | `Backlog` | Métricas, estatísticas, indicadores, dashboards/tendências e alertas — sem PII. Detalhes: [.fases/009-observabilidade-metricas.md](../.fases/009-observabilidade-metricas.md) |
-
-Enquanto estiverem em `Backlog`, essas fases **não** alteram arquitetura, domínio, APIs ou ADRs.
-
-## Backlog de funcionalidades futuras
-
-Itens alinhados ao [ROADMAP.md](ROADMAP.md), em ordem sugerida. As Fases 003B a 006 já estão `Concluída` e saíram deste backlog de entrega imediata.
-
-> O MVP cobre até a Fase 007. Itens 008 e 009 são Nice to Have (ver seção [Evoluções pós-MVP](#evoluções-pós-mvp-nice-to-have)).
-
-| Prioridade | Fase | Funcionalidade                   | Descrição                                                                         |
-| ---------- | ---- | -------------------------------- | --------------------------------------------------------------------------------- |
-| —          | 008  | Painel operacional (Nice to Have) | Abas Controle/Execuções e metadados de sync; Apps Script opcional — **Backlog / parked** |
-| —          | 009  | Observabilidade e métricas (Nice to Have) | Métricas, dashboards, alertas — **Backlog / parked** |
-| —          | —    | Classificação de falhas de login | Distinguir senha inválida, usuário bloqueado e erro de sistema com evidência      |
-| —          | —    | Retentativas e resiliência       | Tratar indisponibilidade, timeout e sessão expirada de forma controlada           |
-
-Itens **não priorizados** neste backlog permanecem como hipótese até haver necessidade operacional comprovada. As Fases 008 e 009 estão explicitamente **estacionadas** e fora do MVP.
-
 ## Escopo do projeto
 
 O e-CNH **está dentro do escopo** quando a atividade:
@@ -154,7 +136,7 @@ O e-CNH **está dentro do escopo** quando a atividade:
 - sincroniza **agendas futuras** do portal e-CNH SP para Google Sheets;
 - usa **HTTP direto** e parsing de HTML SSR como estratégia principal;
 - respeita credenciais autorizadas e política de privacidade dos dados pessoais;
-- evolui por **fases pequenas**, cada uma documentada e testável;
+- evolui por entregas documentadas e testáveis (MVP por fases; pós-MVP via [BACKLOG.md](BACKLOG.md));
 - mantém a planilha como **destino operacional** da equipe administrativa.
 
 ## Itens explicitamente fora do escopo
@@ -176,4 +158,4 @@ Os itens abaixo **não fazem parte** deste produto, salvo decisão explícita fu
 
 ---
 
-**Leitura complementar técnica:** [ARQUITETURA.md](ARQUITETURA.md) · [MODELO_DOMINIO.md](MODELO_DOMINIO.md) · [API.md](API.md) · [ROADMAP.md](ROADMAP.md) · [DECISOES.md](DECISOES.md)
+**Leitura complementar técnica:** [ARQUITETURA.md](ARQUITETURA.md) · [MODELO_DOMINIO.md](MODELO_DOMINIO.md) · [API.md](API.md) · [ROADMAP.md](ROADMAP.md) · [BACKLOG.md](BACKLOG.md) · [DECISOES.md](DECISOES.md)

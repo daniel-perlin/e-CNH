@@ -2,13 +2,20 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto buscará as agendas futuras dos profissionais e manterá a aba `Agenda` atualizada de forma automatizada.
 
-> **Fase atual:** 007 — Agendamento automático (cron) (`Concluída`). Daemon `job:agenda` + lock global + `sync:agenda`. MVP do produto concluído. Fases 008/009 em `Backlog`.
+> **Fase atual:** 007 — Agendamento automático (cron) (`Concluída`). Daemon `job:agenda` + lock global + `sync:agenda`. MVP do produto concluído. Evoluções futuras em [docs/BACKLOG.md](docs/BACKLOG.md).
+
+## Estado do Projeto
+
+- **MVP concluído** (Fases 000–007)
+- **Sistema operacional** (sincronização sob demanda e agendada)
+- **Evoluções futuras** registradas em [docs/BACKLOG.md](docs/BACKLOG.md) (Nice to Have; sem fases obrigatórias após a 007)
 
 ## Leitura recomendada
 
-- [Visão do produto](docs/VISAO_DO_PRODUTO.md) — objetivo, usuários, fluxo operacional, MVP, escopo e backlog funcional
+- [Visão do produto](docs/VISAO_DO_PRODUTO.md) — objetivo, usuários, fluxo operacional, MVP, escopo e evolução pós-MVP
 - [Arquitetura](docs/ARQUITETURA.md) — camadas técnicas, responsabilidades e limites de integração
-- [Roadmap](docs/ROADMAP.md) — sequência de fases e critérios de avanço
+- [Roadmap](docs/ROADMAP.md) — fases do MVP (000–007) e limite pós-MVP
+- [Backlog](docs/BACKLOG.md) — catálogo oficial de melhorias futuras
 - [Diagnóstico da autenticação HTTP](docs/DIAGNOSTICO_AUTENTICACAO_HTTP.md) — hipóteses, evidências pendentes e plano para validar a Fase 003A
 - [Matriz de divergências da autenticação](docs/MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md) — comparação detalhada entre navegador e `ECNHClient`
 - [Auditoria do POST `method=autenticar`](docs/AUDITORIA_POST_AUTENTICAR.md) — payload, headers, cookies, redirects e charset produzidos pelo cliente
@@ -186,11 +193,11 @@ npm run build
 
 ## Roadmap e próximos passos
 
-MVP do produto **concluído** na Fase **007 — Agendamento automático (cron)** (`Concluída`, [documento](.fases/007-agendamento-automatico.md)). Fases **008** e **009** permanecem em `Backlog`. Veja o [roadmap detalhado](docs/ROADMAP.md).
+MVP do produto **concluído** na Fase **007 — Agendamento automático (cron)** (`Concluída`, [documento](.fases/007-agendamento-automatico.md)). Não há fases obrigatórias após a 007. Melhorias futuras (incluindo 008/009 e features candidatas) estão em [docs/BACKLOG.md](docs/BACKLOG.md). Histórico das fases do MVP: [docs/ROADMAP.md](docs/ROADMAP.md).
 
-### Convenção de status
+### Convenção de status (MVP)
 
-Toda fase da 003A à 007 possui exatamente um status e avança nesta ordem:
+Toda fase da 003A à 007 possui exatamente um status e avançou nesta ordem:
 
 `Planejada` → `Implementada` → `Validada` → `Concluída`
 
@@ -199,7 +206,7 @@ Toda fase da 003A à 007 possui exatamente um status e avança nesta ordem:
 - **Validada:** critérios executados e sustentados por evidências registradas.
 - **Concluída:** validação aprovada, sem pendências bloqueantes no escopo e com documentação atualizada.
 
-O [roadmap](docs/ROADMAP.md) é a fonte de verdade dos estados.
+O [roadmap](docs/ROADMAP.md) é a fonte de verdade dos estados do MVP. Evoluções pós-MVP seguem o [backlog](docs/BACKLOG.md).
 
 ## Convenções
 

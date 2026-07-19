@@ -1,6 +1,12 @@
 # Roadmap
 
-Cada fase deve resolver um único problema e não antecipar funcionalidades posteriores. A sequência abaixo reflete a separação arquitetural do sistema: portal → extração → destino → orquestração → agendamento.
+Cada fase do MVP resolveu um único problema sem antecipar funcionalidades posteriores. A sequência abaixo reflete a separação arquitetural do sistema: portal → extração → destino → orquestração → agendamento.
+
+## MVP do projeto (Fases 000–007)
+
+As Fases **000 a 007** constituem o **MVP do projeto**.
+
+**Status do MVP:** concluído.
 
 | Fase                                        | Status         | Entrega                                                                                                     |
 | ------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------- |
@@ -13,16 +19,23 @@ Cada fase deve resolver um único problema e não antecipar funcionalidades post
 | Fase 005 — Integração Google Sheets         | `Concluída`    | Persistência via `AgendaRepository` / Google Sheets; validação real (Service Account, aba `Agenda`, substituição idempotente) concluída. |
 | Fase 006 — Orquestração multi-profissionais | `Concluída`    | `AgendaSyncService` + `sync:agenda`; multi-profissional sob demanda validado com evidência sanitizada.       |
 | Fase 007 — Agendamento automático (cron)    | `Concluída`    | Daemon + `SyncLock` + `AgendaSyncJob` sobre `AgendaSyncService`; validado com evidência sanitizada. |
-| Fase 008 — Painel Operacional (Nice to Have)| `Backlog`      | Abas Controle/Execuções e metadados de sync; Apps Script opcional — **parked** (pós-MVP).                   |
-| Fase 009 — Observabilidade e Métricas (Nice to Have) | `Backlog` | Métricas, dashboards e alertas — **parked** (pós-MVP).                                                      |
-
-> **Limite do MVP:** o MVP do projeto termina na Fase 007. As Fases 008 e 009 representam melhorias futuras (Nice to Have), não são pré-requisitos para que o sistema esteja funcional e permanecem em backlog até nova priorização.
 
 > **Situação da Fase 006:** oficialmente `Concluída` em 19/07/2026. Orquestração multi-profissional validada via `npm run sync:agenda` (6/7 profissionais ok; falha parcial tipada) com evidência sanitizada.
 
-> **Situação da Fase 007:** oficialmente `Concluída` em 19/07/2026. Daemon (`job:agenda`), `SyncLock` global e `AgendaSyncJob` validados com evidência sanitizada. O MVP do produto termina nesta fase. Fases 008 e 009 permanecem em `Backlog`.
+> **Situação da Fase 007:** oficialmente `Concluída` em 19/07/2026. Daemon (`job:agenda`), `SyncLock` global e `AgendaSyncJob` validados com evidência sanitizada. O MVP do produto termina nesta fase.
 
-## Convenção de status
+## Fora do MVP (melhorias futuras)
+
+As Fases **008** e **009** **não fazem parte do MVP**. São melhorias futuras (**Nice to Have**): não são pré-requisitos para o sistema operacional e não há fases obrigatórias após a 007.
+
+| Item | Status | Notas |
+| ---- | ------ | ----- |
+| Fase 008 — Painel Operacional | Nice to Have | Registrada no backlog; visão em [.fases/008-painel-operacional.md](../.fases/008-painel-operacional.md) |
+| Fase 009 — Observabilidade e Métricas | Nice to Have | Registrada no backlog; visão em [.fases/009-observabilidade-metricas.md](../.fases/009-observabilidade-metricas.md) |
+
+O catálogo oficial de evoluções pós-MVP — incluindo essas fases e features candidatas — está em **[BACKLOG.md](BACKLOG.md)**.
+
+## Convenção de status (MVP)
 
 Cada fase da 003A à 007 possui exatamente um estado e progride sem saltos:
 
@@ -33,11 +46,11 @@ Cada fase da 003A à 007 possui exatamente um estado e progride sem saltos:
 - **Validada:** critérios executados no ambiente adequado, com evidências registradas.
 - **Concluída:** fase validada, sem pendências bloqueantes no escopo e com documentação obrigatória atualizada.
 
-As Fases 008 e 009 usam o estado `Backlog` (estacionadas / parked): visão documentada, sem implementação e fora da progressão do MVP até nova priorização.
+Com o MVP concluído, novas funcionalidades **não** seguem mais essa progressão obrigatória de fases. Evoluções futuras são priorizadas e acompanhadas em [BACKLOG.md](BACKLOG.md).
 
-Um status só pode mudar quando a evidência correspondente estiver registrada no documento da fase e no diário do projeto.
+Um status de fase do MVP só muda quando a evidência correspondente estiver registrada no documento da fase e no diário do projeto.
 
-## Alinhamento arquitetural
+## Alinhamento arquitetural (MVP)
 
 | Fase | Camada principal     | Fronteira de responsabilidade                    |
 | ---- | -------------------- | ------------------------------------------------ |
@@ -50,33 +63,6 @@ Um status só pode mudar quando a evidência correspondente estiver registrada n
 
 ## Critério de avanço
 
-Antes de iniciar a próxima fase do MVP (até a 007), a fase atual deve estar `Concluída`, com fatos observados, decisões relevantes e validações proporcionais ao risco registrados. As Fases 008 e 009 não entram nessa sequência até serem priorizadas.
+As Fases 000–007 do MVP estão `Concluída`. Não há próxima fase obrigatória do produto.
 
-## Backlog pós-MVP (Nice to Have) — estacionado
-
-As fases abaixo **não fazem parte do MVP**, **não estão em implementação** e permanecem **parked** até nova priorização explícita.
-
-### Fase 008 — Painel Operacional (Nice to Have)
-
-**Status:** `Backlog` · Documento: [.fases/008-painel-operacional.md](../.fases/008-painel-operacional.md)
-
-Escopo conceitual (somente visão futura; nada a implementar agora):
-
-- aba `Controle` na planilha Google Sheets;
-- aba `Execuções` com histórico de sincronizações;
-- registro de metadados das execuções (status, duração, quantidade de profissionais, quantidade de registros, erros resumidos sem PII);
-- possível integração futura com Google Apps Script para um botão “Sincronizar Agora”;
-- não antecipa cron, orquestração ou mudanças nas Fases 006/007.
-
-### Fase 009 — Observabilidade e Métricas (Nice to Have)
-
-**Status:** `Backlog` · Documento: [.fases/009-observabilidade-metricas.md](../.fases/009-observabilidade-metricas.md)
-
-Escopo conceitual (somente visão futura; nada a implementar agora):
-
-- métricas operacionais;
-- estatísticas de sincronizações;
-- indicadores de desempenho;
-- dashboards e tendências;
-- alertas e monitoramento;
-- não é pré-requisito para o sistema funcional após a Fase 007.
+Melhorias futuras (incluindo 008 e 009) só entram em implementação quando forem priorizadas explicitamente no [BACKLOG.md](BACKLOG.md), com documentação e escopo definidos naquele momento.

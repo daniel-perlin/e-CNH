@@ -2,14 +2,43 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Fase 007 — Agendamento automático (cron) (`Concluída`)  
-> **Próxima fase:** Fases 008/009 permanecem em `Backlog` (pós-MVP)  
-> **Última atualização:** 2026-07-19 11:22 BRT  
-> **Última sessão executada:** 19/07/2026 • 11:22 — Padrão de cron diário às 17:00
+> **Fase atual:** Fase 007 — Agendamento automático (cron) (`Concluída`) — MVP concluído  
+> **Próxima fase:** sem fase obrigatória; evoluções em `docs/BACKLOG.md`  
+> **Última atualização:** 2026-07-19 11:28 BRT  
+> **Última sessão executada:** 19/07/2026 • 11:28 — Backlog oficial pós-MVP
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 11:28
+
+### 🎯 Objetivo
+
+Reorganizar a documentação para a etapa pós-MVP: Backlog oficial de melhorias futuras, sem fases obrigatórias após a 007.
+
+### ✅ O que mudou
+
+- Criado `docs/BACKLOG.md` como catálogo oficial de melhorias futuras (Nice to Have).
+- Fases 008 e 009 e features candidatas (FEATURE-001, FEATURE-002) registradas apenas no backlog.
+- `docs/ROADMAP.md` deixa explícito que Fases 000–007 = MVP concluído; 008/009 fora do MVP.
+- `docs/VISAO_DO_PRODUTO.md` e `README.md` atualizados para a evolução pós-MVP.
+- Nenhuma implementação, arquitetura, teste, ADR ou evidência foi alterada.
+
+### 🧠 Decisões
+
+- **Decisão:** após a Fase 007, o desenvolvimento é guiado por `docs/BACKLOG.md`, não por fases obrigatórias do produto.
+- **Decisão:** Fases 008 e 009 permanecem Nice to Have no backlog, sem detalhamento de implementação nesta sessão.
+
+### 📂 Arquivos impactados
+
+- `docs/BACKLOG.md` (novo)
+- `docs/ROADMAP.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `README.md`
+- `CHANGELOG.md`
 
 ---
 
