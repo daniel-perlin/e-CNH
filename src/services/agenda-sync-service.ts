@@ -65,6 +65,11 @@ export interface EntradaSincronizacaoProfissional {
    * Unidade desejada opcional (B011); repassar via `ECNHClientOptions.unidadeDesejada`.
    */
   unidadeDesejada?: UnidadeDesejadaConfig;
+  /**
+   * Nome operacional da unidade (coluna Unidade na planilha).
+   * Derivado de `CLINIC` — distinto da unidade/visão do portal (B011).
+   */
+  unidadeOperacional: string;
 }
 
 /** Resultado da sincronização de uma data de consulta. */
@@ -280,7 +285,8 @@ export class AgendaSyncService {
     let persistencia: ResultadoPersistenciaAgenda;
     try {
       persistencia = await this.agendaRepository.salvarAgenda(agenda, {
-        profissional: entrada.profissional
+        profissional: entrada.profissional,
+        unidadeOperacional: entrada.unidadeOperacional
       });
     } catch (error) {
       this.logFalhaData(entrada.identificadorSeguro, dataConsulta, 'persistencia', error);

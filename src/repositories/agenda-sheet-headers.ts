@@ -5,6 +5,7 @@
  */
 export const CABECALHOS_ABA_AGENDA = [
   'Profissional',
+  'Unidade',
   'Data de Agendamento',
   'Hora',
   'CPF',

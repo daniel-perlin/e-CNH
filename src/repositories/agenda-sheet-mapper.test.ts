@@ -12,7 +12,8 @@ describe('AgendaSheetMapper', () => {
 
   it('expõe o cabeçalho canônico na ordem fixa', () => {
     assert.deepEqual(mapper.cabecalho(), [...CABECALHOS_ABA_AGENDA]);
-    assert.equal(mapper.cabecalho()[1], 'Data de Agendamento');
+    assert.equal(mapper.cabecalho()[1], 'Unidade');
+    assert.equal(mapper.cabecalho()[2], 'Data de Agendamento');
     assert.equal(mapper.cabecalho().at(-1), 'Data de inclusão');
   });
 
@@ -38,11 +39,13 @@ describe('AgendaSheetMapper', () => {
 
     const linhas = mapper.agendaParaLinhas(agenda, {
       profissional: 'Profissional Teste',
+      unidadeOperacional: 'LIMÃO',
       dataInclusao: timestampFixo
     });
     assert.equal(linhas.length, 1);
     assert.deepEqual(linhas[0], [
       'Profissional Teste',
+      'LIMÃO',
       '13/07/2026',
       '08:00',
       '000.000.000-00',
@@ -60,7 +63,11 @@ describe('AgendaSheetMapper', () => {
   it('agenda vazia produz zero linhas', () => {
     const linhas = mapper.agendaParaLinhas(
       { dataConsulta: '14/07/2026', itens: [] },
-      { profissional: 'Profissional Teste', dataInclusao: timestampFixo }
+      {
+        profissional: 'Profissional Teste',
+        unidadeOperacional: 'LIMÃO',
+        dataInclusao: timestampFixo
+      }
     );
     assert.equal(linhas.length, 0);
   });
@@ -83,10 +90,12 @@ describe('AgendaSheetMapper', () => {
 
     const linhas = mapper.agendaParaLinhas(agenda, {
       profissional: 'Profissional Teste',
+      unidadeOperacional: 'VILA CARRÃO',
       dataInclusao: timestampFixo
     });
-    assert.equal(linhas[0]?.[6], 'paciente@example.test');
-    assert.equal(linhas[0]?.[5], '(11) 900000001');
+    assert.equal(linhas[0]?.[7], 'paciente@example.test');
+    assert.equal(linhas[0]?.[6], '(11) 900000001');
+    assert.equal(linhas[0]?.[1], 'VILA CARRÃO');
   });
 
   it('aceita cabeçalhos legados Data e Última sincronização', () => {
@@ -124,6 +133,31 @@ describe('AgendaSheetMapper', () => {
     const registros = mapper.linhasParaRegistros(linhas, cabecalhos);
     assert.equal(registros[0]?.dataConsulta, '13/07/2026');
     assert.equal(registros[0]?.dataInclusao, '01/01/2026 10:00');
+    assert.equal(registros[0]?.unidadeOperacional, undefined);
+  });
+
+  it('lê e preserva a coluna Unidade', () => {
+    const linhas = [
+      [
+        'Profissional Teste',
+        'CAPÃO REDONDO',
+        '15/07/2026',
+        '14:15',
+        '222.222.222-22',
+        'PACIENTE UNIDADE',
+        '',
+        '',
+        '',
+        'B',
+        '',
+        '',
+        timestampFixo
+      ]
+    ];
+
+    const registros = mapper.linhasParaRegistros(linhas, [...CABECALHOS_ABA_AGENDA]);
+    assert.equal(registros[0]?.unidadeOperacional, 'CAPÃO REDONDO');
+    assert.equal(registros[0]?.item.horario, '14:15');
   });
 
   it('liga colunas pelo texto do cabeçalho mesmo com ordem diferente', () => {
@@ -131,6 +165,7 @@ describe('AgendaSheetMapper', () => {
       'Hora',
       'Nome',
       'Profissional',
+      'Unidade',
       'Data de Agendamento',
       'CPF',
       'Telefone',
@@ -146,6 +181,7 @@ describe('AgendaSheetMapper', () => {
         '14:15',
         'PACIENTE ORDEM ALTERNATIVA',
         'Profissional Teste',
+        'LIMÃO',
         '15/07/2026',
         '222.222.222-22',
         '',
@@ -162,6 +198,7 @@ describe('AgendaSheetMapper', () => {
     assert.equal(registros.length, 1);
     assert.equal(registros[0]?.item.horario, '14:15');
     assert.equal(registros[0]?.dataConsulta, '15/07/2026');
+    assert.equal(registros[0]?.unidadeOperacional, 'LIMÃO');
     assert.equal(registros[0]?.dataInclusao, timestampFixo);
   });
 });

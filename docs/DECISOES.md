@@ -113,3 +113,13 @@
 - **Consequência:** profissionais sem multi-unidade seguem o caminho atual. Profissionais com multi-unidade passam a completar o login via a mesma infraestrutura, diferindo apenas na configuração.
 - **Contrato HTTP (Passo 1, 19/07/2026):** evidência confirmada — no browser, `enviar()` (`choice.js`) copia `idUnidTransito` para o `LoginActionForm` pai e reenvia `POST method=autenticar` (não POSTA o formulário `openChoice`). Após esse segundo `autenticar` com unidade, o HTML já traz a área autenticada e o marcador B012. Artefato: `docs/evidencias/003d-descoberta-enviar-escolha-unidade-2026-07-19.json`.
 - **Validação (19/07/2026):** evidência confirmada com profissional multi-unidade real (`ECNH_USER_17`) — escolha via `UNIDADE=CIR-SAO PAULO`, B012 `medico`, agenda/parser e sync Sheets. Artefato: `docs/evidencias/003d-consolidacao-escolha-unidade-2026-07-19.json`. B011 / Fase 003D `Concluída`.
+
+## ADR-016 — Unidade operacional a partir de CLINIC
+
+- **Status:** aceito e implementado (B013)
+- **Contexto:** a planilha precisa exibir a unidade operacional do profissional (LIMÃO, CAPÃO REDONDO, VILA CARRÃO). Esse valor não existe na agenda HTML do paciente; a fonte é `ECNH_USER_<n>_CLINIC` no `.env`, com nomenclatura diferente da operacional.
+- **Decisão:**
+  - resolver centralizado `resolveNomeUnidadeOperacional` em `src/utils/unidade-operacional.ts` (mapa único, extensível);
+  - traduzir `CLINIC` na fronteira de config (`sync-professionals`) e propagar `unidadeOperacional` em `EntradaSincronizacaoProfissional` → `ContextoPersistenciaAgenda` → coluna **Unidade**;
+  - não misturar com B011 (`unidadeDesejada` / `idUnidTransito` do portal).
+- **Consequência:** novas clínicas exigem apenas uma entrada no mapa do resolver; o domínio/Sheets não conhecem strings de clínica do `.env`.

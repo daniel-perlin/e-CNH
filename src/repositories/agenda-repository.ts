@@ -7,6 +7,11 @@ import type { Agenda } from '../models/agenda.js';
 export interface ContextoPersistenciaAgenda {
   /** Nome do profissional gravado na coluna Profissional. */
   profissional: string;
+  /**
+   * Nome operacional da unidade (coluna Unidade).
+   * Derivado de `CLINIC` via `resolveNomeUnidadeOperacional` — não vem da agenda HTML.
+   */
+  unidadeOperacional: string;
 }
 
 /** Motivos tipados de falha na persistência (sem dados pessoais). */

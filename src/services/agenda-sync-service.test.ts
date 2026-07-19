@@ -120,7 +120,8 @@ const entradaBase: EntradaSincronizacaoProfissional = {
   cpf: '000.000.000-00',
   password: 'senha-sintetica',
   profissional: 'Profissional Teste',
-  identificadorSeguro: 'ECNH_USER_TEST'
+  identificadorSeguro: 'ECNH_USER_TEST',
+  unidadeOperacional: 'LIMÃO'
 };
 
 function parserComAgenda(itens = 1): (html: string, contexto?: { dataConsulta?: string }) => ResultadoExtracaoAgenda {
@@ -172,6 +173,7 @@ describe('AgendaSyncService.sincronizarProfissional', () => {
     assert.equal(client.calls.logout, 1);
     assert.equal(repository.salvos.length, 2);
     assert.equal(repository.salvos[0]?.contexto.profissional, 'Profissional Teste');
+    assert.equal(repository.salvos[0]?.contexto.unidadeOperacional, 'LIMÃO');
   });
 
   it('login com falha interrompe o fluxo sem consultar datas', async () => {

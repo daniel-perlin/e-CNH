@@ -62,7 +62,8 @@ async function main(): Promise<void> {
         cpf: '000.000.000-00',
         identificadorSeguro: 'ECNH_USER_1',
         password: 'x',
-        profissional: 'Validacao'
+        profissional: 'Validacao',
+        unidadeOperacional: 'LIMÃO'
       }
     ],
     lock: new FileSyncLock({ lockPath }),
@@ -77,7 +78,8 @@ async function main(): Promise<void> {
         cpf: '000.000.000-00',
         identificadorSeguro: 'ECNH_USER_1',
         password: 'x',
-        profissional: 'Validacao'
+        profissional: 'Validacao',
+        unidadeOperacional: 'LIMÃO'
       }
     ],
     lock: new FileSyncLock({ lockPath }),
@@ -98,7 +100,8 @@ async function main(): Promise<void> {
         cpf: '000.000.000-00',
         identificadorSeguro: 'ECNH_USER_1',
         password: 'x',
-        profissional: 'Validacao'
+        profissional: 'Validacao',
+        unidadeOperacional: 'LIMÃO'
       }
     ],
     lock: new FileSyncLock({ lockPath }),

@@ -2,14 +2,43 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** B011 / 003D — Escolha de Perfil e/ou Visão (`Concluída`)  
-> **Próxima prioridade:** Sprint 1.0 — Estabilização (fechamento; D3 fixtures de protocolo em sprint futura)  
-> **Última atualização:** 2026-07-19 15:44 BRT  
-> **Última sessão executada:** 19/07/2026 • 15:44 — Sprint 1.0 Passo D (S1-03 D1+D2)
+> **Fase atual:** B013 — Coluna Unidade operacional (`✅ Concluído`)  
+> **Próxima prioridade:** B010 (sessão já autenticada), se priorizado; D3 fixtures de protocolo em sprint futura  
+> **Última atualização:** 2026-07-19 15:51 BRT  
+> **Última sessão executada:** 19/07/2026 • 15:51 — B013 coluna Unidade (CLINIC → operacional)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 15:51
+
+### 🎯 Objetivo
+
+Exibir na planilha a unidade operacional do profissional sincronizado (`CLINIC` → nome operacional), sem acoplar ao HTML da agenda.
+
+### ✅ O que mudou
+
+- Resolver centralizado `resolveNomeUnidadeOperacional` (`src/utils/unidade-operacional.ts`).
+- `CLINIC` obrigatório no sync; propaga `unidadeOperacional` até `ContextoPersistenciaAgenda`.
+- Nova coluna **Unidade** na aba Agenda (após Profissional).
+- Documentação: BACKLOG B013, MODELO_DOMINIO, ADR-016, README, `.env.example`.
+
+### 🧠 Decisões
+
+- Mapeamento único e extensível; sem ifs espalhados.
+- Distinto de B011 (`unidadeDesejada` do portal).
+- Clínica desconhecida ou vazia falha na fronteira de config.
+
+### 📂 Arquivos impactados
+
+- `src/utils/unidade-operacional.ts` / `.test.ts`
+- `src/config/sync-professionals.ts` / `.test.ts`
+- `src/services/agenda-sync-service.ts` / `.test.ts`
+- `src/repositories/agenda-sheet-headers.ts`, `agenda-sheet-mapper.ts`, `agenda-repository.ts`, `google-sheets-agenda-repository.ts` (+ testes)
+- `docs/BACKLOG.md`, `MODELO_DOMINIO.md`, `DECISOES.md`, `README.md`, `.env.example`, `CHANGELOG.md`
 
 ---
 

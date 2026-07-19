@@ -55,6 +55,11 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       return { sucesso: false, motivoFalha: 'contexto-incompleto' };
     }
 
+    const unidadeOperacional = contexto.unidadeOperacional?.trim() ?? '';
+    if (unidadeOperacional.length === 0) {
+      return { sucesso: false, motivoFalha: 'contexto-incompleto' };
+    }
+
     const dataConsulta = agenda.dataConsulta?.trim() ?? '';
     if (dataConsulta.length === 0) {
       return { sucesso: false, motivoFalha: 'data-consulta-ausente' };
@@ -100,6 +105,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           { dataConsulta: registro.dataConsulta, itens: [registro.item] },
           {
             profissional: registro.profissional,
+            unidadeOperacional: registro.unidadeOperacional ?? '',
             dataInclusao: registro.dataInclusao ?? ''
           }
         )[0];
@@ -120,7 +126,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
           const linha = this.mapper.agendaParaLinhas(
             { dataConsulta, itens: [item] },
-            { profissional, dataInclusao }
+            { profissional, unidadeOperacional, dataInclusao }
           )[0];
           if (linha === undefined) {
             continue;
@@ -187,12 +193,12 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   }
 
   private rangeCompleto(): string {
-    return `'${this.escapeSheetName(this.sheetName)}'!A:L`;
+    return `'${this.escapeSheetName(this.sheetName)}'!A:M`;
   }
 
   private rangeEscrita(valores: string[][]): string {
     const ultimaLinha = Math.max(valores.length, 1);
-    return `'${this.escapeSheetName(this.sheetName)}'!A1:L${ultimaLinha}`;
+    return `'${this.escapeSheetName(this.sheetName)}'!A1:M${ultimaLinha}`;
   }
 
   private escapeSheetName(name: string): string {
@@ -200,30 +206,29 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   }
 
   private cabecalhoCompativel(cabecalho: readonly string[]): boolean {
+    const comUnidade = [...CABECALHOS_ABA_AGENDA];
+    const semUnidade = CABECALHOS_ABA_AGENDA.filter((titulo) => titulo !== 'Unidade');
+
     const variantes: readonly string[][] = [
-      [...CABECALHOS_ABA_AGENDA],
+      comUnidade,
+      this.substituirCabecalho(comUnidade, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
+      this.substituirCabecalho(comUnidade, 'Data de inclusão', CABECALHO_DATA_INCLUSAO_LEGADO),
       this.substituirCabecalho(
-        [...CABECALHOS_ABA_AGENDA],
-        'Data de Agendamento',
-        CABECALHO_DATA_AGENDAMENTO_LEGADO
-      ),
-      this.substituirCabecalho(
-        [...CABECALHOS_ABA_AGENDA],
+        this.substituirCabecalho(comUnidade, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
         'Data de inclusão',
         CABECALHO_DATA_INCLUSAO_LEGADO
       ),
+      semUnidade,
+      this.substituirCabecalho(semUnidade, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
+      this.substituirCabecalho(semUnidade, 'Data de inclusão', CABECALHO_DATA_INCLUSAO_LEGADO),
       this.substituirCabecalho(
-        this.substituirCabecalho(
-          [...CABECALHOS_ABA_AGENDA],
-          'Data de Agendamento',
-          CABECALHO_DATA_AGENDAMENTO_LEGADO
-        ),
+        this.substituirCabecalho(semUnidade, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
         'Data de inclusão',
         CABECALHO_DATA_INCLUSAO_LEGADO
       ),
-      CABECALHOS_ABA_AGENDA.slice(0, -1),
+      semUnidade.slice(0, -1),
       this.substituirCabecalho(
-        [...CABECALHOS_ABA_AGENDA.slice(0, -1)],
+        [...semUnidade.slice(0, -1)],
         'Data de Agendamento',
         CABECALHO_DATA_AGENDAMENTO_LEGADO
       )

@@ -19,7 +19,8 @@ Representa um médico ou psicólogo credenciado que possui acesso individual ao 
 | nome                | Nome de identificação do profissional.        | Dado pessoal; não registrar desnecessariamente.   |
 | cpf                 | Identificador usado na autenticação.          | Sensível; nunca exibir em logs.                   |
 | senha               | Segredo usado no login.                       | Entrada efêmera; nunca persistir ou retornar.     |
-| clínica             | Clínica ou unidade associada ao profissional. | A confirmar conforme a fonte de dados.            |
+| clínica             | Valor de `ECNH_USER_<n>_CLINIC` no `.env`.     | Traduzido para **unidade operacional** via `resolveNomeUnidadeOperacional` (não vem do HTML da agenda). |
+| unidade operacional | Nome exibido na planilha (coluna Unidade).    | Exemplos: `LIMÃO`, `CAPÃO REDONDO`, `VILA CARRÃO`. Distinto da unidade/visão do portal (B011). |
 | função              | Papel profissional no portal (`psicologo` / `medico`). | Resolvido no HTML pós-login; opcionalmente `ECNH_USER_<n>_PROFILE`. |
 | status do login     | Estado lógico da autenticação mais recente.   | Derivado de `ResultadoLogin`; não contém segredo. |
 
@@ -99,9 +100,11 @@ Representa o retorno lógico da persistência domínio → destino (Fase 005). I
 | linhasRemovidas | Quantidade de linhas removidas por Data de Agendamento anterior a hoje (B005). |
 | motivoFalha | `contexto-incompleto`, `data-consulta-ausente`, `cabecalho-incompativel` ou `erro-infraestrutura`. |
 
-O contexto de persistência inclui `profissional` (coluna da planilha). A senha do profissional nunca entra nesta camada.
+O contexto de persistência inclui `profissional` (coluna Profissional) e `unidadeOperacional` (coluna Unidade). A senha do profissional nunca entra nesta camada.
 
 **Regra da planilha (B005):** a aba `Agenda` é um cadastro de **pacientes ativos**. Em cada sincronização, permanecem apenas linhas cuja Data de Agendamento é hoje ou futura (calendário `America/Sao_Paulo`). CPF normalizado é a chave única enquanto o paciente está ativo; se o paciente sair (data passada) e voltar depois, a reinclusão gera nova Data de inclusão.
+
+**Coluna Unidade (B013):** cada linha recebe o nome operacional derivado do `CLINIC` do profissional sincronizado — não do HTML da agenda do paciente.
 
 ## Relação entre as camadas
 

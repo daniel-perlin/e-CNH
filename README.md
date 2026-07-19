@@ -10,8 +10,8 @@ Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O pr
 - **Sistema operacional** (sincronização sob demanda e agendada)
 - **Perfis do portal:** B012 concluída — Psicólogo e Médico; registro extensível
 - **Multi-unidade:** B011 concluída — escolha genérica via `UNIDADE` / `UNID_TRANSITO`
-- **Aba Agenda:** cadastro de pacientes ativos (CPF único; remove datas passadas automaticamente)
-- **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005, B011 e B012 concluídos; B010 pendente
+- **Aba Agenda:** cadastro de pacientes ativos (CPF único; remove datas passadas automaticamente); coluna **Unidade** com o nome operacional do profissional (`CLINIC`)
+- **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005, B011–B013 concluídos; B010 pendente
 
 ## Leitura recomendada
 
@@ -125,11 +125,12 @@ Em cada sincronização, a persistência:
 - insere pacientes novos (CPF ainda não presente entre os ativos);
 - preserva pacientes ativos com o mesmo CPF (sem duplicar);
 - remove automaticamente linhas cuja **Data de Agendamento** é anterior a hoje (`America/Sao_Paulo`);
-- grava **Data de inclusão** na primeira entrada do paciente no ciclo ativo atual.
+- grava **Data de inclusão** na primeira entrada do paciente no ciclo ativo atual;
+- grava **Unidade** com o nome operacional derivado de `ECNH_USER_<n>_CLINIC` (ex.: LIMÃO, CAPÃO REDONDO, VILA CARRÃO).
 
 ### Sincronização sob demanda (Fase 006)
 
-Com portal, profissionais (`ECNH_USER_<n>_ENABLED/NAME/CPF/PASSWORD`) e Sheets configurados:
+Com portal, profissionais (`ECNH_USER_<n>_ENABLED/NAME/CPF/PASSWORD/CLINIC`) e Sheets configurados:
 
 ```bash
 npm run sync:agenda

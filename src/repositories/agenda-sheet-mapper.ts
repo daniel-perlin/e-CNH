@@ -14,6 +14,11 @@ export interface ContextoLinhaAgenda {
   /** Nome do profissional gravado na coluna Profissional. */
   profissional: string;
   /**
+   * Nome operacional da unidade (coluna Unidade).
+   * Origem: profissional sincronizado, não o HTML da agenda.
+   */
+  unidadeOperacional: string;
+  /**
    * Data da primeira inclusão do paciente ativo (`DD/MM/YYYY HH:mm`).
    * Em linhas novas: timestamp da execução; em linhas existentes ativas: valor preservado.
    */
@@ -25,6 +30,8 @@ export interface LinhaAgendaPersistida {
   dataConsulta: string;
   item: ItemAgenda;
   profissional: string;
+  /** Nome operacional; ausente em planilhas legadas sem a coluna Unidade. */
+  unidadeOperacional?: string;
   /** Valor da coluna operacional; ausente em planilhas legadas. */
   dataInclusao?: string;
 }
@@ -47,11 +54,12 @@ export class AgendaSheetMapper {
    */
   public agendaParaLinhas(agenda: Agenda, contexto: ContextoLinhaAgenda): string[][] {
     const profissional = contexto.profissional.trim();
+    const unidadeOperacional = contexto.unidadeOperacional.trim();
     const dataConsulta = agenda.dataConsulta?.trim() ?? '';
     const dataInclusao = contexto.dataInclusao;
 
     return agenda.itens.map((item) =>
-      this.itemParaLinha(item, profissional, dataConsulta, dataInclusao)
+      this.itemParaLinha(item, profissional, unidadeOperacional, dataConsulta, dataInclusao)
     );
   }
 
@@ -74,6 +82,7 @@ export class AgendaSheetMapper {
       }
 
       const dataInclusao = this.celula(linha, indices, 'Data de inclusão');
+      const unidadeOperacional = this.celula(linha, indices, 'Unidade');
       const registro: LinhaAgendaPersistida = {
         dataConsulta,
         profissional,
@@ -81,6 +90,9 @@ export class AgendaSheetMapper {
       };
       if (dataInclusao !== undefined) {
         registro.dataInclusao = dataInclusao;
+      }
+      if (unidadeOperacional !== undefined) {
+        registro.unidadeOperacional = unidadeOperacional;
       }
       registros.push(registro);
     }
@@ -109,11 +121,13 @@ export class AgendaSheetMapper {
   private itemParaLinha(
     item: ItemAgenda,
     profissional: string,
+    unidadeOperacional: string,
     dataConsulta: string,
     dataInclusao: string
   ): string[] {
     return [
       profissional,
+      unidadeOperacional,
       dataConsulta,
       item.horario ?? '',
       item.paciente.cpf ?? '',

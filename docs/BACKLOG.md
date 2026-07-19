@@ -13,6 +13,7 @@ Documento **único** responsável pelas evoluções do e-CNH após o MVP.
 
 - O **MVP foi concluído na Fase 007**. O sistema já está operacional.
 - **B012** (perfis profissionais) e **B011** (escolha de unidade/visão) estão **✅ Concluídos**.
+- **B013** (coluna Unidade operacional) está **✅ Concluída**.
 - Próxima prioridade do catálogo: **B010** (sessão já autenticada), se priorizado.
 
 ## Convenções
@@ -45,6 +46,7 @@ Melhorias usam IDs sequenciais: `B001`, `B002`, `B003`, …
 | B010 | ⏳ Pendente | Alta | Tratar sessão já autenticada no portal | Popup de sessão já aberta (`openDialogNewSession` / `forceLogout`). Escopo distinto de B011. |
 | B011 | ✅ Concluído | Alta | Escolha genérica de Perfil / Visão (unidade) | `openDialogChoice` / `openChoice` / segundo `autenticar`; config `UNIDADE`/`UNID_TRANSITO`; validado com multi-unidade real. |
 | B012 | ✅ Concluído | Alta | Arquitetura de perfis profissionais do portal | Strategy extensível para múltiplos perfis (Psicólogo, Médico e futuros); validada com Médico real. |
+| B013 | ✅ Concluído | Alta | Coluna Unidade na Agenda | Nome operacional por profissional (`CLINIC` → resolver centralizado → coluna Unidade). |
 
 Itens **B006–B009** (Painel Operacional / Observabilidade) foram **removidos do escopo do produto** e não fazem mais parte deste catálogo.
 
@@ -89,3 +91,25 @@ Contexto: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGAC
 | Prioridade | 🔴 Alta |
 
 **Descrição:** popup pedindo encerrar sessão anterior (`openDialogNewSession` / `forceLogout`). Escopo **distinto** de B011.
+
+## Detalhamento — B013
+
+### B013 — Coluna Unidade na Agenda
+
+| Campo | Valor |
+| ----- | ----- |
+| Status | ✅ Concluído |
+| Prioridade | 🔴 Alta |
+| Resolver | `src/utils/unidade-operacional.ts` (`resolveNomeUnidadeOperacional`) |
+
+**Objetivo:** cada paciente sincronizado exibe a unidade operacional do profissional (`CLINIC` no `.env`), não um dado da agenda HTML.
+
+**Mapeamento inicial:**
+
+| CLINIC (.env) | Unidade (planilha) |
+| ------------- | ------------------ |
+| Talento Limão/Zona Norte | LIMÃO |
+| Capão Redondo/Zona Sul | CAPÃO REDONDO |
+| Clínica Carrão/Zona Leste | VILA CARRÃO |
+
+Novas unidades: adicionar apenas no registro centralizado do resolver.

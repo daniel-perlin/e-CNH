@@ -2,6 +2,7 @@ import { ConfigurationError } from '../client/errors.js';
 import type { UnidadeDesejadaConfig } from '../client/escolha-unidade-portal.js';
 import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
 import type { EntradaSincronizacaoProfissional } from '../services/agenda-sync-service.js';
+import { resolveNomeUnidadeOperacional } from '../utils/unidade-operacional.js';
 
 import { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
 import { resolveUnidadeDesejadaEnv } from './login-credentials.js';
@@ -27,6 +28,10 @@ export interface ProfissionalParaSincronizacao {
   senha: string;
   /** Unidade opcional para B011 (`UNIDADE` / `UNID_TRANSITO`). */
   unidadeDesejada?: UnidadeDesejadaConfig;
+  /**
+   * Nome operacional (coluna Unidade), resolvido a partir de `CLINIC`.
+   */
+  unidadeOperacional: string;
 }
 
 export { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
@@ -34,7 +39,7 @@ export { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
 /**
  * Lista profissionais com `ECNH_USER_<n>_ENABLED=true` e campos obrigatórios preenchidos.
  *
- * Variáveis por índice: `NAME`, `CPF`, `PASSWORD`, `ENABLED`.
+ * Variáveis por índice: `NAME`, `CPF`, `PASSWORD`, `ENABLED`, `CLINIC`.
  * Opcional: `PROFILE`/`ROLE`, `UNIDADE`/`UNID_TRANSITO`.
  * Índices são descobertos automaticamente a partir das chaves do ambiente.
  */
@@ -48,6 +53,7 @@ export function resolveEnabledSyncProfessionals(
     const name = env[`ECNH_USER_${index}_NAME`];
     const cpf = env[`ECNH_USER_${index}_CPF`];
     const password = env[`ECNH_USER_${index}_PASSWORD`];
+    const clinic = env[`ECNH_USER_${index}_CLINIC`];
 
     if (enabled !== 'true') {
       continue;
@@ -56,6 +62,7 @@ export function resolveEnabledSyncProfessionals(
     const nome = name?.trim() ?? '';
     const cpfNormalizado = cpf?.trim() ?? '';
     const senha = password ?? '';
+    const clinica = clinic?.trim() ?? '';
 
     if (nome.length === 0 || cpfNormalizado.length === 0 || senha.length === 0) {
       throw new ConfigurationError(
@@ -63,11 +70,26 @@ export function resolveEnabledSyncProfessionals(
       );
     }
 
+    if (clinica.length === 0) {
+      throw new ConfigurationError(
+        `ECNH_USER_${index}_ENABLED=true exige ECNH_USER_${index}_CLINIC preenchido.`
+      );
+    }
+
+    let unidadeOperacional: string;
+    try {
+      unidadeOperacional = resolveNomeUnidadeOperacional(clinica);
+    } catch (error) {
+      const detalhe = error instanceof Error ? error.message : 'CLINIC inválido.';
+      throw new ConfigurationError(`ECNH_USER_${index}: ${detalhe}`);
+    }
+
     const profissional: ProfissionalParaSincronizacao = {
       cpf: cpfNormalizado,
       identificadorSeguro: `ECNH_USER_${index}`,
       nome,
-      senha
+      senha,
+      unidadeOperacional
     };
     const perfilEsperado = resolvePerfilEsperadoEnv(env, index);
     if (perfilEsperado !== undefined) {
@@ -82,7 +104,7 @@ export function resolveEnabledSyncProfessionals(
 
   if (profissionais.length === 0) {
     throw new ConfigurationError(
-      'Nenhum profissional habilitado para sincronização. Defina ao menos um ECNH_USER_<n>_ENABLED=true com NAME, CPF e PASSWORD.'
+      'Nenhum profissional habilitado para sincronização. Defina ao menos um ECNH_USER_<n>_ENABLED=true com NAME, CPF, PASSWORD e CLINIC.'
     );
   }
 
@@ -97,7 +119,8 @@ export function paraEntradaSincronizacao(
     cpf: profissional.cpf,
     identificadorSeguro: profissional.identificadorSeguro,
     password: profissional.senha,
-    profissional: profissional.nome
+    profissional: profissional.nome,
+    unidadeOperacional: profissional.unidadeOperacional
   };
   if (profissional.perfilEsperado !== undefined) {
     entrada.perfilEsperado = profissional.perfilEsperado;

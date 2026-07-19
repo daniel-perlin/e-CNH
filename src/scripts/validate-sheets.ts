@@ -56,24 +56,28 @@ async function main(): Promise<void> {
   };
 
   const escrita = await repository.salvarAgenda(fixture, {
-    profissional: PROFISSIONAL_VALIDACAO
+    profissional: PROFISSIONAL_VALIDACAO,
+    unidadeOperacional: 'LIMÃO'
   });
 
   const leitura = await repository.listarPorData(DATA_VALIDACAO, {
-    profissional: PROFISSIONAL_VALIDACAO
+    profissional: PROFISSIONAL_VALIDACAO,
+    unidadeOperacional: 'LIMÃO'
   });
 
   const deduplicacao = await repository.salvarAgenda(fixture, {
-    profissional: PROFISSIONAL_VALIDACAO
+    profissional: PROFISSIONAL_VALIDACAO,
+    unidadeOperacional: 'LIMÃO'
   });
 
   const agendaVazia = await repository.salvarAgenda(
     { dataConsulta: DATA_VALIDACAO, itens: [] },
-    { profissional: PROFISSIONAL_VALIDACAO }
+    { profissional: PROFISSIONAL_VALIDACAO, unidadeOperacional: 'LIMÃO' }
   );
 
   const aposAgendaVazia = await repository.listarPorData(DATA_VALIDACAO, {
-    profissional: PROFISSIONAL_VALIDACAO
+    profissional: PROFISSIONAL_VALIDACAO,
+    unidadeOperacional: 'LIMÃO'
   });
 
   const approved =

@@ -15,7 +15,8 @@ describe('AgendaSyncJob', () => {
     cpf: '000.000.000-00',
     identificadorSeguro: 'ECNH_USER_1',
     password: 'segredo',
-    profissional: 'Teste'
+    profissional: 'Teste',
+    unidadeOperacional: 'LIMÃO'
   };
 
   it('executa a sincronização quando o lock é adquirido', async () => {
