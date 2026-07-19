@@ -57,3 +57,12 @@ Playwright não é tecnologia principal e não será usado no fluxo produtivo no
 - A Fase 007 está `Concluída`: jobs disparam o serviço via lock global (`npm run job:agenda`); o serviço não conhece cron nem arquivo de lock.
 - O `ECNHClient` continua responsável apenas por HTTP/sessão/HTML bruto; o parser não conhece Axios nem cookies; o domínio não conhece `googleapis`.
 - Credenciais, tokens e valores de cookies não podem ser persistidos ou registrados em logs.
+
+## Limitações conhecidas do portal (homologação)
+
+Dois comportamentos reais do portal ainda **não são automatizados** e podem impedir a sincronização de alguns profissionais:
+
+1. **Sessão já autenticada** — popup pedindo encerrar a sessão anterior antes do login continuar (impacto observado: Italo). Backlog `B010`.
+2. **Escolha de Perfil / Visão** — tela pós-login para profissionais com múltiplas unidades (impacto observado: Caio → CIR-SAO PAULO → ENVIAR). Backlog `B011`.
+
+Detalhes: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md). A autenticação HTTP atual cobre apenas o fluxo feliz documentado em [API.md](API.md) / [FLUXO_HTTP.md](FLUXO_HTTP.md).

@@ -49,3 +49,43 @@ Melhorias usam IDs sequenciais: `B001`, `B002`, `B003`, …
 | B007 | ❄️ Estacionado | Baixa | Aba "Execuções" | Criar aba `Execuções` com histórico das sincronizações. |
 | B008 | ❄️ Estacionado | Baixa | Botão "Sincronizar Agora" | Botão via Apps Script para disparo manual (Nice to Have). |
 | B009 | ❄️ Estacionado | Baixa | Observabilidade e métricas | Métricas operacionais, dashboards/tendências e alertas sem PII (Nice to Have). |
+| B010 | ⏳ Pendente | Alta | Tratar sessão já autenticada no portal | Popup de sessão já aberta bloqueia o login automático (ex.: Italo). |
+| B011 | ⏳ Pendente | Alta | Automatizar seleção de Perfil / Visão | Tela "Escolha de Perfil e/ou Visão" pós-login (ex.: Caio → CIR-SAO PAULO). |
+
+## Detalhamento — B010 e B011
+
+Contexto: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md). **Não implementar agora.**
+
+### B010 — Tratar sessão já autenticada no portal
+
+| Campo | Valor |
+| ----- | ----- |
+| Status | ⏳ Pendente |
+| Prioridade | 🔴 Alta |
+
+**Descrição:** durante o login, alguns profissionais podem possuir uma sessão já aberta no portal. Nessa situação é exibido um popup solicitando o encerramento da sessão anterior antes da autenticação continuar. Hoje esse cenário bloqueia a sincronização automática.
+
+**Objetivo futuro:**
+
+- detectar o popup;
+- confirmar o encerramento da sessão anterior;
+- continuar automaticamente o fluxo de login.
+
+**Impacto atual:** impede a sincronização automática do profissional Italo.
+
+### B011 — Automatizar seleção de Perfil / Visão
+
+| Campo | Valor |
+| ----- | ----- |
+| Status | ⏳ Pendente |
+| Prioridade | 🔴 Alta |
+
+**Descrição:** alguns profissionais possuem acesso a múltiplas unidades. Após o login o portal apresenta a tela "Escolha de Perfil e/ou Visão". Para o profissional Caio deve ser selecionada automaticamente a unidade **CIR-SAO PAULO** e depois clicar em **ENVIAR**. Hoje esse fluxo não é automatizado.
+
+**Objetivo futuro:**
+
+- detectar a tela de seleção;
+- escolher automaticamente a unidade correta;
+- prosseguir para a Agenda.
+
+**Impacto atual:** impede a sincronização automática do profissional Caio.

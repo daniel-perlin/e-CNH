@@ -97,6 +97,17 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 - alteração de HTML, texto, IDs ou estrutura de tabelas;
 - conteúdo pessoal em logs, erros, HARs ou fixtures.
 
+## Comportamentos observados na homologação (sem automação)
+
+**Limitações conhecidas** (evidência confirmada em homologação manual; ainda sem automação). Detalhes: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md). Também em [ARQUITETURA.md](ARQUITETURA.md).
+
+| Caso | Comportamento | Estado no sistema | Backlog | Impacto observado |
+| ---- | ------------- | ----------------- | ------- | ----------------- |
+| Sessão já autenticada | Popup pedindo encerrar a sessão anterior antes de autenticar | Não tratado | B010 | Bloqueia sync do Italo |
+| Múltiplas unidades | Tela "Escolha de Perfil e/ou Visão" (Caio → CIR-SAO PAULO → ENVIAR) | Não tratado | B011 | Bloqueia sync do Caio |
+
+Não inferir endpoints, payloads ou seletores destes fluxos até nova descoberta autorizada com evidência HTTP.
+
 ## Implementação da Fase 003A
 
 O `ECNHClient` implementa a sequência GET → POST → POST confirmada no HAR. Os dois POSTs usam `Content-Type` URL-encoded. `tough-cookie`, `HttpCookieAgent` e `HttpsCookieAgent` preservam o mesmo CookieJar e os mesmos agentes entre as três requisições.

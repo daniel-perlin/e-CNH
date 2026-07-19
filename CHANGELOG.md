@@ -4,12 +4,123 @@
 >
 > **Fase atual:** Fase 007 — Agendamento automático (cron) (`Concluída`) — MVP concluído  
 > **Próxima fase:** sem fase obrigatória; evoluções em `docs/BACKLOG.md`  
-> **Última atualização:** 2026-07-19 12:49 BRT  
-> **Última sessão executada:** 19/07/2026 • 12:49 — B005 pacientes ativos
+> **Última atualização:** 2026-07-19 13:26 BRT  
+> **Última sessão executada:** 19/07/2026 • 13:26 — Limitações B010/B011 e reteste Italo
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 13:26
+
+### 🎯 Objetivo
+
+Retestar login/sync do Italo após encerramento manual de sessão e formalizar as limitações conhecidas do portal (B010/B011) sem implementar automação.
+
+### ✅ O que mudou
+
+- Reteste só `ECNH_USER_16` (Italo): login `erro_desconhecido`; agenda não encontrada; 0 pacientes sincronizados.
+- Backlog alinhado ao texto homologado: `B010` (sessão já autenticada) e `B011` (seleção de Perfil/Visão), prioridade Alta.
+- Limitações registradas em `COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md`, `ARQUITETURA.md`, `API.md`, `FLUXO_HTTP.md` e `README.md`.
+
+### 🧠 Decisões
+
+- **Decisão:** nenhuma automação de B010/B011 nesta tarefa.
+- **Evidência confirmada:** mesmo após encerramento manual da sessão anterior, o login HTTP do Italo não apresentou os sinais autenticados confirmados.
+
+### 📂 Arquivos impactados
+
+- `docs/BACKLOG.md`
+- `docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md`
+- `docs/ARQUITETURA.md`
+- `docs/API.md`
+- `docs/FLUXO_HTTP.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 13:24
+
+### 🎯 Objetivo
+
+Validar novamente o login do Italo após encerramento manual de sessão e documentar dois comportamentos do portal observados na homologação (sem implementar automação).
+
+### ✅ O que mudou
+
+- Reteste de sincronização apenas para `ECNH_USER_16` (Italo): login `erro_desconhecido`; agenda não obtida; nenhum paciente gravado.
+- Documentados: (1) popup de sessão já existente; (2) tela "Escolha de Perfil e/ou Visão" (ex.: Caio → CIR-SAO PAULO → ENVIAR).
+- Backlog: `B010` (sessão existente) e `B011` (escolha de unidade), ambos ⏳ Pendente.
+- Referências em `API.md`, `FLUXO_HTTP.md` e `README.md`.
+
+### 🧠 Decisões
+
+- **Decisão:** não automatizar B010/B011 nesta sessão; apenas registrar evidência de homologação e itens de backlog.
+- **Evidência confirmada:** após encerramento manual da sessão antiga, o login HTTP do Italo ainda não apresentou os sinais autenticados confirmados (`erro_desconhecido`).
+
+### 📂 Arquivos impactados
+
+- `docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md`
+- `docs/BACKLOG.md`
+- `docs/API.md`
+- `docs/FLUXO_HTTP.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 13:12
+
+### 🎯 Objetivo
+
+Tornar a descoberta de `ECNH_USER_*` totalmente dinâmica e reorganizar `.env` / `.env.example` (habilitados primeiro).
+
+### ✅ O que mudou
+
+- Removido o teto fixo `MAX_USER_INDEX = 50`; índices passam a ser descobertos pelas chaves do ambiente (`listarIndicesUsuariosEnv`).
+- `.env` e `.env.example` reorganizados: `ENABLED=true` agrupados no início; depois `ENABLED=false`; sem seção de “adicionais”.
+- Teste cobrindo índices altos (ex.: 99 e 120).
+
+### 🧠 Decisões
+
+- **Decisão:** descoberta por regex nas chaves `ECNH_USER_<n>_…`, sem limite numérico — novos profissionais homologados só exigem entradas no `.env`.
+- **Evidência confirmada:** `npm run sync:agenda` listou `ECNH_USER_16` (Italo) e `ECNH_USER_17` (Caio); login de ambos retornou `erro_desconhecido` (portal manteve formulário de login), então não houve gravação na planilha nesta execução.
+
+### 📂 Arquivos impactados
+
+- `src/config/ecnh-user-env.ts`
+- `src/config/sync-professionals.ts`
+- `src/config/login-credentials.ts`
+- `src/config/sync-professionals.test.ts`
+- `.env` (local)
+- `.env.example`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 13:01
+
+### 🎯 Objetivo
+
+Incluir os profissionais homologados Italo e Caio no conjunto habilitado de sincronização.
+
+### ✅ O que mudou
+
+- `.env`: `ECNH_USER_16` (Italo) e `ECNH_USER_17` (Caio) com `ENABLED=true`.
+- `.env.example`: entradas de exemplo para Italo e Caio habilitados (sem credenciais).
+- Nenhuma alteração de código, regra de negócio, BACKLOG ou ROADMAP.
+
+### 🧠 Decisões
+
+- **Decisão:** apenas configuração operacional; índices locais 16/17 preservados no `.env`.
+
+### 📂 Arquivos impactados
+
+- `.env` (local; não versionar credenciais)
+- `.env.example`
+- `CHANGELOG.md`
 
 ---
 

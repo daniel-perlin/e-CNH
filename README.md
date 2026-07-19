@@ -17,6 +17,7 @@ Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O pr
 - [Arquitetura](docs/ARQUITETURA.md) — camadas técnicas, responsabilidades e limites de integração
 - [Roadmap](docs/ROADMAP.md) — construção do MVP (Fases 000–007)
 - [Backlog](docs/BACKLOG.md) — evoluções futuras (incrementais e estratégicas)
+- [Limitações conhecidas do portal (homologação)](docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) — sessão já autenticada e escolha de Perfil/Visão (B010/B011; sem automação)
 - [Diagnóstico da autenticação HTTP](docs/DIAGNOSTICO_AUTENTICACAO_HTTP.md) — hipóteses, evidências pendentes e plano para validar a Fase 003A
 - [Matriz de divergências da autenticação](docs/MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md) — comparação detalhada entre navegador e `ECNHClient`
 - [Auditoria do POST `method=autenticar`](docs/AUDITORIA_POST_AUTENTICAR.md) — payload, headers, cookies, redirects e charset produzidos pelo cliente

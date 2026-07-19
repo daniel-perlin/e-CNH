@@ -1,5 +1,7 @@
 import { ConfigurationError } from '../client/errors.js';
 
+import { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
+
 export interface ResolvedLoginCredentials {
   cpf: string;
   password: string;
@@ -31,13 +33,10 @@ export function resolveLoginCredentials(
     return readUserCredentials(env, requestedIndex, true);
   }
 
-  for (let index = 1; index <= 50; index += 1) {
+  for (const index of listarIndicesUsuariosEnv(env)) {
     const enabled = env[`ECNH_USER_${index}_ENABLED`];
     const cpf = env[`ECNH_USER_${index}_CPF`];
     const password = env[`ECNH_USER_${index}_PASSWORD`];
-    if (enabled === undefined && cpf === undefined && password === undefined) {
-      continue;
-    }
     if (enabled !== 'true') {
       continue;
     }
@@ -70,13 +69,10 @@ export function listEnabledLoginCredentials(
 ): ResolvedLoginCredentials[] {
   const users: ResolvedLoginCredentials[] = [];
 
-  for (let index = 1; index <= 50; index += 1) {
+  for (const index of listarIndicesUsuariosEnv(env)) {
     const enabled = env[`ECNH_USER_${index}_ENABLED`];
     const cpf = env[`ECNH_USER_${index}_CPF`];
     const password = env[`ECNH_USER_${index}_PASSWORD`];
-    if (enabled === undefined && cpf === undefined && password === undefined) {
-      continue;
-    }
     if (enabled !== 'true') {
       continue;
     }
@@ -104,8 +100,8 @@ function parseUserIndex(value: string | undefined): number | undefined {
   }
 
   const parsed = Number.parseInt(value, 10);
-  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 50) {
-    throw new ConfigurationError('ECNH_LOGIN_USER_INDEX deve ser um inteiro entre 1 e 50.');
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new ConfigurationError('ECNH_LOGIN_USER_INDEX deve ser um inteiro ≥ 1.');
   }
   return parsed;
 }

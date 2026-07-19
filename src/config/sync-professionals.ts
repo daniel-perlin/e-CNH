@@ -1,7 +1,7 @@
 import { ConfigurationError } from '../client/errors.js';
 import type { EntradaSincronizacaoProfissional } from '../services/agenda-sync-service.js';
 
-const MAX_USER_INDEX = 50;
+import { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
 
 /**
  * Profissional habilitado para sincronização.
@@ -18,11 +18,13 @@ export interface ProfissionalParaSincronizacao {
   senha: string;
 }
 
+export { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
+
 /**
  * Lista profissionais com `ECNH_USER_<n>_ENABLED=true` e campos obrigatórios preenchidos.
  *
  * Variáveis por índice: `NAME`, `CPF`, `PASSWORD`, `ENABLED`.
- * Slots sem nenhuma variável definida são ignorados.
+ * Índices são descobertos automaticamente a partir das chaves do ambiente.
  * `ENABLED=true` com NAME/CPF/PASSWORD ausentes lança `ConfigurationError`.
  */
 export function resolveEnabledSyncProfessionals(
@@ -30,20 +32,11 @@ export function resolveEnabledSyncProfessionals(
 ): ProfissionalParaSincronizacao[] {
   const profissionais: ProfissionalParaSincronizacao[] = [];
 
-  for (let index = 1; index <= MAX_USER_INDEX; index += 1) {
+  for (const index of listarIndicesUsuariosEnv(env)) {
     const enabled = env[`ECNH_USER_${index}_ENABLED`];
     const name = env[`ECNH_USER_${index}_NAME`];
     const cpf = env[`ECNH_USER_${index}_CPF`];
     const password = env[`ECNH_USER_${index}_PASSWORD`];
-
-    if (
-      enabled === undefined &&
-      name === undefined &&
-      cpf === undefined &&
-      password === undefined
-    ) {
-      continue;
-    }
 
     if (enabled !== 'true') {
       continue;

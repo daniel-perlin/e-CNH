@@ -91,6 +91,24 @@ describe('resolveEnabledSyncProfessionals', () => {
       ['Alpha', 'Beta', 'Gamma']
     );
   });
+
+  it('descobre dinamicamente índices altos sem limite fixo', () => {
+    const profissionais = resolveEnabledSyncProfessionals({
+      ECNH_USER_99_ENABLED: 'true',
+      ECNH_USER_99_NAME: 'Italo',
+      ECNH_USER_99_CPF: '999.999.999-99',
+      ECNH_USER_99_PASSWORD: 'senha',
+      ECNH_USER_120_ENABLED: 'true',
+      ECNH_USER_120_NAME: 'Caio',
+      ECNH_USER_120_CPF: '888.888.888-88',
+      ECNH_USER_120_PASSWORD: 'senha'
+    });
+
+    assert.deepEqual(
+      profissionais.map((item) => item.identificadorSeguro),
+      ['ECNH_USER_99', 'ECNH_USER_120']
+    );
+  });
 });
 
 describe('paraEntradaSincronizacao / resolveEntradasSincronizacao', () => {
