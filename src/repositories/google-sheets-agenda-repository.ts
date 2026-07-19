@@ -101,11 +101,18 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
       const linhasAtivas: string[][] = [];
       for (const registro of ativos) {
+        const unidadePreservada = registro.unidadeOperacional?.trim() ?? '';
+        const unidadeLinha =
+          unidadePreservada.length > 0
+            ? unidadePreservada
+            : registro.profissional === profissional
+              ? unidadeOperacional
+              : '';
         const linha = this.mapper.agendaParaLinhas(
           { dataConsulta: registro.dataConsulta, itens: [registro.item] },
           {
             profissional: registro.profissional,
-            unidadeOperacional: registro.unidadeOperacional ?? '',
+            unidadeOperacional: unidadeLinha,
             dataInclusao: registro.dataInclusao ?? ''
           }
         )[0];

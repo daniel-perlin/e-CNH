@@ -4,12 +4,62 @@
 >
 > **Fase atual:** B013 — Coluna Unidade operacional (`✅ Concluído`)  
 > **Próxima prioridade:** B010 (sessão já autenticada), se priorizado; D3 fixtures de protocolo em sprint futura  
-> **Última atualização:** 2026-07-19 15:51 BRT  
-> **Última sessão executada:** 19/07/2026 • 15:51 — B013 coluna Unidade (CLINIC → operacional)
+> **Última atualização:** 2026-07-19 15:59 BRT  
+> **Última sessão executada:** 19/07/2026 • 15:59 — Correção B013 Unidade vazia em ativos
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 15:59
+
+### 🎯 Objetivo
+
+Diagnosticar e corrigir a coluna Unidade vazia após sync bem-sucedido (B013).
+
+### ✅ O que mudou
+
+- Trace: config → sync → mapper → repositório estavam corretos na inserção de **novos** CPF.
+- Bug: na regravação de pacientes **já ativos**, usava-se só `registro.unidadeOperacional` (vazio no legado), descartando o valor do contexto do sync.
+- Correção: se a unidade armazenada estiver vazia e o profissional da linha for o do sync atual, preencher com `contexto.unidadeOperacional`.
+- Teste de regressão com planilha legada sem coluna Unidade.
+
+### 🧠 Decisões
+
+- Correção mínima, só no ponto de perda; sem mudança de contratos.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 15:55
+
+### 🎯 Objetivo
+
+Tornar o resolver de unidade operacional tolerante a variações naturais de escrita de `CLINIC`, sem exigir alteração do `.env`.
+
+### ✅ O que mudou
+
+- `normalizarChaveClinica`: remove acentos, lowercase, troca `/` e `-` por espaço, colapsa espaços e faz trim antes do lookup.
+- Testes cobrindo variações de Limão, Capão e Carrão.
+- Mensagem de erro deixa explícito que a clínica não possui unidade operacional cadastrada.
+
+### 🧠 Decisões
+
+- Continua um único mapa centralizado; sem ifs por clínica.
+- Valores existentes no `.env` permanecem válidos sem mudança.
+
+### 📂 Arquivos impactados
+
+- `src/utils/unidade-operacional.ts`
+- `src/utils/unidade-operacional.test.ts`
+- `CHANGELOG.md`
 
 ---
 

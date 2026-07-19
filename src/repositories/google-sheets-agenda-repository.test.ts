@@ -182,6 +182,53 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(matriz[1]?.[COL.dataInclusao], dataInclusao);
   });
 
+  it('preenche Unidade em paciente já ativo quando a coluna estava vazia (legado)', async () => {
+    const { sheets, repository } = criarRepositorio();
+
+    await sheets.updateValues(RANGE, [
+      [
+        'Profissional',
+        'Data de Agendamento',
+        'Hora',
+        'CPF',
+        'Nome',
+        'Telefone',
+        'E-mail',
+        'Tipo de Processo',
+        'Categoria',
+        'Status do Exame Médico',
+        'Status do Exame Psicológico',
+        'Data de inclusão'
+      ],
+      [
+        'Profissional Alpha',
+        '20/07/2026',
+        '08:00',
+        '000.000.000-00',
+        'PACIENTE LEGADO',
+        '',
+        '',
+        '',
+        'B',
+        '',
+        '',
+        '19/07/2026 10:00'
+      ]
+    ]);
+
+    const resultado = await repository.salvarAgenda(
+      agendaFixture('25/07/2026', '09:00', 'PACIENTE LEGADO', '000.000.000-00'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+    );
+
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.linhasGravadas, 0);
+    const matriz = await sheets.getValues(RANGE);
+    assert.equal(matriz[0]?.[COL.unidade], 'Unidade');
+    assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
+    assert.equal(matriz[1]?.[COL.nome], 'PACIENTE LEGADO');
+  });
+
   it('pacientes diferentes continuam sendo inseridos normalmente', async () => {
     const { sheets, repository } = criarRepositorio();
 
