@@ -2,7 +2,7 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto buscará as agendas futuras dos profissionais e manterá a aba `Agenda` atualizada de forma automatizada.
 
-> **Fase atual:** 003A — Autenticação HTTP (`Concluída`). Login reproduzível e logout HTTP (`GET method=finalizarLogin`) comprovados. Próxima: Fase 003B — Navegação autenticada (`Planejada`).
+> **Fase atual:** 003B — Navegação autenticada (`Concluída`). HTML bruto da agenda obtido via `POST method=consultarAgendaPsicologo`. Próxima: Fase 004 — Extração de dados da agenda (`Planejada`).
 
 ## Leitura recomendada
 
@@ -32,8 +32,9 @@ O sistema integra o portal diretamente por HTTP: Axios preserva a sessão no Coo
 - npm
 - Axios, tough-cookie e http-cookie-agent (integração HTTP, sessão e agentes persistentes)
 - Validador `npm run validate:login` com evidências sanitizadas em `docs/evidencias/`
+- Validador `npm run validate:agenda` e descoberta `npm run discover:agenda` da navegação autenticada
 - Descoberta de logout `npm run discover:logout`
-- Cheerio (parsing futuro de HTML SSR)
+- Cheerio (parsing futuro de HTML SSR; na 003B usado só para montar/inspecionar formulários de navegação)
 - Google APIs e dotenv
 - Pino para logs estruturados
 - Zod para validação futura de configuração e dados de fronteira
@@ -85,17 +86,20 @@ npm run validate:login
 
 O cliente envia exclusivamente o protocolo de login confirmado, mantém cookies com `tough-cookie` e confirma sucesso pela presença de `JSESSIONID` e do marcador HTML observado. O logout envia `GET /gefor/SGU/login.do?method=finalizarLogin` e descarta a sessão local.
 
+Após o login, `listarDatasAgendamento()` e `obterHtmlAgenda({ data, dataReferencia })` reproduzem a consulta `POST method=consultarAgendaPsicologo` e devolvem HTML bruto, sem parsing de pacientes.
+
 ### Estado da validação real
 
-Em 19/07/2026, a validação reproduzível aprovou cinco autenticações distintas do `ECNHClient`, com evidências em `docs/evidencias/`. O logout HTTP (`method=finalizarLogin`) foi confirmado via menu dinâmico e implementado. A Fase 003A está `Concluída`.
+Em 19/07/2026, a validação reproduzível aprovou autenticação, logout e navegação até o HTML de resultado da agenda, com evidências em `docs/evidencias/`. A Fase 003A está `Concluída`. A Fase 003B está `Concluída`.
 
-Para reexecutar a validação:
+Para reexecutar:
 
 ```bash
 npm run validate:login
+npm run validate:agenda
 ```
 
-Consulte [o mapa do protocolo](docs/API.md) e a [validação reproduzível](docs/VALIDACAO_REPRODUZIVEL_003A.md).
+Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md) e [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md).
 
 ## Arquitetura definitiva
 
@@ -128,7 +132,7 @@ npm run build
 
 ## Roadmap e próximos passos
 
-Próximas fases: **003B — Navegação autenticada**, **004 — Extração de dados da agenda**, **005 — Integração Google Sheets**, **006 — Orquestração multi-profissionais** e **007 — Agendamento automático (cron)**. Veja o [roadmap detalhado](docs/ROADMAP.md).
+Próximas fases: **004 — Extração de dados da agenda**, **005 — Integração Google Sheets**, **006 — Orquestração multi-profissionais** e **007 — Agendamento automático (cron)**. Veja o [roadmap detalhado](docs/ROADMAP.md).
 
 ### Convenção de status
 

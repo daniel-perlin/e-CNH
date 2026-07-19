@@ -60,3 +60,10 @@
 - **Contexto:** o HTML autenticado não expõe o link "Sair"; o menu dinâmico em `/gefor/global/menu_items.jsp` declara `url` com `GET /gefor/SGU/login.do?method=finalizarLogin`.
 - **Decisão:** `ECNHClient.logout()` envia esse GET com o CookieJar da sessão e, em seguida, sempre descarta a sessão local.
 - **Consequência:** o portal recebe o encerramento observado no menu. Falha de rede no GET não impede a limpeza local. Não confundir com o campo `forceLogout` da tela de login.
+
+## ADR-010 — Consulta de agenda via DivisaoEquitativaForm
+
+- **Status:** aceito
+- **Contexto:** a Fase 003B confirmou que o HTML pós-login já contém `DivisaoEquitativaForm` e que `pesquisar()` submete `POST method=consultarAgendaPsicologo` para `/gefor/GFR/divisao/divisaoEquitativa.do`.
+- **Decisão:** o `ECNHClient` preserva o HTML autenticado, lê datas do select `#agendamentos` e obtém HTML bruto por esse POST, exigindo `data` e `dataReferencia` nos formatos observados. Não há contrato público de domínio para a agenda nesta fase.
+- **Consequência:** a navegação autenticada fica encapsulada no cliente. Parser, modelos de paciente e Sheets permanecem nas fases seguintes. Refreshes JSON auxiliares foram evidenciados, mas não são obrigatórios quando o select já vem populado.

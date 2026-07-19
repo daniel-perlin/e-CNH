@@ -1,0 +1,656 @@
+{
+  "credentialsSource": "ECNH_USER_1",
+  "finishedAt": "2026-07-19T11:22:05.830Z",
+  "forms": [
+    {
+      "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+      "fieldCount": 5,
+      "fields": [
+        {
+          "id": "",
+          "name": "method",
+          "tag": "input",
+          "type": "hidden",
+          "valueKind": "static",
+          "valueLength": 24
+        },
+        {
+          "id": "",
+          "name": "idUnidadeTransitoConsulta",
+          "optionCount": 2,
+          "optionDateCount": 0,
+          "selectedOptionPresent": true,
+          "tag": "select",
+          "type": "select",
+          "valueKind": "other"
+        },
+        {
+          "id": "",
+          "name": "idUsuarioMedicoConsulta",
+          "tag": "input",
+          "type": "hidden",
+          "valueKind": "identifier",
+          "valueLength": 5
+        },
+        {
+          "id": "",
+          "name": "dataReferencia",
+          "tag": "input",
+          "type": "text",
+          "valueKind": "empty",
+          "valueLength": 0
+        },
+        {
+          "id": "agendamentos",
+          "name": "data",
+          "optionCount": 5,
+          "optionDateCount": 4,
+          "selectedOptionPresent": false,
+          "tag": "select",
+          "type": "select",
+          "valueKind": "date"
+        }
+      ],
+      "id": "",
+      "method": "POST",
+      "name": "DivisaoEquitativaForm",
+      "onsubmit": "",
+      "strutsMethods": [
+        "consultarAgendaPsicologo"
+      ]
+    }
+  ],
+  "jsonProbes": [
+    {
+      "arrayLength": 778,
+      "bodyBytes": 47185,
+      "bodySha256": "2bfb59402becf5a553759ecb66bdae5e7dceccfc49776900f54b4d3151e8237b",
+      "contentType": "application/json; charset=UTF-8",
+      "durationMs": 223,
+      "isArray": true,
+      "isObject": false,
+      "itemKeysSample": [
+        "value",
+        "label"
+      ],
+      "parseOk": true,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "idTipoProfessional",
+          "idUnidadeTransitoConsulta",
+          "method"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "refreshMedicosByUnidadeTransito"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200
+    },
+    {
+      "arrayLength": 4,
+      "bodyBytes": 177,
+      "bodySha256": "0b8a84b5a07e5a9472c5f50e7e0e09dd741f497fa52ef76ee8d1001e099dc7e7",
+      "contentType": "application/json; charset=UTF-8",
+      "durationMs": 49,
+      "isArray": true,
+      "isObject": false,
+      "itemKeysSample": [
+        "value",
+        "label"
+      ],
+      "parseOk": true,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "dataReferencia",
+          "idUsuarioMedicoConsulta",
+          "method"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "refreshAgendaMedicaByMedico"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200
+    }
+  ],
+  "kind": "descoberta-navegacao-agenda",
+  "loginSucceeded": true,
+  "nodeVersion": "v26.5.0",
+  "phase": "003B",
+  "postLoginSignals": {
+    "authenticatedMarkerPresent": true,
+    "dateOptionCount": 4,
+    "formNames": [
+      "DivisaoEquitativaForm"
+    ],
+    "htmlBytes": 72860,
+    "keywordHits": {
+      "categoria": false,
+      "cpfLabel": false,
+      "horario": false,
+      "paciente": false,
+      "renach": false,
+      "resultado": false
+    },
+    "legends": [
+      "Pesquisa"
+    ],
+    "loginFormPresent": false,
+    "methodValues": [
+      "consultarAgendaPsicologo"
+    ],
+    "tableCount": 4,
+    "thTexts": [],
+    "title": "eCNHsp - DETRAN - São Paulo"
+  },
+  "probes": [
+    {
+      "bodyBytes": 79752,
+      "bodySha256": "b472d2ffc038e277e159ee7429221324190f1f79020b051a5f8e5d0882be7eef",
+      "durationMs": 414,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "method",
+          "idUnidadeTransitoConsulta",
+          "idUsuarioMedicoConsulta",
+          "dataReferencia",
+          "data"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "consultarAgendaPsicologo",
+        "variant": "sem-dataReferencia"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200,
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "dateOptionCount": 0,
+        "formNames": [
+          "DivisaoEquitativaForm"
+        ],
+        "htmlBytes": 79752,
+        "keywordHits": {
+          "categoria": true,
+          "cpfLabel": true,
+          "horario": false,
+          "paciente": false,
+          "renach": false,
+          "resultado": true
+        },
+        "legends": [
+          "Resultado"
+        ],
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ],
+        "title": "eCNHsp - DETRAN - São Paulo"
+      }
+    },
+    {
+      "bodyBytes": 79753,
+      "bodySha256": "a66c022ebc675c5ad3bee75380c2defd26f752c4335d3bcc7c2d7b0ccb609bbc",
+      "durationMs": 251,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "method",
+          "idUnidadeTransitoConsulta",
+          "idUsuarioMedicoConsulta",
+          "dataReferencia",
+          "data"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "consultarAgendaPsicologo",
+        "variant": "com-dataReferencia-1"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200,
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "dateOptionCount": 0,
+        "formNames": [
+          "DivisaoEquitativaForm"
+        ],
+        "htmlBytes": 79753,
+        "keywordHits": {
+          "categoria": true,
+          "cpfLabel": true,
+          "horario": false,
+          "paciente": false,
+          "renach": false,
+          "resultado": true
+        },
+        "legends": [
+          "Resultado"
+        ],
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ],
+        "title": "eCNHsp - DETRAN - São Paulo"
+      }
+    },
+    {
+      "bodyBytes": 79752,
+      "bodySha256": "5d3e35ab1cff098b5c9736ac39dfb35136b8c999ef3538b014521c51ebef641d",
+      "durationMs": 222,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "method",
+          "idUnidadeTransitoConsulta",
+          "idUsuarioMedicoConsulta",
+          "dataReferencia",
+          "data"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "consultarAgendaPsicologo",
+        "variant": "com-dataReferencia-2"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200,
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "dateOptionCount": 0,
+        "formNames": [
+          "DivisaoEquitativaForm"
+        ],
+        "htmlBytes": 79752,
+        "keywordHits": {
+          "categoria": true,
+          "cpfLabel": true,
+          "horario": false,
+          "paciente": false,
+          "renach": false,
+          "resultado": true
+        },
+        "legends": [
+          "Resultado"
+        ],
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ],
+        "title": "eCNHsp - DETRAN - São Paulo"
+      }
+    },
+    {
+      "bodyBytes": 79753,
+      "bodySha256": "7a5e9356f0bf1bbcf79a721cc4c6a749aa95a12d1326edcf3f45f19ed50112c2",
+      "durationMs": 253,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "method",
+          "idUnidadeTransitoConsulta",
+          "idUsuarioMedicoConsulta",
+          "dataReferencia",
+          "data"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "consultarAgendaPsicologo",
+        "variant": "com-dataReferencia-3"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200,
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "dateOptionCount": 0,
+        "formNames": [
+          "DivisaoEquitativaForm"
+        ],
+        "htmlBytes": 79753,
+        "keywordHits": {
+          "categoria": true,
+          "cpfLabel": true,
+          "horario": false,
+          "paciente": false,
+          "renach": false,
+          "resultado": true
+        },
+        "legends": [
+          "Resultado"
+        ],
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ],
+        "title": "eCNHsp - DETRAN - São Paulo"
+      }
+    },
+    {
+      "bodyBytes": 79754,
+      "bodySha256": "78c1869f5199675a45b4c6d816a954dd1abbb0c03e44062ac5f047b2173d24e5",
+      "durationMs": 249,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "method",
+          "idUnidadeTransitoConsulta",
+          "idUsuarioMedicoConsulta",
+          "dataReferencia",
+          "data"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "consultarAgendaPsicologo",
+        "variant": "com-dataReferencia-4"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200,
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "dateOptionCount": 0,
+        "formNames": [
+          "DivisaoEquitativaForm"
+        ],
+        "htmlBytes": 79754,
+        "keywordHits": {
+          "categoria": true,
+          "cpfLabel": true,
+          "horario": false,
+          "paciente": false,
+          "renach": false,
+          "resultado": true
+        },
+        "legends": [
+          "Resultado"
+        ],
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ],
+        "title": "eCNHsp - DETRAN - São Paulo"
+      }
+    },
+    {
+      "bodyBytes": 79753,
+      "bodySha256": "64859fbb1939149e67bc8c04a950cb5ce7f937c8a7d3926ef1768b4d62ade50a",
+      "durationMs": 247,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "method",
+          "idUnidadeTransitoConsulta",
+          "idUsuarioMedicoConsulta",
+          "dataReferencia",
+          "data"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "consultarAgendaPsicologo",
+        "variant": "com-dataReferencia-5"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200,
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "dateOptionCount": 0,
+        "formNames": [
+          "DivisaoEquitativaForm"
+        ],
+        "htmlBytes": 79753,
+        "keywordHits": {
+          "categoria": true,
+          "cpfLabel": true,
+          "horario": false,
+          "paciente": false,
+          "renach": false,
+          "resultado": true
+        },
+        "legends": [
+          "Resultado"
+        ],
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ],
+        "title": "eCNHsp - DETRAN - São Paulo"
+      }
+    },
+    {
+      "bodyBytes": 79754,
+      "bodySha256": "40b051d981e03bc8f54b15761f9a366e4386d0fe7dbfaca16b51386daa61f0d5",
+      "durationMs": 220,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "method",
+          "idUnidadeTransitoConsulta",
+          "idUsuarioMedicoConsulta",
+          "dataReferencia",
+          "data"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "consultarAgendaPsicologo",
+        "variant": "com-dataReferencia-6"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200,
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "dateOptionCount": 0,
+        "formNames": [
+          "DivisaoEquitativaForm"
+        ],
+        "htmlBytes": 79754,
+        "keywordHits": {
+          "categoria": true,
+          "cpfLabel": true,
+          "horario": false,
+          "paciente": false,
+          "renach": false,
+          "resultado": true
+        },
+        "legends": [
+          "Resultado"
+        ],
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ],
+        "title": "eCNHsp - DETRAN - São Paulo"
+      }
+    },
+    {
+      "bodyBytes": 78999,
+      "bodySha256": "db9bc01c9f4bec09cc746720e9ef33940db1156dfab61d89eb5af272cba3f624",
+      "durationMs": 241,
+      "request": {
+        "action": "/gefor/GFR/divisao/divisaoEquitativa.do",
+        "fieldNames": [
+          "method",
+          "idUnidadeTransitoConsulta",
+          "idUsuarioMedicoConsulta",
+          "dataReferencia",
+          "data"
+        ],
+        "httpMethod": "POST",
+        "strutsMethod": "consultarAgendaPsicologo",
+        "variant": "segunda-data-agendamento"
+      },
+      "sessionCookiePresentAfter": true,
+      "status": 200,
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "dateOptionCount": 0,
+        "formNames": [
+          "DivisaoEquitativaForm"
+        ],
+        "htmlBytes": 78999,
+        "keywordHits": {
+          "categoria": true,
+          "cpfLabel": true,
+          "horario": false,
+          "paciente": false,
+          "renach": false,
+          "resultado": true
+        },
+        "legends": [
+          "Resultado"
+        ],
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ],
+        "title": "eCNHsp - DETRAN - São Paulo"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "scripts": [
+    {
+      "bodyBytes": 3910,
+      "bodySha256": "8b08c753a0bff72084d72b6b8105a6972ab4cbc48a4f5ad1160c4323b93bc265",
+      "functionHints": [
+        "refreshAgendaMedica",
+        "refreshMedicos",
+        "refreshPsicologo"
+      ],
+      "methodHints": [
+        "refreshAgendaMedicaByMedico",
+        "refreshMedicosByUnidadeTransito"
+      ],
+      "path": "/GFR/js/app/divisao/comum.js?v=1",
+      "status": 200,
+      "urlHints": [
+        "/GFR/divisao/divisaoEquitativa.do",
+        "/gefor/GFR/divisao/divisaoEquitativa.do"
+      ],
+      "validationHints": []
+    },
+    {
+      "bodyBytes": 2023,
+      "bodySha256": "59462f82a2645f9f9fe6f78e0ef6bdebd3bc15ac8c95333ed1c8dbfbe602ed90",
+      "functionHints": [
+        "cancelar",
+        "fieldsValidate",
+        "pesquisar",
+        "print"
+      ],
+      "methodHints": [],
+      "path": "/GFR/js/app/divisao/agendaPsicologo.js",
+      "status": 200,
+      "urlHints": [
+        "/GFR/js/app/agendamento/consulta/agendamentoPrintDialog.js"
+      ],
+      "validationHints": [
+        "data",
+        "dataReferencia",
+        "idUnidadeTransitoConsulta",
+        "idUsuarioMedicoConsulta"
+      ]
+    }
+  ],
+  "startedAt": "2026-07-19T11:22:02.650Z",
+  "summary": {
+    "confirmedConsultation": true,
+    "confirmedJsonRefresh": true,
+    "note": "Fluxo de consulta da agenda exercitado com sinais estruturais autenticados.",
+    "postLoginFormFound": true
+  },
+  "uiHints": {
+    "cancelHrefPresent": true,
+    "dataReferenciaRequiredInJs": true,
+    "pesquisarOnclickPresent": true,
+    "refreshAgendaHintPresent": true,
+    "refreshPsicologoHintPresent": true
+  }
+}

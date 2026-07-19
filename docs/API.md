@@ -66,21 +66,26 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 
 ## Endpoints identificados
 
-| Operação                  | Método     | Caminho                                   | Parâmetros obrigatórios                      | Resposta          | Estado         |
-| ------------------------- | ---------- | ----------------------------------------- | -------------------------------------------- | ----------------- | -------------- |
-| Início do login           | `GET`      | `/gefor/SGU/login.do?method=iniciarLogin` | `method=iniciarLogin`                        | HTML completo SSR | Fato observado |
-| Início do login da agenda | `POST`     | `/gefor/SGU/login.do`                     | `method=iniciarLoginAgenda` e formulário     | HTML completo SSR | Fato observado |
-| Autenticação              | `POST`     | `/gefor/SGU/login.do`                     | `method=autenticar`, CPF, senha e formulário | HTML completo SSR | Fato observado |
-| Página protegida inicial  | A observar | A observar                                | A observar                                   | A observar        | Pendente       |
-| Descoberta de datas       | A observar | A observar                                | A observar                                   | A observar        | Pendente       |
-| Consulta de agenda        | A observar | A observar                                | A observar                                   | A observar        | Pendente       |
-| Logout                    | `GET`      | `/gefor/SGU/login.do?method=finalizarLogin` | `method=finalizarLogin`                      | HTML de login     | Fato observado |
+| Operação                  | Método     | Caminho                                      | Parâmetros obrigatórios                                                                 | Resposta                          | Estado         |
+| ------------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------- | -------------- |
+| Início do login           | `GET`      | `/gefor/SGU/login.do?method=iniciarLogin`    | `method=iniciarLogin`                                                                   | HTML completo SSR                 | Fato observado |
+| Início do login da agenda | `POST`     | `/gefor/SGU/login.do`                        | `method=iniciarLoginAgenda` e formulário                                                | HTML completo SSR                 | Fato observado |
+| Autenticação              | `POST`     | `/gefor/SGU/login.do`                        | `method=autenticar`, CPF, senha e formulário                                            | HTML completo SSR                 | Fato observado |
+| Página protegida inicial  | —          | (resposta do `method=autenticar`)            | —                                                                                       | HTML com `DivisaoEquitativaForm`  | Fato observado |
+| Refresh de profissionais  | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=refreshMedicosByUnidadeTransito`, `idUnidadeTransitoConsulta`                   | JSON `[{ value, label }]`         | Fato observado |
+| Refresh de datas          | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=refreshAgendaMedicaByMedico`, `idUsuarioMedicoConsulta`, `dataReferencia`       | JSON `[{ value, label }]`         | Fato observado |
+| Consulta de agenda        | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=consultarAgendaPsicologo`, unidade, usuário, `dataReferencia`, `data`           | HTML com legend `Resultado`       | Fato observado |
+| Logout                    | `GET`      | `/gefor/SGU/login.do?method=finalizarLogin`  | `method=finalizarLogin`                                                                 | HTML de login                     | Fato observado |
 
 ## Navegação e HTML
 
-**Fato observado:** depois da autenticação bem-sucedida, o próprio HTML retornado contém a página "Imprimir Agenda Diária do Psicólogo". Isso sustenta que a navegação ocorre por formulários HTML tradicionais; nenhuma API REST foi observada.
+**Fato observado:** depois da autenticação bem-sucedida, o próprio HTML retornado contém a página "Imprimir Agenda Diária do Psicólogo" com o formulário `DivisaoEquitativaForm`.
 
-As próximas fases devem descobrir quais endpoints consultam a agenda, parâmetros de pesquisa, como trocar a Data de Agendamento, como obter datas disponíveis, quais requisições realmente retornam agenda e quais tabelas HTML contêm pacientes.
+**Fato observado (Fase 003B):** a consulta da agenda é um `POST` URL-encoded para `/gefor/GFR/divisao/divisaoEquitativa.do` com `method=consultarAgendaPsicologo`. O botão PESQUISAR chama `pesquisar()`, que valida os campos e submete o formulário. As datas disponíveis aparecem no select `#agendamentos` (`name="data"`, valores `DD/MM/YYYY`); também podem ser recarregadas via JSON `refreshAgendaMedicaByMedico`.
+
+**Fato observado:** a resposta da consulta mantém o marcador autenticado, troca o hidden `method` para `agendaMedico`, inclui a legend `Resultado` e uma tabela com cabeçalhos Hora, CPF, Nome, Telefone, E-mail, Tipo de Processo, Categoria, Status do Exame Médico e Status do Exame Psicológico.
+
+A extração estruturada desses campos pertence à Fase 004.
 
 ## Pontos de falha a tratar
 
@@ -116,3 +121,22 @@ O logout envia `GET /gefor/SGU/login.do?method=finalizarLogin`, conforme o item 
 A Fase 003A está `Concluída`.
 
 Critério, comando e limitações estão em [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md). O histórico de tentativas anteriores permanece no [diagnóstico da autenticação](DIAGNOSTICO_AUTENTICACAO_HTTP.md) e na [auditoria do POST `method=autenticar`](AUDITORIA_POST_AUTENTICAR.md).
+
+## Implementação da Fase 003B
+
+O `ECNHClient` preserva o HTML autenticado após o login e expõe:
+
+- `listarDatasAgendamento()` — lê opções `DD/MM/YYYY` do select pós-login;
+- `obterHtmlAgenda({ data, dataReferencia })` — envia o POST `consultarAgendaPsicologo` e devolve o HTML bruto.
+
+Não há parser de pacientes nesta fase. Comandos: `npm run discover:agenda`, `npm run test:agenda`, `npm run validate:agenda`.
+
+## Validação reproduzível da Fase 003B em 19/07/2026
+
+**Evidências confirmadas:**
+
+- `npm run discover:agenda` inventariou o formulário, os scripts e confirmou consulta HTML + refresh JSON;
+- `npm run validate:agenda` reproduziu login → consulta → logout via `ECNHClient` com legend `Resultado`, `method=agendaMedico` e cabeçalhos esperados;
+- artefatos sanitizados em `docs/evidencias/003b-descoberta-navegacao-*.json` e `docs/evidencias/003b-validacao-navegacao-*.json`.
+
+A Fase 003B está `Concluída`. Detalhes em [.fases/003b-navegacao-autenticada.md](../.fases/003b-navegacao-autenticada.md).

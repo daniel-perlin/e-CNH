@@ -8,13 +8,13 @@ Cada fase deve resolver um único problema e não antecipar funcionalidades post
 | Fase 001 — Engenharia reversa               | `Concluída`    | Evidências do DevTools e mapa do protocolo.                                                                 |
 | Fase 002 — Consolidação arquitetural        | `Concluída`    | Documentação, decisões e arquitetura HTTP baseadas em evidências reais.                                     |
 | Fase 003A — Autenticação HTTP               | `Concluída`    | Autenticação HTTP, sessão, CookieJar, verificação, logout HTTP e testes; sem agenda.    |
-| Fase 003B — Navegação autenticada           | `Planejada`    | Página de agenda, endpoints, parâmetros e HTML bruto; sem extração estruturada.                             |
+| Fase 003B — Navegação autenticada           | `Concluída`    | Página de agenda, endpoints, parâmetros e HTML bruto; sem extração estruturada.                             |
 | Fase 004 — Extração de dados da agenda      | `Planejada`    | Parser HTML, modelos tipados e testes unitários; sem integração com planilha.                               |
 | Fase 005 — Integração Google Sheets         | `Planejada`    | Leitura/escrita e contrato da aba `Agenda`.                                                                 |
 | Fase 006 — Orquestração multi-profissionais | `Planejada`    | Caso de uso que coordena múltiplos profissionais e o fluxo completo de sincronização; execução sob demanda. |
 | Fase 007 — Agendamento automático (cron)    | `Planejada`    | Job agendado e proteção contra sobreposição de execuções.                                                   |
 
-> **Situação da Fase 003A:** `Concluída` em 19/07/2026. Validação reproduzível de login e logout HTTP (`GET method=finalizarLogin`) comprovados com evidências sanitizadas. Próxima fase: 003B — Navegação autenticada.
+> **Situação da Fase 003B:** `Concluída` em 19/07/2026. Consulta `POST method=consultarAgendaPsicologo` reproduzida no `ECNHClient` com HTML de resultado e evidências sanitizadas. Próxima fase: 004 — Extração de dados da agenda.
 
 ## Convenção de status
 

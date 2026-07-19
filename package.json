@@ -16,8 +16,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:login": "tsx src/scripts/test-login.ts",
+    "test:agenda": "tsx src/scripts/test-agenda.ts",
     "validate:login": "tsx src/scripts/validate-login.ts",
-    "discover:logout": "tsx src/scripts/discover-logout.ts"
+    "validate:agenda": "tsx src/scripts/validate-agenda.ts",
+    "discover:logout": "tsx src/scripts/discover-logout.ts",
+    "discover:agenda": "tsx src/scripts/discover-agenda-navigation.ts"
   },
   "dependencies": {
     "axios": "^1.8.4",

@@ -49,6 +49,6 @@ Playwright não é tecnologia principal e não será usado no fluxo produtivo no
 
 ## Limites confirmados
 
-- Nenhum endpoint de agenda foi observado ou será inferido.
-- Nenhuma extração de agenda (Fase 004), integração com Sheets (Fase 005), orquestração multi-profissionais (Fase 006) ou agendamento automático (Fase 007) foi implementada além do escopo da Fase 003A.
+- Nenhum parser de agenda (Fase 004), integração com Sheets (Fase 005), orquestração multi-profissionais (Fase 006) ou agendamento automático (Fase 007) foi implementado além do escopo das Fases 003A/003B.
+- A Fase 003B entrega HTML bruto de consulta; a interpretação da tabela de resultado permanece pendente.
 - Credenciais, tokens e valores de cookies não podem ser persistidos ou registrados em logs.

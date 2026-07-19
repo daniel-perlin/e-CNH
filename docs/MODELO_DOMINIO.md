@@ -48,7 +48,7 @@ Representa uma agenda consultada para um profissional e período específicos.
 | profissional        | Referência ao profissional proprietário da agenda.     |
 | lista de pacientes  | Coleção de pacientes retornados para a agenda.         |
 
-Os formatos de data, o relacionamento exato entre datas e a estrutura HTML que os fornece permanecem pendentes de descoberta na Fase 003B.
+Os formatos de data observados na navegação (`DD/MM/YYYY` no select e `DD/MM/YYYY` ou `DDMMYYYY` em `dataReferencia`) foram confirmados na Fase 003B. A estrutura das linhas da tabela de resultado permanece pendente de extração na Fase 004.
 
 ## ResultadoLogin
 
@@ -77,7 +77,7 @@ Representa o retorno lógico de uma consulta ao portal, a ser usado somente apó
 | agendas encontradas | Agendas identificadas conceitualmente; sua extração pertence à fase de parser. |
 | mensagens de erro   | Mensagens classificadas sem expor dados sensíveis.                             |
 
-**Pendência de validação:** endpoints, parâmetros, critérios de sucesso e estrutura das agendas ainda não foram confirmados.
+**Pendência de validação:** critérios formais de sucesso/erro da consulta e o contrato tipado de retorno ainda não foram modelados como API pública de domínio; a Fase 003B devolve HTML bruto. A extração de agendas/pacientes pertence à Fase 004.
 
 ## Relação entre as camadas
 

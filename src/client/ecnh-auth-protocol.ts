@@ -8,6 +8,10 @@ const LOGOUT_PATH = `${LOGIN_PATH}?method=finalizarLogin`;
 const AUTHENTICATED_PAGE_MARKER = 'Imprimir Agenda Diária do Psicólogo';
 const SESSION_COOKIE_NAME = 'JSESSIONID';
 
+export type AuthenticationLoginOutcome =
+  | { html: string; status: 'sucesso' }
+  | Exclude<LoginResult, { status: 'sucesso' }>;
+
 /**
  * Protocolo confirmado no DevTools para a autenticação HTTP do e-CNH.
  */
@@ -15,7 +19,7 @@ export class ECNHAuthenticationProtocol {
   public async login(
     credentials: LoginCredentials,
     transport: AuthTransport
-  ): Promise<LoginResult> {
+  ): Promise<AuthenticationLoginOutcome> {
     try {
       const loginUrl = transport.resolveUrl(LOGIN_PATH);
       const loginOrigin = new URL(loginUrl).origin;
@@ -88,7 +92,7 @@ export class ECNHAuthenticationProtocol {
       const containsAuthenticatedPage = response.data.includes(AUTHENTICATED_PAGE_MARKER);
 
       if (hasSessionCookie && containsAuthenticatedPage) {
-        return { session: { authenticatedAt: new Date() }, status: 'sucesso' };
+        return { html: response.data, status: 'sucesso' };
       }
 
       return {
@@ -116,7 +120,7 @@ export class ECNHAuthenticationProtocol {
     });
   }
 
-  private fromTransportError(error: unknown): LoginResult {
+  private fromTransportError(error: unknown): Exclude<LoginResult, { status: 'sucesso' }> {
     if (error instanceof AxiosError) {
       return {
         message: `Não foi possível concluir a comunicação HTTP com o portal: ${error.message}`,

@@ -2,14 +2,59 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Fase 003A — Autenticação HTTP (`Concluída`)  
-> **Próxima fase:** Fase 003B — Navegação autenticada (`Planejada`)  
-> **Última atualização:** 2026-07-19 08:05 BRT  
-> **Última sessão executada:** 19/07/2026 • 08:05 — Logout HTTP e conclusão da Fase 003A
+> **Fase atual:** Fase 003B — Navegação autenticada (`Concluída`)  
+> **Próxima fase:** Fase 004 — Extração de dados da agenda (`Planejada`)  
+> **Última atualização:** 2026-07-19 08:25 BRT  
+> **Última sessão executada:** 19/07/2026 • 08:25 — Navegação autenticada e HTML bruto da agenda
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 08:25
+
+### 🎯 Objetivo
+
+Descobrir e reproduzir a navegação autenticada até o HTML bruto da agenda (Fase 003B).
+
+### ✅ O que mudou
+
+- Criado `npm run discover:agenda` para inventariar formulário, scripts, consulta HTML e refreshes JSON.
+- Confirmado `POST /gefor/GFR/divisao/divisaoEquitativa.do` com `method=consultarAgendaPsicologo`.
+- Confirmados refreshes JSON `refreshMedicosByUnidadeTransito` e `refreshAgendaMedicaByMedico`.
+- Implementados `ECNHAgendaProtocol`, `listarDatasAgendamento()` e `obterHtmlAgenda()` no `ECNHClient`.
+- Criados `npm run test:agenda` e `npm run validate:agenda` com evidência sanitizada aprovada.
+- Fase 003B promovida a `Concluída`.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** o HTML pós-login já contém `DivisaoEquitativaForm` e datas em `#agendamentos`.
+- **Evidência confirmada:** a consulta devolve legend `Resultado`, `method=agendaMedico` e cabeçalhos da tabela de agenda.
+- Sem contrato público de domínio para agenda nesta fase; retorno continua sendo HTML bruto (ADR-010).
+- Sem parsing de pacientes (escopo da Fase 004).
+
+### 📂 Arquivos impactados
+
+- `src/client/ecnh-agenda-protocol.ts`
+- `src/client/ecnh-auth-protocol.ts`
+- `src/client/ecnh-client.ts`
+- `src/scripts/discover-agenda-navigation.ts`
+- `src/scripts/test-agenda.ts`
+- `src/scripts/validate-agenda.ts`
+- `package.json`
+- `docs/evidencias/`
+- `docs/API.md`
+- `docs/FLUXO_HTTP.md`
+- `docs/DECISOES.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/MODELO_DOMINIO.md`
+- `.fases/003b-navegacao-autenticada.md`
+- `README.md`
+- `CHANGELOG.md`
 
 ---
 

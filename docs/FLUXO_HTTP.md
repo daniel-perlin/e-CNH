@@ -24,13 +24,20 @@ CookieJar preservado
   │
   ▼
 HTML "Imprimir Agenda Diária do Psicólogo"
+  │  formulário DivisaoEquitativaForm
+  │
+  │ POST /gefor/GFR/divisao/divisaoEquitativa.do
+  │ method=consultarAgendaPsicologo
+  │ + unidade, usuário, dataReferencia, data
+  ▼
+HTML com legend "Resultado" e tabela de agenda
   │
   │ GET /gefor/SGU/login.do?method=finalizarLogin
   ▼
 HTML de login (sessão encerrada no portal)
 ```
 
-O portal não retornou JSON no fluxo observado e nenhuma API REST foi identificada. O HTML devolvido pelo servidor é o artefato de navegação e será a fonte para parsers em fase posterior.
+O fluxo principal de login e consulta devolve HTML SSR. Foram observados também endpoints JSON auxiliares para refresh de profissionais e datas (`refreshMedicosByUnidadeTransito`, `refreshAgendaMedicaByMedico`), usados pela UI ao alterar unidade ou data de referência. O HTML da consulta é o artefato de navegação e será a fonte para parsers na Fase 004.
 
 ## Estado da sessão antes do POST
 
@@ -116,11 +123,16 @@ Uma execução instrumentada posterior recebeu HTTP 200 nas três etapas e retor
 
 As diferenças conhecidas e pendentes estão organizadas na [matriz de divergências da autenticação HTTP](MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md).
 
+## Navegação autenticada (Fase 003B)
+
+**Evidências confirmadas:**
+
+1. o HTML pós-login já traz `DivisaoEquitativaForm` e datas em `#agendamentos`;
+2. `PESQUISAR` submete `POST method=consultarAgendaPsicologo` para `/gefor/GFR/divisao/divisaoEquitativa.do`;
+3. a resposta inclui legend `Resultado`, `method=agendaMedico` e cabeçalhos da tabela de agenda;
+4. refreshes JSON opcionais populam profissionais e datas quando a UI altera unidade/`dataReferencia`.
+
 ## Descobertas pendentes
 
-- endpoints e parâmetros de consulta de agenda;
-- pesquisa e troca de Data de Agendamento;
-- obtenção de todas as datas disponíveis;
-- requisições que retornam a agenda;
-- tabelas HTML que contêm os pacientes;
+- estrutura interna das linhas da tabela de resultado (Fase 004);
 - ciclo completo de expiração de sessão.

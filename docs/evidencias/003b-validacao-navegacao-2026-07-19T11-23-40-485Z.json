@@ -1,0 +1,51 @@
+{
+  "approved": true,
+  "credentialsSource": "ECNH_USER_1",
+  "finishedAt": "2026-07-19T11:23:41.344Z",
+  "kind": "validacao-navegacao-agenda",
+  "loginStatus": "sucesso",
+  "nodeVersion": "v26.5.0",
+  "phase": "003B",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T11:23:40.485Z",
+  "steps": {
+    "consultation": {
+      "bodyBytes": 79753,
+      "bodySha256": "375c8b7b9a200bf88422b8232be7ff8d56b44a843de614f21b31821d4ed1fd0a",
+      "data": "13/07/2026",
+      "dataReferencia": "13/07/2026",
+      "structuralSignals": {
+        "authenticatedMarkerPresent": true,
+        "expectedHeadersPresent": true,
+        "legendResultadoPresent": true,
+        "loginFormPresent": false,
+        "methodValues": [
+          "agendaMedico"
+        ],
+        "missingHeaders": [],
+        "tableCount": 5,
+        "thTexts": [
+          "Hora",
+          "CPF",
+          "Nome",
+          "Telefone",
+          "E-mail",
+          "Tipo de Processo",
+          "Categoria",
+          "Status do Exame Médico",
+          "Status do Exame Psicológico"
+        ]
+      }
+    },
+    "datesAvailable": [
+      "[DATE]",
+      "[DATE]",
+      "[DATE]",
+      "[DATE]"
+    ],
+    "logoutCompleted": true
+  },
+  "summary": {
+    "note": "Navegação autenticada reproduzida: HTML de resultado da agenda obtido com sinais estruturais confirmados."
+  }
+}

@@ -4,6 +4,10 @@ import { LoginCredentials, LoginResult } from '../types/auth.js';
 import { StructuredLogger } from '../types/logger.js';
 import { formatCpfForPortal } from '../utils/cpf.js';
 import { AuthTransport } from './auth-transport.js';
+import {
+  ConsultarAgendaPsicologoParams,
+  ECNHAgendaProtocol
+} from './ecnh-agenda-protocol.js';
 import { ECNHAuthenticationProtocol } from './ecnh-auth-protocol.js';
 import { ConfigurationError } from './errors.js';
 import { SessionManager } from './session-manager.js';
@@ -13,12 +17,14 @@ export interface ECNHClientOptions {
   logger?: StructuredLogger;
 }
 
-/** Cliente do portal e-CNH responsável por autenticação, sessão e transporte HTTP. */
+/** Cliente do portal e-CNH responsável por autenticação, sessão e navegação HTTP. */
 export class ECNHClient {
+  private readonly agendaProtocol = new ECNHAgendaProtocol();
   private readonly authenticationProtocol = new ECNHAuthenticationProtocol();
   private readonly logger: StructuredLogger;
   private readonly sessionManager = new SessionManager();
   private readonly transport: AuthTransport;
+  private lastAuthenticatedHtml: string | undefined;
 
   public constructor(options: ECNHClientOptions) {
     if (options.baseUrl.trim().length === 0) {
@@ -35,17 +41,56 @@ export class ECNHClient {
 
     const result = await this.authenticationProtocol.login(credentials, this.transport);
     if (result.status === 'sucesso') {
+      this.lastAuthenticatedHtml = result.html;
       const session = this.sessionManager.markAuthenticated();
       this.logger.info({ event: 'ecnh.login.succeeded' }, 'Autenticação e-CNH concluída');
       return { session, status: 'sucesso' };
     }
 
+    this.lastAuthenticatedHtml = undefined;
     this.sessionManager.clear();
     this.logger.warn(
       { event: 'ecnh.login.failed', status: result.status },
       'Autenticação e-CNH não foi confirmada'
     );
     return result;
+  }
+
+  /**
+   * Lista datas de agendamento presentes no HTML pós-login (`select#agendamentos`).
+   * Não interpreta a agenda nem dados de pacientes.
+   */
+  public listarDatasAgendamento(): string[] {
+    const html = this.requireAuthenticatedHtml('listarDatasAgendamento');
+    return this.agendaProtocol.listarDatasAgendamento(html);
+  }
+
+  /**
+   * Obtém o HTML bruto da agenda diária via POST `method=consultarAgendaPsicologo`.
+   * Retorna somente o documento HTML; parsing de pacientes fica fora desta fase.
+   */
+  public async obterHtmlAgenda(params: ConsultarAgendaPsicologoParams): Promise<string> {
+    const html = this.requireAuthenticatedHtml('obterHtmlAgenda');
+    this.logger.info(
+      { event: 'ecnh.agenda.consulta.started', path: '/gefor/GFR/divisao/divisaoEquitativa.do' },
+      'Iniciando consulta HTTP da agenda e-CNH'
+    );
+
+    const agendaHtml = await this.agendaProtocol.consultarAgendaPsicologo(
+      this.transport,
+      html,
+      params
+    );
+
+    this.logger.info(
+      {
+        event: 'ecnh.agenda.consulta.completed',
+        htmlBytes: Buffer.byteLength(agendaHtml, 'latin1')
+      },
+      'Consulta HTTP da agenda e-CNH concluída'
+    );
+
+    return agendaHtml;
   }
 
   /**
@@ -68,9 +113,19 @@ export class ECNHClient {
         'Falha ao enviar logout HTTP; a sessão local será descartada mesmo assim'
       );
     } finally {
+      this.lastAuthenticatedHtml = undefined;
       this.sessionManager.clear();
       this.logger.info({ event: 'ecnh.logout.completed' }, 'Sessão e-CNH encerrada localmente');
     }
+  }
+
+  private requireAuthenticatedHtml(operation: string): string {
+    if (this.lastAuthenticatedHtml === undefined) {
+      throw new ConfigurationError(
+        `ECNHClient.${operation} requer login autenticado prévio com HTML pós-login disponível.`
+      );
+    }
+    return this.lastAuthenticatedHtml;
   }
 
   private validateCredentials(cpf: string, password: string): LoginCredentials {
