@@ -6,15 +6,14 @@ Documento **único** responsável pelas evoluções do e-CNH após o MVP.
 
 | Documento | Papel |
 | --------- | ----- |
-| [ROADMAP.md](ROADMAP.md) | Histórico da **construção do MVP** (Fases 000–007) e evoluções arquiteturais pós-MVP (003C / B012, 003D / B011). |
+| [ROADMAP.md](ROADMAP.md) | Histórico da **construção do MVP** (Fases 000–007) e evoluções arquiteturais pós-MVP (003C / B012, 003D / B011, 003E / B010). |
 | **BACKLOG.md** (este arquivo) | Catálogo ativo de evoluções pós-MVP. |
 
 ## Contexto pós-MVP
 
 - O **MVP foi concluído na Fase 007**. O sistema já está operacional.
-- **B012** (perfis profissionais) e **B011** (escolha de unidade/visão) estão **✅ Concluídos**.
-- **B013** (coluna Unidade operacional) está **✅ Concluída**.
-- Próxima prioridade do catálogo: **B010** (sessão já autenticada), se priorizado.
+- **B012**, **B011**, **B010** e **B013** estão **✅ Concluídos**.
+- Próxima prioridade: itens futuros do catálogo / D3 fixtures amplas (se priorizado).
 
 ## Convenções
 
@@ -43,7 +42,7 @@ Melhorias usam IDs sequenciais: `B001`, `B002`, `B003`, …
 | B003 | ✅ Concluído | Alta | Coluna de inclusão na Agenda | Timestamp operacional por linha (hoje: "Data de inclusão"). |
 | B004 | ✅ Concluído | Alta | Evitar pacientes duplicados por CPF | Introduziu CPF como chave única. **Supersedida pela B005** quanto ao caráter permanente do cadastro. |
 | B005 | ✅ Concluído | Alta | Cadastro de pacientes ativos | Aba Agenda mantém só agendamentos de hoje/futuro; remove passados; CPF único enquanto ativo; reinclusão gera nova Data de inclusão. |
-| B010 | ⏳ Pendente | Alta | Tratar sessão já autenticada no portal | Popup de sessão já aberta (`openDialogNewSession` / `forceLogout`). Escopo distinto de B011. |
+| B010 | ✅ Concluído | Alta | Tratar sessão já autenticada no portal | `openDialogNewSession` → `POST autenticar` com `forceLogout=true`; validado com profissional real. Escopo distinto de B011. |
 | B011 | ✅ Concluído | Alta | Escolha genérica de Perfil / Visão (unidade) | `openDialogChoice` / `openChoice` / segundo `autenticar`; config `UNIDADE`/`UNID_TRANSITO`; validado com multi-unidade real. |
 | B012 | ✅ Concluído | Alta | Arquitetura de perfis profissionais do portal | Strategy extensível para múltiplos perfis (Psicólogo, Médico e futuros); validada com Médico real. |
 | B013 | ✅ Concluído | Alta | Coluna Unidade na Agenda | Nome operacional por profissional (`CLINIC` → resolver centralizado → coluna Unidade). |
@@ -87,10 +86,14 @@ Contexto: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGAC
 
 | Campo | Valor |
 | ----- | ----- |
-| Status | ⏳ Pendente |
+| Status | ✅ Concluído |
 | Prioridade | 🔴 Alta |
+| Fase | 003E (`Concluída`) |
+| Módulo | `src/client/sessao-existente-portal.ts` + ramo em `ECNHAuthenticationProtocol` |
 
 **Descrição:** popup pedindo encerrar sessão anterior (`openDialogNewSession` / `forceLogout`). Escopo **distinto** de B011.
+
+**Contrato / validação (19/07/2026):** após detectar `openDialogNewSession`, reenviar `POST method=autenticar` com `forceLogout=true` no mesmo CookieJar (sem GreyBox); em seguida B011/B012. Artefatos: [evidencias/003e-contrato-congelado-force-logout-2026-07-19.json](evidencias/003e-contrato-congelado-force-logout-2026-07-19.json), [evidencias/003e-consolidacao-force-logout-2026-07-19.json](evidencias/003e-consolidacao-force-logout-2026-07-19.json), [.fases/003e-sessao-existente-force-logout.md](../.fases/003e-sessao-existente-force-logout.md).
 
 ## Detalhamento — B013
 

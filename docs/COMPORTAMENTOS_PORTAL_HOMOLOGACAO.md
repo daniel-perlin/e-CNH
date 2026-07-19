@@ -2,19 +2,17 @@
 
 Documento de **limitações conhecidas** observadas na homologação pós-MVP.
 
-Itens de evolução: [BACKLOG.md](BACKLOG.md) — `B010` pendente; **B011** e **B012** `✅ Concluídos`.
+Itens de evolução: [BACKLOG.md](BACKLOG.md) — **B010**, **B011** e **B012** `✅ Concluídos`.
 
 ## Caso 1 — Sessão já autenticada
 
-**Classificação:** evidência confirmada (observação manual no portal).
+**Classificação:** evidência confirmada; **automação entregue (B010 / Fase 003E)**.
 
-Durante o login, alguns profissionais podem possuir uma sessão já aberta. O portal exibe um **popup** pedindo o encerramento da sessão anterior antes de a autenticação continuar (`openDialogNewSession` / `forceLogout`).
+Durante o login, alguns profissionais podem possuir uma sessão já aberta. O portal responde ao `POST method=autenticar` (`forceLogout=false`) com HTML ainda de login e chamada JavaScript `openDialogNewSession`.
 
-**Estado atual:** o sistema **não trata** esse popup automaticamente.
+**Estado atual:** tratado genericamente no `ECNHAuthenticationProtocol`: detectar `openDialogNewSession` → `POST autenticar` com `forceLogout=true` no mesmo CookieJar → continuar B011/B012. Validado com profissional real.
 
-**Mitigação operacional:** encerrar a sessão anterior no portal antes de nova tentativa de sync.
-
-**Backlog:** [B010](BACKLOG.md) — Tratar sessão já autenticada no portal.
+**Backlog:** [B010](BACKLOG.md) — `✅ Concluído`. Artefato: [evidencias/003e-consolidacao-force-logout-2026-07-19.json](evidencias/003e-consolidacao-force-logout-2026-07-19.json).
 
 ## Caso 2 — Escolha de Perfil / Visão
 
@@ -28,4 +26,4 @@ Profissionais com múltiplas unidades recebem `openDialogChoice` → tela **"Esc
 
 ## Escopo
 
-B010 permanece fora de automação até priorização explícita via backlog.
+B010, B011 e B012 estão automatizados no login HTTP. Este documento permanece como registro histórico dos comportamentos do portal.

@@ -16,6 +16,10 @@ import {
   obterPerfilPorId,
   resolverPerfilNoHtml
 } from './perfil-profissional-portal.js';
+import {
+  extrairAutenticadoCyberarkDeOpenDialogNewSession,
+  htmlRequerEncerramentoSessaoExistente
+} from './sessao-existente-portal.js';
 
 const LOGIN_PATH = '/gefor/SGU/login.do';
 const LOGOUT_PATH = `${LOGIN_PATH}?method=finalizarLogin`;
@@ -100,6 +104,24 @@ export class ECNHAuthenticationProtocol {
 
       let htmlAutenticado = firstAuth.data;
 
+      // B010 → B011 → B012 (classificação final). Ordem fixa; ramos isolados.
+      if (
+        resolverPerfilNoHtml(htmlAutenticado) === undefined &&
+        htmlRequerEncerramentoSessaoExistente(htmlAutenticado)
+      ) {
+        const sessao = await this.completarEncerramentoSessaoExistente(
+          credentials,
+          transport,
+          htmlAutenticado,
+          loginOrigin,
+          loginUrl
+        );
+        if (sessao.status !== 'ok') {
+          return sessao;
+        }
+        htmlAutenticado = sessao.html;
+      }
+
       const perfilImediato = resolverPerfilNoHtml(htmlAutenticado);
       if (perfilImediato === undefined && htmlRequerEscolhaUnidade(htmlAutenticado)) {
         const escolha = await this.completarEscolhaUnidade(
@@ -139,6 +161,51 @@ export class ECNHAuthenticationProtocol {
       responseEncoding: 'latin1',
       url: LOGOUT_PATH
     });
+  }
+
+  /**
+   * B010: POST autenticar com forceLogout=true no mesmo CookieJar.
+   * Contrato: docs/evidencias/003e-contrato-congelado-force-logout-2026-07-19.json
+   */
+  private async completarEncerramentoSessaoExistente(
+    credentials: LoginCredentials,
+    transport: AuthTransport,
+    htmlPosAutenticar: string,
+    loginOrigin: string,
+    loginUrl: string
+  ): Promise<
+    | { html: string; status: 'ok' }
+    | Exclude<LoginResult, { status: 'sucesso' }>
+  > {
+    const autenticadoCyberark =
+      extrairAutenticadoCyberarkDeOpenDialogNewSession(htmlPosAutenticar);
+
+    const forceLogoutAuth = await transport.request<string>({
+      data: this.buildAutenticarBody(
+        credentials,
+        '-1',
+        autenticadoCyberark,
+        'true'
+      ),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Origin: loginOrigin,
+        Referer: loginUrl
+      },
+      method: 'POST',
+      responseEncoding: 'latin1',
+      url: LOGIN_PATH
+    });
+
+    if (htmlRequerEncerramentoSessaoExistente(forceLogoutAuth.data)) {
+      return {
+        message:
+          'O portal manteve openDialogNewSession após autenticar com forceLogout=true.',
+        status: 'erro_desconhecido'
+      };
+    }
+
+    return { html: forceLogoutAuth.data, status: 'ok' };
   }
 
   /**
@@ -207,7 +274,8 @@ export class ECNHAuthenticationProtocol {
   private buildAutenticarBody(
     credentials: LoginCredentials,
     idUnidTransito: string,
-    autenticadoCyberark: string
+    autenticadoCyberark: string,
+    forceLogout: string = 'false'
   ): string {
     return new URLSearchParams([
       ['method', 'autenticar'],
@@ -221,7 +289,8 @@ export class ECNHAuthenticationProtocol {
       ['consultaAgenda', 'true'],
       ['autenticadoCyberark', autenticadoCyberark],
       ['codigo', credentials.cpf],
-      ['senha', credentials.password]
+      ['senha', credentials.password],
+      ['forceLogout', forceLogout]
     ]).toString();
   }
 

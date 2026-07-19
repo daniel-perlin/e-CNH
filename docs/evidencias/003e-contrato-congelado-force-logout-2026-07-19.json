@@ -1,0 +1,161 @@
+{
+  "phase": "003E",
+  "backlogId": "B010",
+  "schemaVersion": 1,
+  "kind": "contrato-congelado-force-logout-sessao-existente",
+  "frozenAt": "2026-07-19T20:20:00.000Z",
+  "classification": "evidencia_confirmada",
+  "credentialsSourceDiscovery": "ECNH_USER_3",
+  "note": "Contrato HTTP genérico. Sem CPF, senha, cookies ou HTML bruto. Descoberta via HTTP + análise de /GFR/js/app/sgu/login.js. Fonte: 003e-descoberta-force-logout-2026-07-19T20-15-26-238Z.json (sanitizada).",
+  "browserBehavior": {
+    "loginJs": "/GFR/js/app/sgu/login.js",
+    "afterAutenticarWithExistingSession": "callAppFunctions() → openDialogNewSession(cpf, senha, autenticadoCyberark)",
+    "openDialogNewSession": {
+      "loadsGreyBox": true,
+      "greyBoxUrlPattern": "/SGU/login.do?method=openDialogNewSession&cpfUsuario=[REDACTED]&senha=[REDACTED]&autenticadoCyberark=",
+      "httpMethodGreyBox": "GET",
+      "requiredForHttpAutomation": false,
+      "note": "O diálogo visual carrega conteúdo via GreyBox; a automação HTTP equivalente não precisa desse GET."
+    },
+    "clickEncerrarSessoesAnteriores": {
+      "calls": "forceLogout()",
+      "forceLogoutDoes": [
+        "obtém LoginActionForm no documento pai (parent.parent)",
+        "repreenche codigo/senha/autenticadoCyberark a partir do diálogo quando aplicável",
+        "define method=autenticar",
+        "define forceLogout=true",
+        "top.showWait(true)",
+        "myForm.submit()"
+      ]
+    },
+    "openDialogNewSessionWithCyberark": {
+      "exercisedInThisDiscovery": false,
+      "classification": "pendencia_de_validacao",
+      "note": "Variante CyberArk existe em login.js; não foi reproduzida nesta descoberta (autenticadoCyberark=false)."
+    }
+  },
+  "httpEquivalentForceLogout": {
+    "url": "/gefor/SGU/login.do",
+    "absoluteUrlExample": "https://www.e-cnhsp.sp.gov.br/gefor/SGU/login.do",
+    "httpMethod": "POST",
+    "contentType": "application/x-www-form-urlencoded",
+    "strutsMethod": "autenticar",
+    "criticalDifferenceFromNormalLogin": "forceLogout=true (demais campos iguais ao autenticar inicial com forceLogout=false)",
+    "cookieJar": "mesmo CookieJar da sessão do primeiro autenticar (JSESSIONID presente)",
+    "bodyFields": {
+      "method": "autenticar",
+      "novaSenha": "",
+      "novaSenha1": "",
+      "alteraSenha": "false",
+      "idGrupoUsuario": "-1",
+      "idCFC": "",
+      "idUnidTransito": "-1",
+      "msgPublicacao": "",
+      "consultaAgenda": "true",
+      "autenticadoCyberark": "false",
+      "codigo": "[REDACTED]",
+      "senha": "[REDACTED]",
+      "forceLogout": "true"
+    }
+  },
+  "detectionAfterFirstAutenticar": {
+    "requiredSignals": [
+      "HTML contém chamada openDialogNewSession(",
+      "LoginActionForm ainda presente",
+      "marcador autenticado B012 ausente",
+      "hidden forceLogout presente com valor false (observado)"
+    ],
+    "mustNotConfuseWith": [
+      "openDialogChoice / openChoice (B011)",
+      "credencial inválida / erro_desconhecido sem openDialogNewSession"
+    ]
+  },
+  "responseAfterForceLogoutAutenticar": {
+    "httpStatus": 200,
+    "redirectLocationHeader": null,
+    "finalUrlRemainedLoginDo": true,
+    "openDialogNewSession": false,
+    "loginActionForm": false,
+    "marcadorAutenticado": true,
+    "perfilIdObserved": "psicologo",
+    "divisaoEquitativaForm": true,
+    "newTokenFieldObserved": false,
+    "setCookieJsessionidOnForceLogoutResponse": false,
+    "jsessionidPresentBeforeAndAfter": true,
+    "jsessionidValueCompared": false,
+    "jsessionidRotationClassification": "hipotese",
+    "jsessionidRotationNote": "Nenhum Set-Cookie JSESSIONID na resposta do forceLogout; cookie permanece presente. Valor não foi comparado (política de não logar cookies). Hipótese: mesma sessão HTTP."
+  },
+  "frozenHttpSequence": [
+    {
+      "step": 1,
+      "id": "GET_iniciarLogin",
+      "method": "GET",
+      "url": "/gefor/SGU/login.do?method=iniciarLogin",
+      "role": "bootstrap_sessao"
+    },
+    {
+      "step": 2,
+      "id": "POST_iniciarLoginAgenda",
+      "method": "POST",
+      "url": "/gefor/SGU/login.do",
+      "strutsMethod": "iniciarLoginAgenda",
+      "role": "contexto_agenda"
+    },
+    {
+      "step": 3,
+      "id": "POST_autenticar_forceLogout_false",
+      "method": "POST",
+      "url": "/gefor/SGU/login.do",
+      "strutsMethod": "autenticar",
+      "forceLogout": "false",
+      "role": "credenciais",
+      "branchIf": "HTML com openDialogNewSession → entrar no ramo B010",
+      "branchElse": "continuar B011/B012 conforme classificação atual"
+    },
+    {
+      "step": "3b",
+      "id": "GET_openDialogNewSession_greybox",
+      "method": "GET",
+      "url": "/gefor/SGU/login.do?method=openDialogNewSession&cpfUsuario=...&senha=...&autenticadoCyberark=...",
+      "role": "ui_only_browser",
+      "requiredForHttpAutomation": false,
+      "classification": "evidencia_confirmada_via_js",
+      "note": "Apenas caminho de UI (GreyBox). Não faz parte do contrato HTTP mínimo a automatizar."
+    },
+    {
+      "step": 4,
+      "id": "POST_autenticar_forceLogout_true",
+      "method": "POST",
+      "url": "/gefor/SGU/login.do",
+      "strutsMethod": "autenticar",
+      "forceLogout": "true",
+      "role": "encerrar_sessao_anterior_e_autenticar",
+      "sameCookieJarAsStep3": true,
+      "intermediateGetRequired": false,
+      "redirectRequired": false,
+      "expectedNext": "HTML autenticado e/ou openDialogChoice (B011) e/ou marcador B012"
+    }
+  ],
+  "answersToInvestigationQuestions": {
+    "q1_markersAndJs": "Após autenticar com sessão prévia: LoginActionForm + openDialogNewSession no HTML; scripts incluem login.js; callAppFunctions chama openDialogNewSession.",
+    "q2_clickEncerrar": "forceLogout() no LoginActionForm pai → POST autenticar com forceLogout=true.",
+    "q3_httpRequests": "Sequência frozenHttpSequence; diferença crítica é forceLogout=true no segundo autenticar.",
+    "q4_afterForceLogout": "Sem Location redirect; sem GET intermediário obrigatório; sem novo autenticar além do forceLogout; sem novo token observado; JSESSIONID presente sem Set-Cookie de rotação.",
+    "q5_sequence": "Ver frozenHttpSequence.",
+    "q6_generic": true
+  },
+  "genericity": {
+    "tiedToNamedProfessional": false,
+    "tiedToClinicOrIndex": false,
+    "trigger": "marcador HTML/JS openDialogNewSession após POST autenticar",
+    "automationSafe": "sim — ramo genérico no protocolo de autenticação, antes de B011/B012",
+    "configRequired": false
+  },
+  "outOfScopeThisStage": [
+    "alteração de código de produção",
+    "implementação do ramo no ECNHAuthenticationProtocol",
+    "Playwright / automação de browser na implementação",
+    "regras por profissional nomeado"
+  ]
+}

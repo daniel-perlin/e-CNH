@@ -106,7 +106,7 @@ Detalhes operacionais: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_POR
 
 | Caso | Comportamento | Estado no sistema | Backlog | Notas |
 | ---- | ------------- | ----------------- | ------- | ----- |
-| Sessão já autenticada | Popup pedindo encerrar a sessão anterior (`openDialogNewSession` / `forceLogout`) | Não tratado | B010 (pendente) | Mitigação: encerrar sessão no portal antes do sync |
+| Sessão já autenticada | `openDialogNewSession` → `POST autenticar` com `forceLogout=true` | Tratado | B010 / Fase 003E (`Concluída`) | Genérico; sem config adicional |
 | Múltiplas unidades | `openDialogChoice` → `GET method=openChoice` → segundo `POST method=autenticar` com `idUnidTransito` | Tratado | B011 (`✅ Concluído`) | Config `ECNH_USER_<n>_UNIDADE` / `UNID_TRANSITO`; ADR-015 |
 
 **Evidência confirmada (B011):** no browser, `enviar()` (`choice.js`) copia `idUnidTransito` para o `LoginActionForm` pai e reenvia `method=autenticar` (não POSTA o formulário `openChoice`). Artefato: `docs/evidencias/003d-descoberta-enviar-escolha-unidade-2026-07-19.json`.

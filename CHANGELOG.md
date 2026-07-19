@@ -2,14 +2,80 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** B013 — Coluna Unidade operacional (`✅ Concluído`)  
-> **Próxima prioridade:** B010 (sessão já autenticada), se priorizado; D3 fixtures de protocolo em sprint futura  
-> **Última atualização:** 2026-07-19 15:59 BRT  
-> **Última sessão executada:** 19/07/2026 • 15:59 — Correção B013 Unidade vazia em ativos
+> **Fase atual:** B010 / Fase 003E — Sessão já autenticada (`✅ Concluído`)  
+> **Próxima prioridade:** D3 fixtures de protocolo amplas / itens futuros do backlog  
+> **Última atualização:** 2026-07-19 17:25 BRT  
+> **Última sessão executada:** 19/07/2026 • 17:25 — Implementação e validação B010 forceLogout
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 17:25
+
+### 🎯 Objetivo
+
+Implementar o ramo genérico B010 (`openDialogNewSession` / `forceLogout`) no `ECNHAuthenticationProtocol`, com testes e validação real.
+
+### ✅ O que mudou
+
+- Módulo `sessao-existente-portal` (detecção + extração de `autenticadoCyberark`).
+- Ramo no protocolo: B010 → B011 → B012; `POST autenticar` com `forceLogout=true` no mesmo CookieJar.
+- Fixture + testes unitários (funções puras e protocolo com transport fake).
+- Validação real: `ECNH_LOGIN_USER_INDEX=3 npm run test:login` → perfil `psicologo`.
+- Documentação: BACKLOG, ROADMAP, ADR-017, fase 003E `Concluída`, homologação.
+
+### 🧠 Decisões
+
+- Gatilho exclusivo: marcador HTML `openDialogNewSession` (sem regras por usuário/clínica).
+- Sem GreyBox/`GET openDialogNewSession`; sem Playwright; B011/B012/`PerfilProfissionalPortal` intactos.
+- `forceLogout=false` passa a figurar explicitamente em todo `buildAutenticarBody` (campo do formulário do portal).
+
+### 📂 Arquivos impactados
+
+- `src/client/sessao-existente-portal.ts` (+ test)
+- `src/client/ecnh-auth-protocol.ts` (+ test)
+- `fixtures/portal/pos-autenticar-open-dialog-new-session.html`
+- `docs/evidencias/003e-consolidacao-force-logout-2026-07-19.json`
+- `.fases/003e-sessao-existente-force-logout.md`
+- `docs/DECISOES.md`, `docs/BACKLOG.md`, `docs/ROADMAP.md`, `docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md`
+- `docs/API.md`, `docs/FLUXO_HTTP.md`, `docs/ARQUITETURA.md`, `docs/VISAO_DO_PRODUTO.md`
+- `README.md`, `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 17:20
+
+### 🎯 Objetivo
+
+Investigar o fluxo de sessão já aberta (`openDialogNewSession` / `forceLogout`) e congelar o contrato HTTP antes de qualquer implementação (disciplina B011).
+
+### ✅ O que mudou
+
+- Reprodução HTTP do primeiro `autenticar` com sessão prévia → marcador `openDialogNewSession`.
+- Análise de `login.js`: clique de encerrar → `forceLogout()` → `POST autenticar` com `forceLogout=true`.
+- Atalho HTTP (sem GreyBox) validado: área autenticada + marcador B012; sem redirect; sem GET intermediário obrigatório.
+- Contrato congelado, relatório técnico, Fase 003E `Planejada`, ADR-017 (contrato aceito; código não alterado).
+- Evidência sanitizada (sem CPF/senha/cookies).
+
+### 🧠 Decisões
+
+- Automação futura = detectar `openDialogNewSession` e reenviar `autenticar` com `forceLogout=true` no mesmo CookieJar.
+- Não implementar nesta etapa; não usar Playwright; não criar regras por profissional.
+- Ordem futura no protocolo: B010 → B011 → B012.
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/003e-descoberta-force-logout-2026-07-19T20-15-26-238Z.json`
+- `docs/evidencias/003e-contrato-congelado-force-logout-2026-07-19.json`
+- `docs/evidencias/003e-relatorio-investigacao-force-logout.md`
+- `.fases/003e-sessao-existente-force-logout.md`
+- `docs/DECISOES.md` (ADR-017)
+- `docs/BACKLOG.md`, `docs/ROADMAP.md`, `docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md`
+- `docs/API.md`, `docs/FLUXO_HTTP.md`, `docs/ARQUITETURA.md`, `docs/VISAO_DO_PRODUTO.md`
+- `README.md`, `CHANGELOG.md`
 
 ---
 

@@ -11,7 +11,7 @@ Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O pr
 - **Perfis do portal:** B012 concluída — Psicólogo e Médico; registro extensível
 - **Multi-unidade:** B011 concluída — escolha genérica via `UNIDADE` / `UNID_TRANSITO`
 - **Aba Agenda:** cadastro de pacientes ativos (CPF único; remove datas passadas automaticamente); coluna **Unidade** com o nome operacional do profissional (`CLINIC`)
-- **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005, B011–B013 concluídos; B010 pendente
+- **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005, B010–B013 concluídos
 
 ## Leitura recomendada
 
@@ -20,8 +20,8 @@ Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O pr
 - [API / protocolo HTTP](docs/API.md) — contrato vivo do cliente com o portal
 - [Fluxo HTTP](docs/FLUXO_HTTP.md) — sequência de autenticação e agenda
 - [Roadmap](docs/ROADMAP.md) — construção do MVP (Fases 000–007) e evolução B012
-- [Backlog](docs/BACKLOG.md) — catálogo pós-MVP (B011 e B012 concluídos; B010 pendente)
-- [Limitações conhecidas do portal (homologação)](docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) — sessão já autenticada (B010) e demais limitações
+- [Backlog](docs/BACKLOG.md) — catálogo pós-MVP (B010–B013 concluídos)
+- [Limitações conhecidas do portal (homologação)](docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) — comportamentos históricos do portal (B010–B012 automatizados)
 - [Evidência HAR da autenticação](docs/EVIDENCIA_HAR_AUTENTICACAO.md) — sequência completa, respostas, hashes e hidden fields
 - [Validação reproduzível da Fase 003A](docs/VALIDACAO_REPRODUZIVEL_003A.md) — critério, comando e evidências aprovadas
 

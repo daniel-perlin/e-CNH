@@ -7,8 +7,9 @@ Não contém CPF, senha, cookies, tokens nem dados pessoais reais.
 ## Arquivos
 
 | Fixture | Uso |
-|---------|-----|
+| ------- | --- |
 | `login-form.html` | Tela de login (`LoginActionForm`), sem marcador autenticado |
+| `pos-autenticar-open-dialog-new-session.html` | Pós-`autenticar` com `openDialogNewSession` (ramo B010) |
 | `pos-autenticar-open-dialog-choice.html` | Pós-`autenticar` com `openDialogChoice` (ramo B011) |
 | `open-choice-unidades.html` | Tela `openChoice` com `select#idUnidTransito` |
 | `autenticado-psicologo.html` | Área autenticada — marcador Psicólogo + `DivisaoEquitativaForm` |
@@ -18,5 +19,6 @@ Agenda autenticada com tabela de resultado: reutilize `fixtures/agenda/` (já co
 
 ## Escopo
 
-- **D1/D2:** funções puras (`escolha-unidade-portal`, `perfil-profissional-portal`).
-- **D3** (protocolo com `AuthTransport` fake): planejado para sprint futura.
+- Funções puras: `sessao-existente-portal`, `escolha-unidade-portal`, `perfil-profissional-portal`.
+- Protocolo B010/B011: `ecnh-auth-protocol.test.ts` com `AuthTransport` fake.
+- D3 (fixtures de protocolo amplas): sprint futura.

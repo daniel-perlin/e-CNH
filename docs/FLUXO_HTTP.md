@@ -39,7 +39,7 @@ HTML de login (sessão encerrada no portal)
 
 O fluxo principal de login e consulta devolve HTML SSR. Foram observados também endpoints JSON auxiliares para refresh de profissionais e datas (`refreshMedicosByUnidadeTransito`, `refreshAgendaMedicaByMedico`), usados pela UI ao alterar unidade ou data de referência. O HTML da consulta é a fonte do parser da Fase 004 (`table#agenda`).
 
-**Desvios do fluxo feliz:** (1) popup de sessão já existente — **ainda sem automação** (`B010`); (2) tela "Escolha de Perfil e/ou Visão" — **automatizada** (`B011` / Fase 003D). Ver [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md).
+**Desvios do fluxo feliz:** (1) sessão já existente (`openDialogNewSession` / `forceLogout`) — **automatizada** (`B010` / Fase 003E); (2) tela "Escolha de Perfil e/ou Visão" — **automatizada** (`B011` / Fase 003D). Ver [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md).
 
 ## Estado da sessão antes do POST
 

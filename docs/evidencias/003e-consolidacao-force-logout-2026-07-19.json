@@ -1,0 +1,30 @@
+{
+  "phase": "003E",
+  "backlogId": "B010",
+  "schemaVersion": 1,
+  "kind": "consolidacao-force-logout-sessao-existente",
+  "validatedAt": "2026-07-19T20:22:00.000Z",
+  "classification": "evidencia_confirmada",
+  "credentialsSource": "ECNH_USER_3",
+  "note": "Sem CPF, senha, cookies ou HTML bruto. Validação via ECNH_LOGIN_USER_INDEX=3 npm run test:login após implementação genérica do ramo B010.",
+  "observed": {
+    "loginStatus": "sucesso",
+    "perfilId": "psicologo",
+    "httpPostsToLoginDo": 3,
+    "sequenceInterpretation": [
+      "POST iniciarLoginAgenda",
+      "POST autenticar (forceLogout=false)",
+      "POST autenticar (forceLogout=true) — ramo B010"
+    ],
+    "logout": "GET method=finalizarLogin — sucesso"
+  },
+  "unitTests": {
+    "typecheck": "pass",
+    "npmTest": "113 pass / 0 fail (inclui sessao-existente-portal + ecnh-auth-protocol B010)"
+  },
+  "genericity": {
+    "tiedToNamedProfessional": false,
+    "trigger": "openDialogNewSession no HTML",
+    "implementation": "ECNHAuthenticationProtocol.completarEncerramentoSessaoExistente"
+  }
+}

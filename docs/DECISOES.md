@@ -109,7 +109,7 @@
   - fluxo genérico: detectar → `openChoice` → listar opções → resolver config → submeter → continuar autenticação;
   - configuração por profissional: `ECNH_USER_<n>_UNIDADE` (rótulo do `<option>`) e opcionalmente `ECNH_USER_<n>_UNID_TRANSITO` (value); precedência id > label; obrigatória só se o diálogo aparecer; sem default global; sem auto-seleção da primeira opção;
   - zero regras por nome, índice `ECNH_USER_*` ou hardcode de unidade no código;
-  - B010 (`openDialogNewSession` / `forceLogout`) permanece fora de escopo.
+  - B010 (`openDialogNewSession` / `forceLogout`) permanece fora de escopo desta ADR (ver ADR-017).
 - **Consequência:** profissionais sem multi-unidade seguem o caminho atual. Profissionais com multi-unidade passam a completar o login via a mesma infraestrutura, diferindo apenas na configuração.
 - **Contrato HTTP (Passo 1, 19/07/2026):** evidência confirmada — no browser, `enviar()` (`choice.js`) copia `idUnidTransito` para o `LoginActionForm` pai e reenvia `POST method=autenticar` (não POSTA o formulário `openChoice`). Após esse segundo `autenticar` com unidade, o HTML já traz a área autenticada e o marcador B012. Artefato: `docs/evidencias/003d-descoberta-enviar-escolha-unidade-2026-07-19.json`.
 - **Validação (19/07/2026):** evidência confirmada com profissional multi-unidade real (`ECNH_USER_17`) — escolha via `UNIDADE=CIR-SAO PAULO`, B012 `medico`, agenda/parser e sync Sheets. Artefato: `docs/evidencias/003d-consolidacao-escolha-unidade-2026-07-19.json`. B011 / Fase 003D `Concluída`.
@@ -123,3 +123,19 @@
   - traduzir `CLINIC` na fronteira de config (`sync-professionals`) e propagar `unidadeOperacional` em `EntradaSincronizacaoProfissional` → `ContextoPersistenciaAgenda` → coluna **Unidade**;
   - não misturar com B011 (`unidadeDesejada` / `idUnidTransito` do portal).
 - **Consequência:** novas clínicas exigem apenas uma entrada no mapa do resolver; o domínio/Sheets não conhecem strings de clínica do `.env`.
+
+## ADR-017 — Sessão já aberta (`forceLogout`) no login HTTP
+
+- **Status:** aceito e implementado (Fase 003E / B010 `Concluída`)
+- **Contexto:** após `POST method=autenticar` com `forceLogout=false`, profissionais com sessão prévia no portal recebem HTML ainda de login com JavaScript `openDialogNewSession` (GreyBox). Sem encerrar a sessão anterior, o critério B012 não é alcançado. Comportamento **distinto** de B011 (`openDialogChoice`) e de falha de credencial.
+- **Decisão:**
+  - tratar o ramo **dentro** de `ECNHAuthenticationProtocol`, após o primeiro `autenticar` e **antes** de B011/B012;
+  - módulo dedicado `sessao-existente-portal` (detecção); **não** misturar com B011/B012;
+  - detectar `openDialogNewSession` no HTML;
+  - reenviar `POST method=autenticar` com os mesmos campos/credenciais/CookieJar, alterando apenas **`forceLogout=true`**;
+  - **não** automatizar `GET method=openDialogNewSession` (UI GreyBox);
+  - **não** usar Playwright; **não** criar regras por profissional nomeado; **sem** config nova obrigatória;
+  - se, após o forceLogout, o diálogo persistir, falhar com erro tipado; em seguida classificar B011/B012 normalmente.
+- **Consequência:** qualquer profissional que cair em `openDialogNewSession` completa o login HTTP de forma genérica; o sync deixa de depender de encerramento manual no portal.
+- **Contrato HTTP (19/07/2026):** evidência confirmada — atalho HTTP equivalente a `forceLogout()` alcançou área autenticada e marcador B012 sem redirect e sem GET intermediário. Artefatos: `docs/evidencias/003e-contrato-congelado-force-logout-2026-07-19.json`, `docs/evidencias/003e-relatorio-investigacao-force-logout.md`.
+- **Validação (19/07/2026):** evidência confirmada (`ECNH_USER_3`) — login com ramo B010, perfil `psicologo`, logout HTTP. Artefato: `docs/evidencias/003e-consolidacao-force-logout-2026-07-19.json`. B010 / Fase 003E `Concluída`.

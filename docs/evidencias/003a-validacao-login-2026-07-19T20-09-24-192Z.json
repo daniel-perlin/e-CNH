@@ -1,0 +1,93 @@
+{
+  "attempts": [
+    {
+      "approved": true,
+      "credentialsSource": "ECNH_USER_1",
+      "durationMs": 473,
+      "finishedAt": "2026-07-19T20:09:24.740Z",
+      "logoutHttpAttempted": true,
+      "number": 1,
+      "perfilId": "psicologo",
+      "requests": [
+        {
+          "durationMs": 160,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29582,
+          "bodySha256": "d5763431684b6ff9462cc327eaecd9051210eedc53fac073d2d66fcb82f5e08d",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 58,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16075,
+          "bodySha256": "17237fad2226b754fd6032cc9b839e3d4c066f8d68fb928478f4cb750ae52259",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 253,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 72860,
+          "bodySha256": "a841b6768a412c5a0b5530a9cd82e4f1a10eb36995e3badbe7a2d5014807ce74",
+          "containsAuthenticatedMarker": true,
+          "containsLoginForm": false,
+          "containsProtectedForm": true
+        },
+        {
+          "durationMs": 74,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=finalizarLogin",
+          "bodyBytes": 28618,
+          "bodySha256": "2bb9bb2a9d098a03de4c72f3cc5cfb0567bf0ef813d7d715f8695fc5bb65ecf3",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "sucesso",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T20:09:24.192Z"
+    }
+  ],
+  "criteria": {
+    "consecutiveApprovedAttempts": 1,
+    "delayMsBetweenAttempts": 5000,
+    "distinctCredentialsPerAttempt": true,
+    "finalMarkers": [
+      "Imprimir Agenda Diária do Psicólogo",
+      "Imprimir Agenda Diária do Médico"
+    ],
+    "loginFormAbsent": true,
+    "protectedFormPresent": true,
+    "requestSequence": [
+      "GET /gefor/SGU/login.do?method=iniciarLogin",
+      "POST /gefor/SGU/login.do",
+      "POST /gefor/SGU/login.do"
+    ],
+    "sessionCookie": "JSESSIONID"
+  },
+  "credentialsSources": [
+    "ECNH_USER_1"
+  ],
+  "finishedAt": "2026-07-19T20:09:24.740Z",
+  "nodeVersion": "v26.5.0",
+  "phase": "003A",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T20:09:24.192Z",
+  "summary": {
+    "approved": true,
+    "approvedAttempts": 1,
+    "failedAttempts": 0,
+    "totalAttempts": 1
+  }
+}

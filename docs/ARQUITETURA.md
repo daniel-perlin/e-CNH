@@ -65,7 +65,7 @@ Playwright não é tecnologia principal e não será usado no fluxo produtivo no
 
 ## Limitações conhecidas do portal (homologação)
 
-1. **Sessão já autenticada** — popup pedindo encerrar a sessão anterior antes do login continuar (`openDialogNewSession` / `forceLogout`). Ainda **não automatizado**. Backlog `B010`.
+1. **Sessão já autenticada** — `openDialogNewSession` → `POST autenticar` com `forceLogout=true` no mesmo CookieJar. **Automatizado**. Backlog `B010` / Fase 003E.
 2. **Escolha de Perfil / Visão (unidade)** — **automatizada (B011 / Fase 003D)**: `openDialogChoice` → `openChoice` → segundo `autenticar` com `idUnidTransito` via config `UNIDADE`/`UNID_TRANSITO`. Conceito distinto do `PerfilProfissionalPortal` (B012).
 
 Detalhes: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md). Fluxo feliz: [API.md](API.md) / [FLUXO_HTTP.md](FLUXO_HTTP.md). Catálogo: [BACKLOG.md](BACKLOG.md).
