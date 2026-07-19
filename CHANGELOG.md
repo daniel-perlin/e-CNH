@@ -2,14 +2,131 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Fase 006 — Orquestração multi-profissionais (`Concluída`)  
-> **Próxima fase:** Fase 007 — Agendamento automático (cron) (`Planejada`)  
-> **Última atualização:** 2026-07-19 10:52 BRT  
-> **Última sessão executada:** 19/07/2026 • 10:52 — Conclusão da Fase 006 (Passo 6)
+> **Fase atual:** Fase 007 — Agendamento automático (cron) (`Concluída`)  
+> **Próxima fase:** Fases 008/009 permanecem em `Backlog` (pós-MVP)  
+> **Última atualização:** 2026-07-19 11:22 BRT  
+> **Última sessão executada:** 19/07/2026 • 11:22 — Padrão de cron diário às 17:00
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 11:22
+
+### 🎯 Objetivo
+
+Documentar o padrão recomendado de agendamento: uma sincronização diária às 17:00 (São Paulo).
+
+### ✅ O que mudou
+
+- `.env.example` passou a usar `AGENDA_SYNC_CRON=0 17 * * *` como exemplo padrão.
+- README e documento da Fase 007 atualizados com o mesmo padrão recomendado.
+- Nenhuma alteração em código, testes ou comportamento do scheduler.
+
+### 🧠 Decisões
+
+- **Decisão:** padrão operacional recomendado do projeto é diário às 17:00 (`America/Sao_Paulo`); a variável continua obrigatória e configurável.
+
+### 📂 Arquivos impactados
+
+- `.env.example`
+- `README.md`
+- `.fases/007-agendamento-automatico.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 11:16
+
+### 🎯 Objetivo
+
+Validar o agendamento automático e concluir oficialmente a Fase 007 (Passo 6).
+
+### ✅ O que mudou
+
+- `npm test` (43), `validate:agenda-job`, smoke do daemon e `sync:agenda` executados; evidências sanitizadas registradas.
+- Fase 007 promovida a `Validada` e `Concluída`; MVP do produto encerrado nesta fase.
+- Fases 008/009 permanecem em `Backlog`.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** lock global impede sobreposição; job ignora com lock ocupado.
+- **Evidência confirmada:** daemon inicia/para com `AGENDA_SYNC_CRON`; `sync:agenda` reutiliza o mesmo job+lock.
+- **Decisão:** falha parcial tipada em `ECNH_USER_4` não bloqueia conclusão (mesmo padrão da Fase 006).
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/007-validacao-agendamento-*.json`
+- `docs/evidencias/README.md`
+- `.fases/007-agendamento-automatico.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/MODELO_DOMINIO.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 11:15
+
+### 🎯 Objetivo
+
+Implementar Passos 1–5 da Fase 007: contratos, FileSyncLock, AgendaSyncJob, composition, scheduler e daemon.
+
+### ✅ O que mudou
+
+- Criados `SyncLock` / `FileSyncLock`, `AgendaSyncJob`, `AgendaSyncScheduler` e config `AGENDA_SYNC_*`.
+- Extraiído `criarAgendaSyncRuntime`; `sync:agenda` e `job:agenda` compartilham wiring + lock.
+- Dependências `node-cron` e `proper-lockfile`; testes unitários de lock/job/config; `.env.example` e `.gitignore` atualizados.
+
+### 🧠 Decisões
+
+- **Decisão:** lock ocupado → pular + warn (sem fila); `AGENDA_SYNC_CRON` obrigatória.
+- **Decisão:** logs quiet no script manual; Pino real no daemon.
+- **Decisão:** client/parser/`AgendaSyncService`/`AgendaRepository` não alterados na regra de sync.
+
+### 📂 Arquivos impactados
+
+- `src/jobs/*`
+- `src/composition/agenda-sync-runtime.ts`
+- `src/config/agenda-sync-job-config.ts`
+- `src/scripts/sync-agenda.ts`
+- `src/scripts/job-agenda.ts`
+- `src/scripts/validate-agenda-job.ts`
+- `package.json` / `package-lock.json`
+- `.env.example` / `.gitignore`
+
+---
+
+## 📅 19/07/2026 • 11:11
+
+### 🎯 Objetivo
+
+Iniciar oficialmente a Fase 007 — Agendamento automático (Passo 0: documentação), sem implementar código de produto.
+
+### ✅ O que mudou
+
+- Criado `.fases/007-agendamento-automatico.md` com objetivo, escopo, arquitetura, critérios e progresso.
+- Registrado ADR-013 (daemon, `SyncLock`, job fino sobre `AgendaSyncService`).
+- ROADMAP, ARQUITETURA, README e DECISOES alinhados; status da fase permanece `Planejada`.
+
+### 🧠 Decisões
+
+- **Decisão:** daemon Node + scheduler interno; lock global atrás de `SyncLock` (arquivo inicialmente).
+- **Decisão:** job não contém lógica de sync; wiring compartilhado em `composition`.
+- **Decisão:** Fases 008 e 009 permanecem fora do escopo.
+
+### 📂 Arquivos impactados
+
+- `.fases/007-agendamento-automatico.md`
+- `docs/DECISOES.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `README.md`
+- `CHANGELOG.md`
 
 ---
 

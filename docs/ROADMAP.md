@@ -12,13 +12,15 @@ Cada fase deve resolver um único problema e não antecipar funcionalidades post
 | Fase 004 — Extração de dados da agenda      | `Concluída`     | Parser HTML, modelos tipados e testes unitários; sem integração com planilha.                               |
 | Fase 005 — Integração Google Sheets         | `Concluída`    | Persistência via `AgendaRepository` / Google Sheets; validação real (Service Account, aba `Agenda`, substituição idempotente) concluída. |
 | Fase 006 — Orquestração multi-profissionais | `Concluída`    | `AgendaSyncService` + `sync:agenda`; multi-profissional sob demanda validado com evidência sanitizada.       |
-| Fase 007 — Agendamento automático (cron)    | `Planejada`    | Job agendado e proteção contra sobreposição de execuções.                                                   |
+| Fase 007 — Agendamento automático (cron)    | `Concluída`    | Daemon + `SyncLock` + `AgendaSyncJob` sobre `AgendaSyncService`; validado com evidência sanitizada. |
 | Fase 008 — Painel Operacional (Nice to Have)| `Backlog`      | Abas Controle/Execuções e metadados de sync; Apps Script opcional — **parked** (pós-MVP).                   |
 | Fase 009 — Observabilidade e Métricas (Nice to Have) | `Backlog` | Métricas, dashboards e alertas — **parked** (pós-MVP).                                                      |
 
 > **Limite do MVP:** o MVP do projeto termina na Fase 007. As Fases 008 e 009 representam melhorias futuras (Nice to Have), não são pré-requisitos para que o sistema esteja funcional e permanecem em backlog até nova priorização.
 
-> **Situação da Fase 006:** oficialmente `Concluída` em 19/07/2026. Orquestração multi-profissional validada via `npm run sync:agenda` (6/7 profissionais ok; falha parcial tipada) com evidência sanitizada. Próxima fase do MVP: 007 — Agendamento automático (cron).
+> **Situação da Fase 006:** oficialmente `Concluída` em 19/07/2026. Orquestração multi-profissional validada via `npm run sync:agenda` (6/7 profissionais ok; falha parcial tipada) com evidência sanitizada.
+
+> **Situação da Fase 007:** oficialmente `Concluída` em 19/07/2026. Daemon (`job:agenda`), `SyncLock` global e `AgendaSyncJob` validados com evidência sanitizada. O MVP do produto termina nesta fase. Fases 008 e 009 permanecem em `Backlog`.
 
 ## Convenção de status
 

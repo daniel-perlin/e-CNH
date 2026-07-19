@@ -1,0 +1,46 @@
+{
+  "approved": true,
+  "finishedAt": "2026-07-19T14:16:00.000Z",
+  "kind": "validacao-agendamento-automatico",
+  "nodeVersion": "v26.5.0",
+  "phase": "007",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T14:14:41.244Z",
+  "steps": {
+    "daemonSmoke": {
+      "command": "AGENDA_SYNC_CRON='0 8 * * *' npm run job:agenda",
+      "eventsObserved": [
+        "agenda.sync.scheduler.started",
+        "agenda.sync.daemon.ready",
+        "agenda.sync.daemon.shutdown",
+        "agenda.sync.scheduler.stopped"
+      ],
+      "ok": true
+    },
+    "localLockJobScheduler": {
+      "command": "npm run validate:agenda-job",
+      "evidence": "007-validacao-agendamento-2026-07-19T14-14-42-781Z.json",
+      "ok": true
+    },
+    "syncAgendaManualComLock": {
+      "command": "npm run sync:agenda",
+      "partialFailure": {
+        "identificadorSeguro": "ECNH_USER_4",
+        "loginStatus": "erro_desconhecido",
+        "logoutExecutado": true,
+        "sucesso": false
+      },
+      "profissionaisOk": 6,
+      "profissionaisTotal": 7,
+      "ok": true,
+      "note": "Mesmo padrão de falha parcial tipada da Fase 006; caminho manual usa AgendaSyncJob + SyncLock."
+    },
+    "unitTests": {
+      "command": "npm test",
+      "pass": 43,
+      "fail": 0,
+      "ok": true
+    }
+  },
+  "note": "Validação da Fase 007 sem CPF, senha, cookies ou dados de pacientes. Lock global, job fino, daemon e sync:agenda confirmados."
+}

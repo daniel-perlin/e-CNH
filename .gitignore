@@ -17,6 +17,9 @@ secrets/
 *.log
 logs/
 
+# Runtime local (lock de sincronização, etc.)
+.data/
+
 # Tooling and OS files
 .DS_Store
 .eslintcache

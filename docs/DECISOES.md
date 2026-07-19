@@ -74,3 +74,15 @@
 - **Contexto:** a Fase 005 precisava gravar `Agenda` tipada em planilha sem acoplar domínio ao `googleapis`, e preparar substituição futura do destino (Postgres, SQLite, etc.).
 - **Decisão:** expor `AgendaRepository` como porta; implementar `GoogleSheetsAgendaRepository` com Service Account; converter domínio ↔ linhas em `AgendaSheetMapper` puro; autenticar via JSON da Service Account; layout da aba `Agenda` inclui coluna `Profissional`; substituir linhas pelo par `Data` + `Profissional` (sem append cego nem upsert).
 - **Consequência:** serviços futuros dependem só da interface; testes unitários cobrem mapper e repositório sem rede; a orquestração multi-profissional (Fase 006) não exige mudança estrutural na planilha. Validação real em 19/07/2026 confirmou a decisão; a Fase 005 está `Concluída`.
+
+## ADR-013 — Agendamento automático via daemon, SyncLock e job fino
+
+- **Status:** aceito
+- **Contexto:** a Fase 007 precisa disparar o `AgendaSyncService` em horários configuráveis sem mover a orquestração para a camada de jobs, e impedir sobreposição entre execuções manuais e automáticas.
+- **Decisão:**
+  - processo longo (daemon Node) com scheduler interno (`node-cron`);
+  - porta `SyncLock` com implementação inicial em arquivo (`FileSyncLock` / `proper-lockfile`);
+  - lock global compartilhado entre `npm run job:agenda` e `npm run sync:agenda`;
+  - `AgendaSyncJob` apenas adquire lock, chama `sincronizarProfissionais` e libera; se o lock estiver ocupado, pula e registra `warn` (sem fila);
+  - wiring compartilhado em `src/composition` para evitar duplicação entre pontos de entrada.
+- **Consequência:** `AgendaSyncService`, client, parser e repositório permanecem sem conhecer cron ou arquivo de lock. Limitação: o lock de arquivo assume um único host ou volume compartilhado; cluster multi-host sem FS comum fica fora do MVP. Fases 008 e 009 não são antecipadas.

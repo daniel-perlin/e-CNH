@@ -37,3 +37,10 @@ Os arquivos podem conter somente metadados técnicos, hashes e sinais booleanos.
 - Documento da fase: [006-orquestracao-sincronizacao.md](../../.fases/006-orquestracao-sincronizacao.md)
 - Validação da sincronização: `006-validacao-sincronizacao-*.json`
 - Comando: `npm run sync:agenda`
+
+## Validação oficial da Fase 007
+
+- Documento da fase: [007-agendamento-automatico.md](../../.fases/007-agendamento-automatico.md)
+- Validação local (lock/job/scheduler): `007-validacao-agendamento-2026-07-19T14-14-42-781Z.json`
+- Validação consolidada: `007-validacao-agendamento-2026-07-19T14-16-00-000Z.json`
+- Comandos: `npm run validate:agenda-job`, `npm run job:agenda`, `npm run sync:agenda`

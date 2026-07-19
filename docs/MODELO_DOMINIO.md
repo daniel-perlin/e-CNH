@@ -117,6 +117,8 @@ ECNHClient -> HTML bruto / ResultadoLogin
 
 A Fase 006 introduz `AgendaSyncService` (`src/services`) para orquestrar esse encadeamento e devolver um `ResultadoSincronizacao` tipado, sem alterar client, parser ou repositório. Detalhes em [.fases/006-orquestracao-sincronizacao.md](../.fases/006-orquestracao-sincronizacao.md).
 
+A Fase 007 dispara essa orquestração via `AgendaSyncJob` / `AgendaSyncScheduler` com `SyncLock` global, sem alterar o serviço. Detalhes em [.fases/007-agendamento-automatico.md](../.fases/007-agendamento-automatico.md).
+
 ## ResultadoSincronizacao
 
 Representa o retorno lógico da orquestração (Fase 006). Independente de HTTP, HTML e Sheets.

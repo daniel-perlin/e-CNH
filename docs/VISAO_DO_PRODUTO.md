@@ -63,7 +63,7 @@ Fluxo-alvo quando todas as fases previstas estiverem concluídas:
 | Extração de dados da agenda              | **Concluída** (Fase 004 — Extração de dados da agenda)                                              |
 | Integração Google Sheets                 | **Concluída** (Fase 005 — Integração Google Sheets)                                                 |
 | Orquestração multi-profissionais         | **Concluída** (Fase 006 — Orquestração multi-profissionais)                                         |
-| Agendamento automático (cron)            | **Pendente** (Fase 007 — Agendamento automático)                                                   |
+| Agendamento automático (cron)            | **Concluída** (Fase 007 — Agendamento automático)                                                   |
 
 ## MVP
 
@@ -140,7 +140,6 @@ Itens alinhados ao [ROADMAP.md](ROADMAP.md), em ordem sugerida. As Fases 003B a 
 
 | Prioridade | Fase | Funcionalidade                   | Descrição                                                                         |
 | ---------- | ---- | -------------------------------- | --------------------------------------------------------------------------------- |
-| 1          | 007  | Agendamento automático (cron)    | Rodar sincronização automaticamente com proteção contra sobreposição              |
 | —          | 008  | Painel operacional (Nice to Have) | Abas Controle/Execuções e metadados de sync; Apps Script opcional — **Backlog / parked** |
 | —          | 009  | Observabilidade e métricas (Nice to Have) | Métricas, dashboards, alertas — **Backlog / parked** |
 | —          | —    | Classificação de falhas de login | Distinguir senha inválida, usuário bloqueado e erro de sistema com evidência      |

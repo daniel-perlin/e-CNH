@@ -1,59 +1,44 @@
 import 'dotenv/config';
 
-import { ECNHClient } from '../client/ecnh-client.js';
-import { ConfigurationError } from '../client/errors.js';
-import { GoogleSheetsClient } from '../client/google-sheets-client.js';
-import { resolveGoogleSheetsConfig } from '../config/google-sheets-config.js';
-import { resolveEntradasSincronizacao } from '../config/sync-professionals.js';
-import { parseAgendaHtml } from '../parsers/agenda-parser.js';
-import { GoogleSheetsAgendaRepository } from '../repositories/google-sheets-agenda-repository.js';
-import { AgendaSyncService } from '../services/agenda-sync-service.js';
+import { criarAgendaSyncRuntime } from '../composition/agenda-sync-runtime.js';
+import { AgendaSyncJob } from '../jobs/agenda-sync-job.js';
 import type { StructuredLogger } from '../types/logger.js';
 
 import { formatarResumoSincronizacao } from './sync-agenda-resumo.js';
 
 /**
- * Ponto de entrada sob demanda da sincronização (Fase 006).
- * Apenas compõe dependências e imprime um resumo sem PII.
+ * Ponto de entrada sob demanda da sincronização (Fase 006/007).
+ * Compõe runtime + job com lock global e imprime resumo sem PII.
  */
 async function main(): Promise<void> {
-  const baseUrl = process.env.ECNH_BASE_URL?.trim();
-  if (baseUrl === undefined || baseUrl.length === 0) {
-    throw new ConfigurationError(
-      'Defina ECNH_BASE_URL no arquivo .env antes de executar a sincronização.'
-    );
-  }
-
-  const entradas = resolveEntradasSincronizacao();
-  const sheetsConfig = resolveGoogleSheetsConfig();
-  const sheets = new GoogleSheetsClient({
-    credentialsPath: sheetsConfig.credentialsPath,
-    spreadsheetId: sheetsConfig.spreadsheetId
-  });
-  const agendaRepository = new GoogleSheetsAgendaRepository({
-    sheets,
-    sheetName: sheetsConfig.sheetName
+  const runtime = criarAgendaSyncRuntime({
+    logger: createQuietLogger()
   });
 
-  const service = new AgendaSyncService({
-    agendaRepository,
-    client: () =>
-      new ECNHClient({
-        baseUrl,
-        logger: createQuietLogger()
-      }),
+  const job = new AgendaSyncJob({
+    entradas: runtime.entradas,
+    lock: runtime.lock,
     logger: createQuietLogger(),
-    parseAgendaHtml
+    service: runtime.service
   });
 
   console.log(
-    `Iniciando sincronização de ${entradas.length} profissional(is) habilitado(s)...`
+    `Iniciando sincronização de ${runtime.entradas.length} profissional(is) habilitado(s)...`
   );
 
-  const resultado = await service.sincronizarProfissionais(entradas);
-  console.log(formatarResumoSincronizacao(resultado));
+  const resultado = await job.executar();
 
-  if (!resultado.sucessoGeral) {
+  if (resultado.status === 'ignorado_por_lock') {
+    console.error(
+      'Sincronização ignorada: outra execução já está em andamento (lock ocupado).'
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(formatarResumoSincronizacao(resultado.sincronizacao));
+
+  if (!resultado.sincronizacao.sucessoGeral) {
     process.exitCode = 1;
   }
 }

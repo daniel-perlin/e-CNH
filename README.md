@@ -2,7 +2,7 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto buscará as agendas futuras dos profissionais e manterá a aba `Agenda` atualizada de forma automatizada.
 
-> **Fase atual:** 006 — Orquestração multi-profissionais (`Concluída`). `AgendaSyncService` + `npm run sync:agenda`. Próxima: Fase 007 — Agendamento automático (`Planejada`).
+> **Fase atual:** 007 — Agendamento automático (cron) (`Concluída`). Daemon `job:agenda` + lock global + `sync:agenda`. MVP do produto concluído. Fases 008/009 em `Backlog`.
 
 ## Leitura recomendada
 
@@ -37,19 +37,22 @@ O sistema integra o portal diretamente por HTTP: Axios preserva a sessão no Coo
 - Cheerio (parsing de HTML SSR da agenda; descoberta/navegação também o utilizam para inventário de formulários)
 - Google APIs e dotenv
 - Pino para logs estruturados
-- Zod para validação futura de configuração e dados de fronteira
+- node-cron e proper-lockfile (agendamento e lock de arquivo)
+- Zod disponível para validação de fronteira quando aplicável
 
 ## Estrutura
 
 ```text
 src/
   client/         Clientes HTTP e APIs externas
+  composition/    Wiring compartilhado dos pontos de entrada
   config/         Configuração e ambiente
-  jobs/           Orquestração agendada
+  jobs/           Disparo agendado, SyncLock e AgendaSyncJob
   models/         Entidades e contratos de domínio
   parsers/        Transformação de HTML em dados tipados
-  repositories/   Acesso a fontes e destinos de dados
-  services/       Casos de uso e regras de aplicação
+  repositories/   Persistência (Google Sheets)
+  scripts/        CLIs e validadores
+  services/       Casos de uso (AgendaSyncService)
   types/          Tipos compartilhados
   utils/          Utilitários pequenos e puros
 docs/             Documentação de arquitetura e evolução
@@ -114,11 +117,29 @@ Com portal, profissionais (`ECNH_USER_<n>_ENABLED/NAME/CPF/PASSWORD`) e Sheets c
 npm run sync:agenda
 ```
 
-O script compõe `AgendaSyncService` e executa `sincronizarProfissionais` sem cron.
+O script compõe `criarAgendaSyncRuntime` + `AgendaSyncJob` (com lock global) e executa `sincronizarProfissionais`.
+
+### Agendamento automático (Fase 007)
+
+Defina `AGENDA_SYNC_CRON` (obrigatória) e, opcionalmente, `AGENDA_SYNC_TZ` / `AGENDA_SYNC_LOCK_PATH`.
+
+Padrão recomendado do projeto: uma sincronização diária às 17:00 no fuso `America/Sao_Paulo`:
+
+```bash
+# .env
+AGENDA_SYNC_CRON=0 17 * * *
+AGENDA_SYNC_TZ=America/Sao_Paulo
+```
+
+```bash
+npm run job:agenda
+```
+
+O daemon mantém o processo vivo e dispara o mesmo job nesse horário. Validação local: `npm run validate:agenda-job`.
 
 ### Estado da validação real
 
-Em 19/07/2026, a validação reproduzível aprovou autenticação, logout, navegação, extração tipada, persistência Sheets e orquestração multi-profissional (`npm run sync:agenda`), com evidências em `docs/evidencias/`. As Fases 003A, 003B, 004, 005 e 006 estão `Concluída`.
+Em 19/07/2026, a validação reproduzível aprovou autenticação, logout, navegação, extração tipada, persistência Sheets, orquestração multi-profissional (`npm run sync:agenda`) e agendamento automático (`job:agenda` + lock), com evidências em `docs/evidencias/`. As Fases 003A, 003B, 004, 005, 006 e 007 estão `Concluída`.
 
 Para reexecutar:
 
@@ -128,9 +149,10 @@ npm run validate:agenda
 npm run validate:agenda-parser
 npm run validate:sheets
 npm run sync:agenda
+npm run validate:agenda-job
 ```
 
-Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md), [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md), [.fases/004-extracao-agenda.md](.fases/004-extracao-agenda.md), [.fases/005-integracao-google-sheets.md](.fases/005-integracao-google-sheets.md) e [.fases/006-orquestracao-sincronizacao.md](.fases/006-orquestracao-sincronizacao.md).
+Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md), [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md), [.fases/004-extracao-agenda.md](.fases/004-extracao-agenda.md), [.fases/005-integracao-google-sheets.md](.fases/005-integracao-google-sheets.md), [.fases/006-orquestracao-sincronizacao.md](.fases/006-orquestracao-sincronizacao.md) e [.fases/007-agendamento-automatico.md](.fases/007-agendamento-automatico.md).
 
 ## Arquitetura definitiva
 
@@ -164,7 +186,7 @@ npm run build
 
 ## Roadmap e próximos passos
 
-Fase em andamento do MVP: **007 — Agendamento automático (cron)**. A Fase **006 — Orquestração multi-profissionais** está `Concluída` ([documento](.fases/006-orquestracao-sincronizacao.md)). Veja o [roadmap detalhado](docs/ROADMAP.md).
+MVP do produto **concluído** na Fase **007 — Agendamento automático (cron)** (`Concluída`, [documento](.fases/007-agendamento-automatico.md)). Fases **008** e **009** permanecem em `Backlog`. Veja o [roadmap detalhado](docs/ROADMAP.md).
 
 ### Convenção de status
 

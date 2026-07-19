@@ -1,0 +1,21 @@
+{
+  "approved": true,
+  "finishedAt": "2026-07-19T14:14:42.781Z",
+  "kind": "validacao-agendamento-automatico",
+  "nodeVersion": "v26.5.0",
+  "phase": "007",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T14:14:41.244Z",
+  "steps": {
+    "configResolved": {
+      "cronExpression": "0 */6 * * *",
+      "timezone": "America/Sao_Paulo"
+    },
+    "fileLockBusyReturnsNull": true,
+    "jobExecutadoAposLiberar": true,
+    "jobIgnoradoComLockOcupado": true,
+    "schedulerTickDisparado": true,
+    "servicoChamadoApenasQuandoLivre": true
+  },
+  "note": "Validação local de lock global, AgendaSyncJob e AgendaSyncScheduler sem portal, Sheets, CPF real, senha ou cookies."
+}
