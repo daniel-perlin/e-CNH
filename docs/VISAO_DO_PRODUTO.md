@@ -58,7 +58,7 @@ Fluxo-alvo quando todas as fases previstas estiverem concluídas:
 
 | Etapa                                    | Situação                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Autenticação HTTP e sessão               | **Implementada** (Fase 003A — Autenticação HTTP); evidência reproduzível de sucesso ainda pendente |
+| Autenticação HTTP e sessão               | **Concluída** (Fase 003A — Autenticação HTTP), incluindo logout HTTP                               |
 | Navegação autenticada e download de HTML | **Pendente** (Fase 003B — Navegação autenticada)                                                   |
 | Extração de dados da agenda              | **Pendente** (Fase 004 — Extração de dados da agenda)                                              |
 | Integração Google Sheets                 | **Pendente** (Fase 005 — Integração Google Sheets)                                                 |

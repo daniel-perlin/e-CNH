@@ -298,4 +298,4 @@ A hipótese foi confirmada apenas para o sintoma de conexão, não para o objeti
 
 ## Resultado
 
-A implementação agora preserva Axios, CookieJar, agentes e socket durante as três etapas. A conexão ficou estável, porém o login não se tornou funcionalmente determinístico. Como o único `status=sucesso` não possui resposta preservada e não foi reproduzido, a Fase 003A está `Implementada`.
+A implementação preserva Axios, CookieJar, agentes e socket durante as três etapas. Em 19/07/2026, a validação reproduzível aprovou cinco autenticações distintas com evidência sanitizada; a Fase 003A está `Validada`. Consulte [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md).

@@ -43,6 +43,7 @@ interface AttemptEvidence {
   credentialsSource: string;
   durationMs: number;
   finishedAt: string;
+  logoutHttpAttempted: boolean;
   number: number;
   requests: RequestEvidence[];
   resultStatus: string;
@@ -107,7 +108,13 @@ async function main(): Promise<void> {
     }
     const credentials = credentialPool[number - 1];
     attempts.push(
-      await executeAttempt(number, baseUrl, credentials.cpf, credentials.password, credentials.source)
+      await executeAttempt(
+        number,
+        baseUrl,
+        credentials.cpf,
+        credentials.password,
+        credentials.source
+      )
     );
   }
 
@@ -185,6 +192,7 @@ async function executeAttempt(
       credentialsSource,
       durationMs,
       finishedAt: new Date().toISOString(),
+      logoutHttpAttempted: result.status === 'sucesso',
       number,
       requests: state.requests,
       resultStatus: result.status,
@@ -256,16 +264,23 @@ function createRequestEvidence<T>(
 }
 
 function isAttemptApproved(resultStatus: string, state: AttemptState): boolean {
-  const [initialRequest, agendaRequest, authenticationRequest] = state.requests;
+  const loginRequests = state.requests.filter(
+    (request) =>
+      !(
+        request.method === 'GET' &&
+        request.url === '/gefor/SGU/login.do?method=finalizarLogin'
+      )
+  );
+  const [initialRequest, agendaRequest, authenticationRequest] = loginRequests;
   const validSequence =
-    state.requests.length === 3 &&
+    loginRequests.length === 3 &&
     initialRequest?.method === 'GET' &&
     initialRequest.url === INITIAL_LOGIN_PATH &&
     agendaRequest?.method === 'POST' &&
     agendaRequest.url === LOGIN_PATH &&
     authenticationRequest?.method === 'POST' &&
     authenticationRequest.url === LOGIN_PATH;
-  const allResponsesSucceeded = state.requests.every((request) => request.status === 200);
+  const allResponsesSucceeded = loginRequests.every((request) => request.status === 200);
 
   return (
     resultStatus === 'sucesso' &&

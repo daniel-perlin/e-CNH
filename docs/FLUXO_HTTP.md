@@ -24,6 +24,10 @@ CookieJar preservado
   │
   ▼
 HTML "Imprimir Agenda Diária do Psicólogo"
+  │
+  │ GET /gefor/SGU/login.do?method=finalizarLogin
+  ▼
+HTML de login (sessão encerrada no portal)
 ```
 
 O portal não retornou JSON no fluxo observado e nenhuma API REST foi identificada. O HTML devolvido pelo servidor é o artefato de navegação e será a fonte para parsers em fase posterior.
@@ -114,10 +118,9 @@ As diferenças conhecidas e pendentes estão organizadas na [matriz de divergên
 
 ## Descobertas pendentes
 
-- resposta real conclusiva da terceira etapa no cliente;
 - endpoints e parâmetros de consulta de agenda;
 - pesquisa e troca de Data de Agendamento;
 - obtenção de todas as datas disponíveis;
 - requisições que retornam a agenda;
 - tabelas HTML que contêm os pacientes;
-- logout e ciclo completo de expiração de sessão.
+- ciclo completo de expiração de sessão.

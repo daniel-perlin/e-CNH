@@ -1,0 +1,309 @@
+{
+  "candidates": [
+    {
+      "httpMethod": "GET",
+      "kind": "script_hint",
+      "path": "/gefor/SGU/login.do?method=finalizarLogin",
+      "reason": "sair_block_url",
+      "score": 12,
+      "strutsMethod": "finalizarLogin"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "script_hint",
+      "path": "",
+      "reason": "keyword_in_html:sair",
+      "score": 1
+    }
+  ],
+  "credentialsSource": "ECNH_USER_6",
+  "finishedAt": "2026-07-19T11:02:18.017Z",
+  "kind": "descoberta-logout",
+  "loginSucceeded": true,
+  "menuSources": [
+    {
+      "bodyBytes": 3401,
+      "bodySha256": "2038190bb74e7fbe9eb9952688c4b8963acd2341ee662034e524c34ef7f06500",
+      "candidateCount": 2,
+      "excerpts": [
+        "{name:\"Sair\", url:\"javascript:irPara('/gefor/SGU/login.do?method=finalizarLogin',800,600,0,'Sair')\"}"
+      ],
+      "path": "/gefor/global/menu_items.jsp",
+      "status": 200
+    },
+    {
+      "bodyBytes": 3228,
+      "bodySha256": "f6e469f171a080467d0d4519b5d60decc8633f5ac42252c9ff7eea26b6dc503c",
+      "candidateCount": 0,
+      "excerpts": [],
+      "path": "/GFR/js/build_menu.js?v=13",
+      "status": 200
+    }
+  ],
+  "nodeVersion": "v26.5.0",
+  "pathInventory": [
+    {
+      "httpMethod": "GET",
+      "kind": "anchor",
+      "path": "/gefor/GFR/ajuda/duvidas.jsp",
+      "textHint": "Dúvidas"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "anchor",
+      "path": "/gefor/GFR/ajuda/atendimento.jsp",
+      "textHint": "Central de Atendimento"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "anchor",
+      "path": "/",
+      "textHint": "Prodesp - Tecnologia da Informação"
+    },
+    {
+      "httpMethod": "POST",
+      "kind": "form",
+      "path": "/gefor/GFR/divisao/divisaoEquitativa.do",
+      "strutsMethod": "consultarAgendaPsicologo",
+      "textHint": "DivisaoEquitativaForm"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "onclick",
+      "path": "/gefor/GFR/base/manual.do",
+      "textHint": "Manuais"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/textzoom.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/app/global.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/app/comumApp.js?v=10",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/app/detran.js?v=1",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/comum.js?v=2",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/commons/utils.js?v=6",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/commons/detect.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/commons/date.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/commons/cpf.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/commons/cnpj.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/commons/email.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/commons/validate.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/greybox/AJS.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/greybox/AJS_fx.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/greybox/gb_scripts.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/sessionClock.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/struts-validation.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/jquery-1.4.1.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/jquery.mask.min.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/app/divisao/comum.js?v=1",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/app/divisao/agendaPsicologo.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/jquery-1.9.1.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/bootstrap.min.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/acess_texto.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/styleswitcher.js?v=12",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/jquery.cookie.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/gefor/global/menu_items.jsp",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/GFR/js/build_menu.js?v=13",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/sdk/api.widget.1.0.0.min.js",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "GET",
+      "kind": "frame",
+      "path": "/_Incapsula_Resource?SWJIYLWA=719d34d31c8e3a6e6fffd425f7e032f3&ns=3&cb=1675153107",
+      "textHint": "script_src"
+    },
+    {
+      "httpMethod": "POST",
+      "kind": "form",
+      "path": "/gefor/SGU/login.do",
+      "strutsMethod": "consultarAgendaPsicologo",
+      "textHint": "method_token"
+    }
+  ],
+  "phase": "003A",
+  "probe": {
+    "bodyBytes": 28619,
+    "bodySha256": "79b41ec4fa0b4a30ce86ea8f1e167b8e792e3b5d9cee4679a83575f505768ebe",
+    "candidate": {
+      "httpMethod": "GET",
+      "kind": "script_hint",
+      "path": "/gefor/SGU/login.do?method=finalizarLogin",
+      "reason": "sair_block_url",
+      "score": 12,
+      "strutsMethod": "finalizarLogin"
+    },
+    "containsAuthenticatedMarker": false,
+    "containsLoginForm": true,
+    "durationMs": 59,
+    "sessionCookiePresentAfter": true,
+    "status": 200
+  },
+  "reLoginAfterProbe": {
+    "resultStatus": "sucesso",
+    "sessionCookiePresent": true
+  },
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T11:02:05.890Z",
+  "structuralSignals": {
+    "anchorCount": 13,
+    "formCount": 1,
+    "frameCount": 0,
+    "htmlBytes": 72983,
+    "keywordHits": {
+      "sair": false,
+      "logout": false,
+      "logoff": false,
+      "encerrar": false,
+      "desconectar": false,
+      "finalizar": false,
+      "forceLogout": false
+    },
+    "scriptSrcCount": 30
+  },
+  "summary": {
+    "candidateCount": 2,
+    "confirmed": true,
+    "note": "Candidato de logout executado com sinais de encerramento de sessão."
+  }
+}

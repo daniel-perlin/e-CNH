@@ -1,0 +1,29 @@
+{
+  "phase": "003A",
+  "schemaVersion": 1,
+  "kind": "consolidacao-logout",
+  "confirmedAt": "2026-07-19T11:02:05.890Z",
+  "evidenceFile": "003a-descoberta-logout-2026-07-19T11-02-05-890Z.json",
+  "endpoint": {
+    "method": "GET",
+    "path": "/gefor/SGU/login.do?method=finalizarLogin",
+    "strutsMethod": "finalizarLogin",
+    "source": "/gefor/global/menu_items.jsp",
+    "menuExcerpt": "{name:\"Sair\", url:\"javascript:irPara('/gefor/SGU/login.do?method=finalizarLogin',800,600,0,'Sair')\"}"
+  },
+  "probe": {
+    "status": 200,
+    "containsLoginForm": true,
+    "containsAuthenticatedMarker": false,
+    "bodyBytes": 28619,
+    "bodySha256": "79b41ec4fa0b4a30ce86ea8f1e167b8e792e3b5d9cee4679a83575f505768ebe",
+    "sessionCookiePresentAfter": true,
+    "reLoginAfterProbe": "sucesso"
+  },
+  "notes": [
+    "Evidência confirmada: o item de menu Sair aponta para GET method=finalizarLogin.",
+    "Evidência confirmada: a resposta do logout devolve LoginActionForm e remove o marcador autenticado.",
+    "Evidência confirmada: re-login imediato da mesma conta após finalizarLogin retornou sucesso.",
+    "O CookieJar ainda pode conter JSESSIONID após a resposta; o cliente limpa a sessão local após o HTTP."
+  ]
+}

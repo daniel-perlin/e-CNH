@@ -1,10 +1,10 @@
 # Fase 003A — Autenticação HTTP
 
-**Status:** `Implementada`
+**Status:** `Concluída`
 
 ## Objetivo
 
-Implementar autenticação HTTP real no `ECNHClient`, preservando sessão e encerrando-a localmente quando o endpoint de logout não for conhecido.
+Implementar autenticação HTTP real no `ECNHClient`, preservando sessão e encerrando-a no portal quando o endpoint de logout for conhecido.
 
 ## Escopo
 
@@ -12,7 +12,7 @@ Implementar autenticação HTTP real no `ECNHClient`, preservando sessão e ence
 - criação e manutenção de sessão;
 - gerenciamento do CookieJar;
 - verificação de autenticação;
-- descarte local de sessão no logout;
+- descarte de sessão via logout HTTP confirmado;
 - teste automatizado e exemplo de uso.
 
 Não consultar agenda, não navegar em páginas de agenda, não fazer parsing e não integrar Google Sheets.
@@ -20,8 +20,8 @@ Não consultar agenda, não navegar em páginas de agenda, não fazer parsing e 
 ## Descobertas
 
 - O HAR confirmou o fluxo `GET iniciarLogin` → `POST iniciarLoginAgenda` → `POST autenticar`.
-- `tough-cookie` com `axios-cookiejar-support` permite preservar cookies automaticamente no Axios.
-- O endpoint de logout não foi identificado; não foi criada requisição fictícia para ele.
+- O menu dinâmico confirma o logout: `GET method=finalizarLogin`.
+- `tough-cookie` com agentes HTTP permite preservar cookies automaticamente no Axios.
 
 ## Evidências
 
@@ -212,12 +212,35 @@ Existe um HTML autenticado em `/tmp/ecnh-login-before.html`, mas ele pertence a 
 
 O checkpoint completo está em [CHECKPOINT_EVIDENCIA_AUTENTICACAO.md](../docs/CHECKPOINT_EVIDENCIA_AUTENTICACAO.md).
 
+### Validação reproduzível em 19/07/2026
+
+**Evidências confirmadas:**
+
+- `npm run validate:login` preserva metadados sanitizados, hashes e sinais estruturais;
+- o CPF é enviado como `DDD.DDD.DDD-DD`, conforme o HAR;
+- cinco autenticações distintas do `ECNHClient` foram aprovadas com `JSESSIONID`, marcador autenticado, `DivisaoEquitativaForm` e ausência de `LoginActionForm`;
+- hashes finais e fontes `ECNH_USER_2`, `ECNH_USER_3`, `ECNH_USER_5`, `ECNH_USER_6` e `ECNH_USER_7` estão em `docs/evidencias/003a-consolidacao-validacao-2026-07-19.json`;
+- o portal rejeita re-login imediato da mesma conta; a série oficial usa credenciais distintas.
+
+**Resultado:** a Fase 003A avança para `Validada`.
+
+### Descoberta e implementação do logout HTTP em 19/07/2026
+
+**Evidências confirmadas:**
+
+- a página autenticada referencia `/gefor/global/menu_items.jsp`;
+- o menu declara `{name:"Sair", url:".../login.do?method=finalizarLogin..."}`;
+- `GET /gefor/SGU/login.do?method=finalizarLogin` retornou HTTP 200, `LoginActionForm` presente e marcador autenticado ausente;
+- re-login imediato da mesma conta após o logout retornou `sucesso`;
+- consolidação em `docs/evidencias/003a-consolidacao-logout-2026-07-19.json`.
+
+**Implementação:** `ECNHClient.logout()` envia o GET confirmado e limpa a sessão local em seguida.
+
+**Resultado:** a Fase 003A avança para `Concluída`.
+
 ## Pendências
 
-- obter resultados estáveis da etapa 3 no ambiente real;
-- registrar novamente os sinais conjuntos de cookie e marcador autenticado em uma validação conclusiva;
-- observar respostas de senha inválida, usuário bloqueado e erro do sistema;
-- identificar endpoint, método e efeito do logout.
+- observar respostas de senha inválida, usuário bloqueado e erro do sistema (fora do bloqueio para conclusão desta fase).
 
 ## Critérios de sucesso
 
@@ -226,17 +249,17 @@ O checkpoint completo está em [CHECKPOINT_EVIDENCIA_AUTENTICACAO.md](../docs/CH
 - [x] Sucesso depende dos sinais de cookie e HTML confirmados.
 - [x] `npm run test:login` informa início, transporte, sessão, resultado e falhas.
 - [x] Executar o teste com ambiente e credenciais autorizadas.
-- [ ] Confirmar autenticação real com log sanitizado, HTML identificável e hash preservado.
-- [ ] Executar logout HTTP após descobrir seu endpoint.
+- [x] Confirmar autenticação real com evidência sanitizada, hash e sinais estruturais preservados.
+- [x] Executar logout HTTP após descobrir seu endpoint.
 
 ## Dificuldades e limitações
 
-O portal criou e preservou uma sessão, mas a execução posterior ao ajuste fiel do formulário devolveu a página inicial de login sem mensagem classificável. Uma execução imediatamente anterior com o payload antigo retornou a página autenticada. Como o ambiente externo não foi isolado entre as duas requisições, a evidência não permite atribuir a diferença exclusivamente aos campos alterados. A inclusão dos seis headers principais de Chrome produziu resposta idêntica byte a byte e não resolveu a autenticação. Senha inválida, usuário bloqueado e erro do sistema continuam sem sinais HTTP/HTML confirmados e não são classificados por heurística.
+O portal tende a rejeitar re-login imediato da mesma conta sem logout HTTP. Após `method=finalizarLogin`, o re-login imediato foi observado com sucesso. Senha inválida, usuário bloqueado e erro do sistema continuam sem sinais HTTP/HTML confirmados. O CookieJar pode ainda conter `JSESSIONID` após o logout remoto; por isso a limpeza local permanece obrigatória.
 
 ## Próximos passos
 
-Não adicionar retry ou novas alterações de transporte sem uma nova decisão sustentada pelos resultados. A reutilização de conexão eliminou o reset, mas produziu 0% de autenticação na bateria. Não iniciar a Fase 003B enquanto a 003A não estiver `Concluída`.
+Iniciar a Fase 003B — Navegação autenticada. Não antecipar parsing de agenda nem Sheets.
 
 ## Resultado da fase
 
-MVP de login HTTP, transporte Axios, sessão com CookieJar, tipagem de resultado, logs estruturados, teste automatizado e exemplo foram implementados. O único sucesso reportado pelo cliente não possui resposta preservada e não foi reproduzido. O experimento com conexão persistente eliminou `ECONNRESET` em vinte execuções, mas nenhuma autenticou; a Fase 003A está `Implementada`.
+MVP de login HTTP, transporte Axios com agentes persistentes, CookieJar, tipagem de resultado, logs estruturados, teste, validação reproduzível e logout HTTP (`method=finalizarLogin`) foram implementados e comprovados. A Fase 003A está `Concluída`.

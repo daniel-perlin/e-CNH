@@ -4,7 +4,7 @@
 
 Explicar a evolução do `ECNHClient` até reproduzir o fluxo completo confirmado pelo HAR de login bem-sucedido.
 
-**Status da Fase 003A:** `Implementada`
+**Status da Fase 003A:** `Concluída` (este diagnóstico registra hipóteses anteriores à validação de 19/07/2026)
 
 Consulte também a [matriz de divergências](MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md), que compara cada etapa do navegador e do `ECNHClient` e classifica diferenças como confirmadas, hipóteses ou eliminadas.
 

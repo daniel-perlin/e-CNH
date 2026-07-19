@@ -49,16 +49,28 @@ export class ECNHClient {
   }
 
   /**
-   * O endpoint de logout ainda não foi observado. O método descarta localmente a sessão.
-   * TODO(Fase 003A): enviar logout HTTP quando endpoint e comportamento forem confirmados.
+   * Encerra a sessão no portal com `GET method=finalizarLogin` e descarta o estado local.
+   * O CookieJar é limpo mesmo se a requisição HTTP falhar.
    */
   public async logout(): Promise<void> {
     this.logger.info({ event: 'ecnh.logout.started' }, 'Iniciando encerramento da sessão e-CNH');
-    this.sessionManager.clear();
-    this.logger.warn(
-      { event: 'ecnh.logout.local_only' },
-      'Sessão local descartada; endpoint de logout do portal ainda não é conhecido'
-    );
+
+    try {
+      await this.authenticationProtocol.logout(this.transport);
+      this.logger.info(
+        { event: 'ecnh.logout.http', path: '/gefor/SGU/login.do?method=finalizarLogin' },
+        'Logout HTTP enviado ao portal e-CNH'
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'erro desconhecido';
+      this.logger.warn(
+        { event: 'ecnh.logout.http_failed', message },
+        'Falha ao enviar logout HTTP; a sessão local será descartada mesmo assim'
+      );
+    } finally {
+      this.sessionManager.clear();
+      this.logger.info({ event: 'ecnh.logout.completed' }, 'Sessão e-CNH encerrada localmente');
+    }
   }
 
   private validateCredentials(cpf: string, password: string): LoginCredentials {

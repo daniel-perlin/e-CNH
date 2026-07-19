@@ -1,0 +1,261 @@
+{
+  "attempts": [
+    {
+      "approved": false,
+      "credentialsSource": "ECNH_USER_1",
+      "durationMs": 289,
+      "finishedAt": "2026-07-19T10:38:39.279Z",
+      "number": 1,
+      "requests": [
+        {
+          "durationMs": 157,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29582,
+          "bodySha256": "82d760a3fa949f96b7c5041174a25ef6d32ff3da61c0293eb6c713dbe1d400d7",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 40,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16075,
+          "bodySha256": "163f11498c3422fb9fe35492618c507fe88a7ab1bd21455e90852989f83bcf95",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 90,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29630,
+          "bodySha256": "d71b1b74daaa6ee2e40f37f30e181b7e2c280b3fa289fa5dd2f9aa3890b8f5d2",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:38:38.990Z"
+    },
+    {
+      "approved": false,
+      "credentialsSource": "ECNH_USER_2",
+      "durationMs": 231,
+      "finishedAt": "2026-07-19T10:38:54.511Z",
+      "number": 2,
+      "requests": [
+        {
+          "durationMs": 102,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29581,
+          "bodySha256": "3fcb40017b2854348dc743c897b8de93370c79b75f0480874100a6ff7c6bf3a5",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 37,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16075,
+          "bodySha256": "e59539236512bf39b89ac0e19f017605391656e55570465094dcdf1953e1797c",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 90,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29642,
+          "bodySha256": "d0cfb806903cf9040fdfc6dbac75d717650655906ade09390f56f54eecc81c10",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:38:54.281Z"
+    },
+    {
+      "approved": false,
+      "credentialsSource": "ECNH_USER_3",
+      "durationMs": 241,
+      "finishedAt": "2026-07-19T10:39:09.753Z",
+      "number": 3,
+      "requests": [
+        {
+          "durationMs": 131,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29582,
+          "bodySha256": "850c0693220487c2092869113ee605caee3edd76a39e4bbf3b91288d6cb749da",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 30,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16074,
+          "bodySha256": "9cd577bc7932593c41ac54a204a0366e7cfec433771f4442f556e49e8a76b42e",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 79,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29632,
+          "bodySha256": "5237a2a7feef30cc4bcb22d3d93763e49bc497f847a8dc76558f51ab409b8d2f",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:39:09.512Z"
+    },
+    {
+      "approved": false,
+      "credentialsSource": "ECNH_USER_4",
+      "durationMs": 271,
+      "finishedAt": "2026-07-19T10:39:25.027Z",
+      "number": 4,
+      "requests": [
+        {
+          "durationMs": 175,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29582,
+          "bodySha256": "889d77c44b053aa5ed8f180c08841681132ed6952a9b87a6a732c1e9d647c5e3",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 57,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16074,
+          "bodySha256": "cca0ea76b23df79dfc1933ffd2121f5558ba5cc438fc51c6cafe71cfd8201d53",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 35,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16195,
+          "bodySha256": "7aac5582165c24c2e76c855d4151c8a02be3826f333769637af1320a62faa313",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:39:24.755Z"
+    },
+    {
+      "approved": false,
+      "credentialsSource": "ECNH_USER_5",
+      "durationMs": 205,
+      "finishedAt": "2026-07-19T10:39:40.234Z",
+      "number": 5,
+      "requests": [
+        {
+          "durationMs": 82,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29582,
+          "bodySha256": "f5fd40fa4a3999cffb1d4bda10d640c77ec8399d818a7b3ee112da682dfeda9c",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 36,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16075,
+          "bodySha256": "c56c8b0721ce3bcf7be6c82fb45354db0a62153c5d8e5bf663a94ace97c63e34",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 86,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29629,
+          "bodySha256": "600bb32c4e106d7f190165a6060e70e143b4a6e0fe94e2c038339860b0b790f9",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:39:40.029Z"
+    }
+  ],
+  "criteria": {
+    "consecutiveApprovedAttempts": 5,
+    "delayMsBetweenAttempts": 15000,
+    "distinctCredentialsPerAttempt": true,
+    "finalMarker": "Imprimir Agenda Diária do Psicólogo",
+    "loginFormAbsent": true,
+    "protectedFormPresent": true,
+    "requestSequence": [
+      "GET /gefor/SGU/login.do?method=iniciarLogin",
+      "POST /gefor/SGU/login.do",
+      "POST /gefor/SGU/login.do"
+    ],
+    "sessionCookie": "JSESSIONID"
+  },
+  "credentialsSources": [
+    "ECNH_USER_1",
+    "ECNH_USER_2",
+    "ECNH_USER_3",
+    "ECNH_USER_4",
+    "ECNH_USER_5"
+  ],
+  "finishedAt": "2026-07-19T10:39:40.234Z",
+  "nodeVersion": "v26.5.0",
+  "phase": "003A",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T10:38:38.990Z",
+  "summary": {
+    "approved": false,
+    "approvedAttempts": 0,
+    "failedAttempts": 5,
+    "totalAttempts": 5
+  }
+}

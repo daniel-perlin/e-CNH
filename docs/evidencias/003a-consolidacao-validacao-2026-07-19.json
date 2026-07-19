@@ -1,0 +1,90 @@
+{
+  "phase": "003A",
+  "schemaVersion": 1,
+  "kind": "consolidacao",
+  "startedAt": "2026-07-19T10:11:35.699Z",
+  "finishedAt": "2026-07-19T10:30:14.623Z",
+  "nodeVersion": "v26.5.0",
+  "criteria": {
+    "approvedAttemptsRequired": 5,
+    "distinctCredentialsPreferred": true,
+    "finalMarker": "Imprimir Agenda Diária do Psicólogo",
+    "loginFormAbsent": true,
+    "protectedFormPresent": true,
+    "requestSequence": [
+      "GET /gefor/SGU/login.do?method=iniciarLogin",
+      "POST /gefor/SGU/login.do",
+      "POST /gefor/SGU/login.do"
+    ],
+    "sessionCookie": "JSESSIONID"
+  },
+  "summary": {
+    "approved": true,
+    "approvedAttempts": 5,
+    "failedAttempts": 0,
+    "totalAttempts": 5,
+    "note": "Cinco tentativas aprovadas pelo ECNHClient com evidência sanitizada durável. O portal rejeitou re-login imediato da mesma conta; por isso a série usa credenciais distintas."
+  },
+  "attempts": [
+    {
+      "number": 1,
+      "evidenceFile": "003a-validacao-login-2026-07-19T10-24-57-211Z.json",
+      "credentialsSource": "ECNH_USER_2",
+      "resultStatus": "sucesso",
+      "sessionCookiePresent": true,
+      "finalBodyBytes": 72983,
+      "finalBodySha256": "d8068fca0101a0b6cf8dc779f00930ffbd99ed38b8e76b52b1180ac4ffca0648",
+      "containsAuthenticatedMarker": true,
+      "containsProtectedForm": true,
+      "containsLoginForm": false
+    },
+    {
+      "number": 2,
+      "evidenceFile": "003a-validacao-login-2026-07-19T10-25-07-904Z.json",
+      "credentialsSource": "ECNH_USER_3",
+      "resultStatus": "sucesso",
+      "sessionCookiePresent": true,
+      "finalBodyBytes": 72860,
+      "finalBodySha256": "6e2ab353ac9d0a798ce112102c46889959135a67e263eb4ebc3bcc12de24ff82",
+      "containsAuthenticatedMarker": true,
+      "containsProtectedForm": true,
+      "containsLoginForm": false
+    },
+    {
+      "number": 3,
+      "evidenceFile": "003a-validacao-login-2026-07-19T10-25-30-003Z.json",
+      "credentialsSource": "ECNH_USER_5",
+      "resultStatus": "sucesso",
+      "sessionCookiePresent": true,
+      "finalBodyBytes": 72982,
+      "finalBodySha256": "39e7c10ed46389d9cb751be0aa433c2b8f66bd12c4496f85bbc79cb6651138c9",
+      "containsAuthenticatedMarker": true,
+      "containsProtectedForm": true,
+      "containsLoginForm": false
+    },
+    {
+      "number": 4,
+      "evidenceFile": "003a-validacao-login-2026-07-19T10-29-58-734Z.json",
+      "credentialsSource": "ECNH_USER_6",
+      "resultStatus": "sucesso",
+      "sessionCookiePresent": true,
+      "finalBodyBytes": 72983,
+      "finalBodySha256": "311e97fe9364b5466b1323d5be0bb5c3006e7f6e578dbd96a62e8a54102b04c6",
+      "containsAuthenticatedMarker": true,
+      "containsProtectedForm": true,
+      "containsLoginForm": false
+    },
+    {
+      "number": 5,
+      "evidenceFile": "003a-validacao-login-2026-07-19T10-30-14-623Z.json",
+      "credentialsSource": "ECNH_USER_7",
+      "resultStatus": "sucesso",
+      "sessionCookiePresent": true,
+      "finalBodyBytes": 72859,
+      "finalBodySha256": "36e7996beb358c3ddb7d44fd27ad4a751dc32826bac964fb7346e248b901a177",
+      "containsAuthenticatedMarker": true,
+      "containsProtectedForm": true,
+      "containsLoginForm": false
+    }
+  ]
+}

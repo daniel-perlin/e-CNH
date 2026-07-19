@@ -2,14 +2,96 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Fase 003A — Autenticação HTTP (`Implementada`)  
+> **Fase atual:** Fase 003A — Autenticação HTTP (`Concluída`)  
 > **Próxima fase:** Fase 003B — Navegação autenticada (`Planejada`)  
-> **Última atualização:** 2026-07-18 20:40 BRT  
-> **Última sessão executada:** 18/07/2026 • 20:40 — Checkpoint da evidência de autenticação
+> **Última atualização:** 2026-07-19 08:05 BRT  
+> **Última sessão executada:** 19/07/2026 • 08:05 — Logout HTTP e conclusão da Fase 003A
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 08:05
+
+### 🎯 Objetivo
+
+Descobrir o logout HTTP do portal e concluir a Fase 003A.
+
+### ✅ O que mudou
+
+- Criado `npm run discover:logout` para varrer HTML autenticado e o menu dinâmico.
+- Confirmado `GET /gefor/SGU/login.do?method=finalizarLogin` a partir de `menu_items.jsp` (item "Sair").
+- Implementado logout HTTP em `ECNHClient` / protocolo, com limpeza local obrigatória.
+- Registradas evidências em `docs/evidencias/003a-consolidacao-logout-2026-07-19.json`.
+- Fase 003A promovida a `Concluída`.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** o menu "Sair" chama `method=finalizarLogin`.
+- **Evidência confirmada:** a resposta devolve o formulário de login e permite re-login imediato.
+- Não confundir com `forceLogout` da tela de autenticação (ADR-009).
+
+### 📂 Arquivos impactados
+
+- `src/scripts/discover-logout.ts`
+- `src/client/ecnh-auth-protocol.ts`
+- `src/client/ecnh-client.ts`
+- `src/scripts/test-login.ts`
+- `src/scripts/validate-login.ts`
+- `package.json`
+- `docs/evidencias/`
+- `docs/DECISOES.md`
+- `docs/ROADMAP.md`
+- `docs/API.md`
+- `docs/FLUXO_HTTP.md`
+- `.fases/003-login-http.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 07:45
+
+### 🎯 Objetivo
+
+Concluir a validação reproduzível da Fase 003A com evidência sanitizada, durável e repetível.
+
+### ✅ O que mudou
+
+- Adaptados `test:login` e `validate:login` ao `.env` multi-usuário (`ECNH_USER_<n>_`).
+- Formatado o CPF como `DDD.DDD.DDD-DD` conforme o HAR.
+- Mantidos agentes HTTP persistentes com keep-alive.
+- Aprovadas cinco autenticações distintas do `ECNHClient` com hashes e sinais estruturais.
+- Consolidada a evidência oficial em `docs/evidencias/003a-consolidacao-validacao-2026-07-19.json`.
+- Documentado que o portal rejeita re-login imediato da mesma conta.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** cinco logins reais distintos atenderam ao critério de sucesso com artefatos sanitizados.
+- **Evidência confirmada:** o HAR envia CPF mascarado; o cliente agora reproduz esse formato.
+- **Evidência confirmada:** re-login imediato da mesma conta tende a falhar; a série oficial usa credenciais distintas.
+- A Fase 003A avança para `Validada`.
+- A Fase 003A não avança para `Concluída` enquanto o logout HTTP não for identificado.
+
+### 📂 Arquivos impactados
+
+- `src/utils/cpf.ts`
+- `src/config/login-credentials.ts`
+- `src/client/ecnh-client.ts`
+- `src/scripts/test-login.ts`
+- `src/scripts/validate-login.ts`
+- `.env.example`
+- `docs/VALIDACAO_REPRODUZIVEL_003A.md`
+- `docs/evidencias/`
+- `docs/DECISOES.md`
+- `docs/ROADMAP.md`
+- `docs/MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `.fases/003-login-http.md`
+- `README.md`
+- `CHANGELOG.md`
 
 ---
 

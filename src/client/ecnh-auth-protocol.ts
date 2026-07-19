@@ -4,6 +4,7 @@ import { LoginCredentials, LoginResult } from '../types/auth.js';
 import { AuthTransport } from './auth-transport.js';
 
 const LOGIN_PATH = '/gefor/SGU/login.do';
+const LOGOUT_PATH = `${LOGIN_PATH}?method=finalizarLogin`;
 const AUTHENTICATED_PAGE_MARKER = 'Imprimir Agenda Diária do Psicólogo';
 const SESSION_COOKIE_NAME = 'JSESSIONID';
 
@@ -98,6 +99,21 @@ export class ECNHAuthenticationProtocol {
     } catch (error) {
       return this.fromTransportError(error);
     }
+  }
+
+  /**
+   * Encerra a sessão no portal conforme o item de menu "Sair"
+   * (`GET method=finalizarLogin`), observado em `/gefor/global/menu_items.jsp`.
+   */
+  public async logout(transport: AuthTransport): Promise<void> {
+    await transport.request<string>({
+      headers: {
+        Referer: transport.resolveUrl(LOGIN_PATH)
+      },
+      method: 'GET',
+      responseEncoding: 'latin1',
+      url: LOGOUT_PATH
+    });
   }
 
   private fromTransportError(error: unknown): LoginResult {

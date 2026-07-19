@@ -2,7 +2,7 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto buscará as agendas futuras dos profissionais e manterá a aba `Agenda` atualizada de forma automatizada.
 
-> **Fase atual:** 003A — Autenticação HTTP (`Implementada`). O único `status=sucesso` não possui resposta preservada e não foi reproduzido. A bateria eliminou `ECONNRESET`, mas obteve 0 sucessos em 20 execuções. A Fase 003B — Navegação autenticada permanece `Planejada`.
+> **Fase atual:** 003A — Autenticação HTTP (`Concluída`). Login reproduzível e logout HTTP (`GET method=finalizarLogin`) comprovados. Próxima: Fase 003B — Navegação autenticada (`Planejada`).
 
 ## Leitura recomendada
 
@@ -16,6 +16,7 @@ Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O pr
 - [Auditoria HTTP/TLS](docs/AUDITORIA_HTTP_TLS_AUTENTICACAO.md) — HTTP/2 versus HTTP/1.1, conexões, TLS e diagnóstico do reset
 - [Robustez da autenticação](docs/ROBUSTEZ_AUTENTICACAO_HTTP.md) — keep-alive, agentes, CookieJar, intermitência e plano mínimo
 - [Checkpoint da evidência](docs/CHECKPOINT_EVIDENCIA_AUTENTICACAO.md) — distinção entre sucesso reportado e artefatos preservados
+- [Validação reproduzível da Fase 003A](docs/VALIDACAO_REPRODUZIVEL_003A.md) — critério, comando e evidências aprovadas
 
 ## Problema resolvido
 
@@ -30,6 +31,8 @@ O sistema integra o portal diretamente por HTTP: Axios preserva a sessão no Coo
 - Node.js 20+ e TypeScript
 - npm
 - Axios, tough-cookie e http-cookie-agent (integração HTTP, sessão e agentes persistentes)
+- Validador `npm run validate:login` com evidências sanitizadas em `docs/evidencias/`
+- Descoberta de logout `npm run discover:logout`
 - Cheerio (parsing futuro de HTML SSR)
 - Google APIs e dotenv
 - Pino para logs estruturados
@@ -68,21 +71,31 @@ npm run dev
 
 ### Teste de autenticação
 
-Configure `ECNH_BASE_URL`, `ECNH_CPF` e `ECNH_PASSWORD` no `.env` e execute:
+Configure `ECNH_BASE_URL` e ao menos um usuário habilitado (`ECNH_USER_<n>_CPF`, `ECNH_USER_<n>_PASSWORD`, `ECNH_USER_<n>_ENABLED=true`) no `.env` e execute:
 
 ```bash
 npm run test:login
 ```
 
-O teste envia exclusivamente o protocolo de login confirmado, mantém cookies com `tough-cookie` e confirma sucesso pela presença de `JSESSIONID` e do marcador HTML observado. O endpoint de logout ainda não foi identificado; por isso, o método atual descarta apenas a sessão local.
+Para a série reproduzível com evidências sanitizadas:
+
+```bash
+npm run validate:login
+```
+
+O cliente envia exclusivamente o protocolo de login confirmado, mantém cookies com `tough-cookie` e confirma sucesso pela presença de `JSESSIONID` e do marcador HTML observado. O logout envia `GET /gefor/SGU/login.do?method=finalizarLogin` e descarta a sessão local.
 
 ### Estado da validação real
 
-Em 18/07/2026, um HAR completo confirmou `GET method=iniciarLogin` → `POST method=iniciarLoginAgenda` → `POST method=autenticar`, sem redirects. Uma execução instrumentada do cliente retornou `sucesso`, mas não preservou log, HTML, hash ou arquivo da resposta e não foi reproduzida. O HTML autenticado existente pertence a outro diagnóstico. A Fase 003A está `Implementada`.
+Em 19/07/2026, a validação reproduzível aprovou cinco autenticações distintas do `ECNHClient`, com evidências em `docs/evidencias/`. O logout HTTP (`method=finalizarLogin`) foi confirmado via menu dinâmico e implementado. A Fase 003A está `Concluída`.
 
-É necessário esclarecer ou estabilizar o encerramento intermitente da conexão antes de concluir a fase. Consulte [o mapa do protocolo](docs/API.md).
+Para reexecutar a validação:
 
-A implementação passou a preservar um único par de agentes com keep-alive e um socket durante as três etapas. Em vinte execuções, `ECONNRESET` caiu para zero, mas nenhuma autenticação foi confirmada. A hipótese estabilizou o transporte, não o resultado funcional.
+```bash
+npm run validate:login
+```
+
+Consulte [o mapa do protocolo](docs/API.md) e a [validação reproduzível](docs/VALIDACAO_REPRODUZIVEL_003A.md).
 
 ## Arquitetura definitiva
 

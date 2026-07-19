@@ -122,4 +122,6 @@ Há evidência de que o código retornou `sucesso` uma vez e marcou a sessão in
 
 Pela convenção do projeto, `Validada` exige critérios executados com evidências registradas. A implementação atual não atende esse requisito de forma reproduzível e auditável.
 
-**Reclassificação:** a Fase 003A retorna de `Validada` para `Implementada`.
+**Reclassificação histórica:** a Fase 003A retornou de `Validada` para `Implementada` por falta de evidência durável naquele momento.
+
+**Atualização em 19/07/2026:** a validação reproduzível posterior aprovou cinco autenticações distintas com hashes e sinais estruturais; a fase está novamente `Validada`. Consulte [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md).

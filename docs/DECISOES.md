@@ -46,3 +46,17 @@
 - **Contexto:** falhas de autenticação possuem causas operacionais distintas e não devem ser confundidas com indisponibilidade do sistema.
 - **Decisão:** a futura autenticação representará explicitamente, no mínimo, sucesso, senha inválida, usuário bloqueado, erro do sistema e erro desconhecido.
 - **Consequência:** não há mapeamento de resposta implementado até que o DevTools confirme os sinais HTTP/HTML correspondentes. A modelagem evita contratos implícitos e simplifica tratamento de erros e testes futuros.
+
+## ADR-008 — Formato do CPF no POST autenticar
+
+- **Status:** aceito
+- **Contexto:** o HAR do login bem-sucedido envia `codigo` no padrão `DDD.DDD.DDD-DD`; o Chrome reformata o campo no `onblur` antes do submit.
+- **Decisão:** o `ECNHClient` normaliza o CPF para `DDD.DDD.DDD-DD` na fronteira de autenticação, aceitando entrada com ou sem máscara.
+- **Consequência:** o protocolo HTTP continua enviando exatamente o formato observado no navegador, sem depender do valor cru do `.env`.
+
+## ADR-009 — Logout HTTP via method=finalizarLogin
+
+- **Status:** aceito
+- **Contexto:** o HTML autenticado não expõe o link "Sair"; o menu dinâmico em `/gefor/global/menu_items.jsp` declara `url` com `GET /gefor/SGU/login.do?method=finalizarLogin`.
+- **Decisão:** `ECNHClient.logout()` envia esse GET com o CookieJar da sessão e, em seguida, sempre descarta a sessão local.
+- **Consequência:** o portal recebe o encerramento observado no menu. Falha de rede no GET não impede a limpeza local. Não confundir com o campo `forceLogout` da tela de login.

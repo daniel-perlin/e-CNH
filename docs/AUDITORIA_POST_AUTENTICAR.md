@@ -4,7 +4,7 @@
 
 Comparar rigorosamente o POST final enviado pelo `ECNHClient` com a etapa `method=autenticar` do fluxo completo confirmado no HAR.
 
-**Status da Fase 003A:** `Implementada`
+**Status da Fase 003A:** `Concluída` (esta auditoria registra o estado anterior à validação de 19/07/2026)
 
 ## Evidência superveniente sobre `iniciarLoginAgenda`
 

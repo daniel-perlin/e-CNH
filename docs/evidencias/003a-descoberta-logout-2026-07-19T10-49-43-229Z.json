@@ -1,0 +1,16 @@
+{
+  "candidates": [],
+  "credentialsSource": "ECNH_USER_1",
+  "finishedAt": "2026-07-19T10:49:43.734Z",
+  "kind": "descoberta-logout",
+  "loginSucceeded": true,
+  "nodeVersion": "v26.5.0",
+  "phase": "003A",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T10:49:43.229Z",
+  "summary": {
+    "candidateCount": 0,
+    "confirmed": false,
+    "note": "Nenhum candidato de logout encontrado no HTML autenticado. Captura HAR manual do clique em Sair permanece necessária."
+  }
+}

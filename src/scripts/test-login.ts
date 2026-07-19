@@ -21,7 +21,7 @@ async function main(): Promise<void> {
 
   console.log(`Autenticação confirmada (${credentials.source}); sessão mantida no CookieJar.`);
   await client.logout();
-  console.log('Sessão local encerrada com sucesso.');
+  console.log('Logout HTTP (method=finalizarLogin) enviado e sessão local encerrada.');
 }
 
 void main().catch((error: unknown) => {

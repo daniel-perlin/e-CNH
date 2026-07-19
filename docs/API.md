@@ -53,9 +53,10 @@ O HAR confirmou os valores do Chrome. `Origin` está ausente no GET e presente n
 | URL base oficial, página de entrada e redirecionamentos  | Confirmados no HAR                 |
 | Todos os campos do formulário e valores ocultos          | Confirmados no HAR e implementados |
 | Token CSRF ou hidden dinâmico entre as etapas            | Não observado no HAR               |
-| Critério verificável de sucesso além do título observado | Pendente de confirmação            |
+| Critério verificável de sucesso além do título observado | Confirmado: `JSESSIONID` + marcador autenticado |
+| Formato do CPF no POST `autenticar`                      | Confirmado: `DDD.DDD.DDD-DD`        |
 | Respostas para credenciais inválidas e sessão expirada   | Pendente de confirmação            |
-| Endpoint, método e efeito do logout                      | Pendente de confirmação            |
+| Endpoint, método e efeito do logout                      | Confirmado: `GET method=finalizarLogin` |
 
 ## Sessão e cookies
 
@@ -73,7 +74,7 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 | Página protegida inicial  | A observar | A observar                                | A observar                                   | A observar        | Pendente       |
 | Descoberta de datas       | A observar | A observar                                | A observar                                   | A observar        | Pendente       |
 | Consulta de agenda        | A observar | A observar                                | A observar                                   | A observar        | Pendente       |
-| Logout                    | A observar | A observar                                | A observar                                   | A observar        | Pendente       |
+| Logout                    | `GET`      | `/gefor/SGU/login.do?method=finalizarLogin` | `method=finalizarLogin`                      | HTML de login     | Fato observado |
 
 ## Navegação e HTML
 
@@ -97,22 +98,21 @@ O `ECNHClient` implementa a sequência GET → POST → POST confirmada no HAR. 
 
 O login só é classificado como sucesso quando os dois sinais confirmados estão presentes: cookie `JSESSIONID` e o marcador HTML "Imprimir Agenda Diária do Psicólogo". Ausência desses sinais é retornada como `erro desconhecido`; senha inválida e usuário bloqueado continuam sem mapeamento porque seus sinais HTTP/HTML não foram confirmados.
 
-O endpoint de logout permanece pendente. Atualmente, `logout()` descarta a sessão local sem enviar requisição HTTP ao portal.
+O CPF é normalizado para `DDD.DDD.DDD-DD` na fronteira de autenticação, conforme o HAR.
 
-## Validação real da Fase 003A em 18/07/2026
+O logout envia `GET /gefor/SGU/login.do?method=finalizarLogin`, conforme o item "Sair" de `/gefor/global/menu_items.jsp`, e em seguida descarta a sessão local.
+
+## Validação reproduzível da Fase 003A em 19/07/2026
 
 **Evidências confirmadas:**
 
-- as variáveis obrigatórias do `.env` foram carregadas;
-- o cliente executou o GET inicial e o POST `iniciarLoginAgenda` na ordem confirmada;
-- a primeira tentativa encontrou `ECONNRESET` na etapa 2;
-- a segunda tentativa recebeu HTTP 200 nas etapas 1 e 2, mas encontrou `ECONNRESET` na etapa 3;
-- o log de erro foi restringido a nome, código e mensagem para impedir exposição de request, credenciais e cookies.
-- uma execução instrumentada posterior retornou `status=sucesso`, sem preservar a resposta;
-- três novas execuções alternaram entre HTTP 200 e `ECONNRESET` na etapa final.
+- `npm run validate:login` executou a sequência GET → POST → POST com agentes persistentes;
+- cinco autenticações distintas retornaram `status=sucesso` com `JSESSIONID`, marcador autenticado, `DivisaoEquitativaForm` e ausência de `LoginActionForm`;
+- hashes SHA-256 e metadados sanitizados foram preservados em `docs/evidencias/`;
+- a consolidação oficial está em `docs/evidencias/003a-consolidacao-validacao-2026-07-19.json`;
+- `npm run discover:logout` confirmou `GET method=finalizarLogin` via menu dinâmico;
+- o probe de logout devolveu `LoginActionForm` e permitiu re-login imediato.
 
-O fluxo implementado coincide com o HAR. Uma execução retornou `status=sucesso`, mas não preservou a resposta e não foi reproduzida. A Fase 003A está `Implementada`.
+A Fase 003A está `Concluída`.
 
-**Pendência:** esclarecer ou estabilizar o encerramento intermitente da conexão antes de concluir a fase.
-
-As lacunas restantes estão no [diagnóstico da autenticação](DIAGNOSTICO_AUTENTICACAO_HTTP.md). A comparação exata do request produzido pelo cliente está na [auditoria do POST `method=autenticar`](AUDITORIA_POST_AUTENTICAR.md).
+Critério, comando e limitações estão em [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md). O histórico de tentativas anteriores permanece no [diagnóstico da autenticação](DIAGNOSTICO_AUTENTICACAO_HTTP.md) e na [auditoria do POST `method=autenticar`](AUDITORIA_POST_AUTENTICAR.md).

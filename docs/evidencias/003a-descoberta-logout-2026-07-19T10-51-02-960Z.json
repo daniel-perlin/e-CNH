@@ -1,0 +1,17 @@
+{
+  "candidates": [],
+  "credentialsSource": "ECNH_USER_1",
+  "finishedAt": "2026-07-19T10:51:17.531Z",
+  "kind": "descoberta-logout",
+  "loginSucceeded": false,
+  "nodeVersion": "v26.5.0",
+  "pathInventory": [],
+  "phase": "003A",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T10:51:02.960Z",
+  "summary": {
+    "candidateCount": 0,
+    "confirmed": false,
+    "note": "Login não confirmado; varredura de logout não foi executada."
+  }
+}

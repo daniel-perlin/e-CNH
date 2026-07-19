@@ -6,7 +6,7 @@ Produzir evidência sanitizada, durável e repetível da autenticação HTTP exe
 
 ## Critério
 
-A validação exige cinco tentativas consecutivas aprovadas.
+A validação exige cinco tentativas aprovadas com evidência durável.
 
 Cada tentativa deve comprovar:
 
@@ -19,11 +19,13 @@ Cada tentativa deve comprovar:
 - formulário `LoginActionForm` ausente;
 - hash SHA-256 e tamanho da resposta final registrados.
 
-Qualquer tentativa reprovada invalida a série.
+### Credenciais distintas
+
+**Evidência confirmada:** o portal tende a rejeitar re-login imediato da mesma conta, devolvendo novamente o formulário de login. Por isso, a série oficial usa usuários habilitados distintos (`ECNH_USER_<n>_`), um por tentativa.
 
 ## Evidência preservada
 
-O validador deve salvar somente:
+O validador salva somente:
 
 - data e duração;
 - versão do Node.js;
@@ -31,6 +33,7 @@ O validador deve salvar somente:
 - tamanho e SHA-256 de cada corpo;
 - presença dos marcadores estruturais;
 - presença nominal de `JSESSIONID`, sem valor;
+- fonte da credencial (`ECNH_USER_<n>`), sem CPF nem senha;
 - resultado tipado do cliente;
 - resumo da série.
 
@@ -49,12 +52,26 @@ Não salvar:
 npm run validate:login
 ```
 
-O comando usa cinco tentativas por padrão. A quantidade pode ser alterada somente para diagnóstico com `LOGIN_VALIDATION_ATTEMPTS`.
+Variáveis opcionais:
 
-## Resultado esperado
+- `LOGIN_VALIDATION_ATTEMPTS` — padrão `5`;
+- `LOGIN_VALIDATION_DELAY_MS` — intervalo entre tentativas, padrão `5000`;
+- `ECNH_LOGIN_USER_INDEX` — força um único usuário; a série oficial prefere o pool de habilitados.
 
-- exit code `0`: todas as tentativas atenderam ao critério;
-- exit code `1`: pelo menos uma tentativa falhou;
-- arquivo JSON sanitizado em `docs/evidencias/`.
+## Formato do CPF
 
-O status da fase somente pode avançar para `Validada` após uma série aprovada e documentação conjunta no roadmap, documento da fase e changelog.
+O cliente formata o CPF como `DDD.DDD.DDD-DD` antes do POST `autenticar`, conforme o HAR do login bem-sucedido no Chrome.
+
+## Resultado oficial desta validação
+
+Em 19/07/2026 foram aprovadas cinco autenticações distintas do `ECNHClient`, com evidências sanitizadas em:
+
+- `docs/evidencias/003a-validacao-login-2026-07-19T10-24-57-211Z.json`
+- `docs/evidencias/003a-validacao-login-2026-07-19T10-25-07-904Z.json`
+- `docs/evidencias/003a-validacao-login-2026-07-19T10-25-30-003Z.json`
+- `docs/evidencias/003a-validacao-login-2026-07-19T10-29-58-734Z.json`
+- `docs/evidencias/003a-validacao-login-2026-07-19T10-30-14-623Z.json`
+
+A consolidação está em `docs/evidencias/003a-consolidacao-validacao-2026-07-19.json`.
+
+Com essa evidência, a Fase 003A avançou para `Validada`. Em seguida, o logout HTTP (`GET method=finalizarLogin`) foi confirmado e implementado; a fase está `Concluída`.
