@@ -2,14 +2,297 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Fase 005 — Integração Google Sheets (`Concluída`)  
-> **Próxima fase:** Fase 006 — Orquestração multi-profissionais (`Planejada`)  
-> **Última atualização:** 2026-07-19 10:23 BRT  
-> **Última sessão executada:** 19/07/2026 • 10:23 — Validação real Google Sheets
+> **Fase atual:** Fase 006 — Orquestração multi-profissionais (`Concluída`)  
+> **Próxima fase:** Fase 007 — Agendamento automático (cron) (`Planejada`)  
+> **Última atualização:** 2026-07-19 10:52 BRT  
+> **Última sessão executada:** 19/07/2026 • 10:52 — Conclusão da Fase 006 (Passo 6)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 10:52
+
+### 🎯 Objetivo
+
+Validar o fluxo completo de sincronização e concluir oficialmente a Fase 006 (Passo 6).
+
+### ✅ O que mudou
+
+- `npm test` (32) e `npm run sync:agenda` executados; evidência sanitizada registrada.
+- Fase 006 promovida a `Validada` e `Concluída` na documentação obrigatória.
+- Sem alteração de comportamento do código; Fase 007 não iniciada.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** orquestração multi-profissional funciona no ambiente real (6/7 ok).
+- **Evidência confirmada:** falha parcial tipada (`ECNH_USER_4`, login `erro_desconhecido`, logout executado).
+- **Decisão:** `sucessoGeral=false` com falha parcial não impede `Concluída` quando os critérios de orquestração estão atendidos e documentados.
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/006-validacao-sincronizacao-2026-07-19T13-53-48-274Z.json`
+- `docs/evidencias/README.md`
+- `.fases/006-orquestracao-sincronizacao.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/MODELO_DOMINIO.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:51
+
+### 🎯 Objetivo
+
+Consolidar a documentação das Fases 008 e 009 como Nice to Have / `Backlog` (parked), sem implementação.
+
+### ✅ O que mudou
+
+- Criados `.fases/008-painel-operacional.md` e `.fases/009-observabilidade-metricas.md` (objetivo, escopo, fora de escopo, critérios preliminares, status `Backlog`).
+- `docs/ROADMAP.md`: 008/009 na tabela principal como `Backlog` + links aos documentos da fase.
+- `docs/VISAO_DO_PRODUTO.md`: seção **Evoluções pós-MVP** deixando explícito que não integram o MVP.
+- Sem alteração de código, arquitetura, domínio, APIs ou ADRs.
+
+### 🧠 Decisões
+
+- **Decisão:** 008/009 permanecem parked até conclusão do MVP (006–007) e nova priorização.
+- **Decisão:** desenho técnico fica de fora de `ARQUITETURA.md` / `DECISOES.md` até priorização.
+
+### 📂 Arquivos impactados
+
+- `.fases/008-painel-operacional.md`
+- `.fases/009-observabilidade-metricas.md`
+- `docs/ROADMAP.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:48
+
+### 🎯 Objetivo
+
+Criar o script manual de sincronização (`sync:agenda`) como composição pura (Passo 5).
+
+### ✅ O que mudou
+
+- `src/scripts/sync-agenda.ts` resolve profissionais, monta dependências, chama `sincronizarProfissionais` e imprime resumo sem PII.
+- Comando `npm run sync:agenda` no `package.json`; teste mínimo do formatador de resumo.
+- Sem alterações em client, parser, repositório ou `AgendaSyncService`.
+
+### 🧠 Decisões
+
+- **Decisão:** um `ECNHClient` por profissional via fábrica (sessão isolada).
+- **Decisão:** status permanece `Planejada` até validação (Passo 6).
+
+### 📂 Arquivos impactados
+
+- `src/scripts/sync-agenda.ts`
+- `src/scripts/sync-agenda-resumo.ts`
+- `src/scripts/sync-agenda.test.ts`
+- `package.json`
+- `README.md`
+- `.fases/006-orquestracao-sincronizacao.md`
+- `docs/ROADMAP.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:46
+
+### 🎯 Objetivo
+
+Isolar a resolução de profissionais habilitados para sincronização (Passo 4), sem acoplar o `AgendaSyncService` ao `.env`.
+
+### ✅ O que mudou
+
+- Criados `resolveEnabledSyncProfessionals`, `paraEntradaSincronizacao` e `resolveEntradasSincronizacao` em `src/config/sync-professionals.ts`.
+- Testes de habilitado/desabilitado, config obrigatória ausente e múltiplos profissionais.
+- `AgendaSyncService`, client, parser e repositório não alterados.
+
+### 🧠 Decisões
+
+- **Decisão:** `ENABLED=true` exige `NAME`, `CPF` e `PASSWORD`; ausência lança `ConfigurationError`.
+- **Decisão:** status da fase permanece `Planejada` (script e validação pendentes).
+
+### 📂 Arquivos impactados
+
+- `src/config/sync-professionals.ts`
+- `src/config/sync-professionals.test.ts`
+- `.env.example`
+- `.fases/006-orquestracao-sincronizacao.md`
+- `docs/ROADMAP.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:45
+
+### 🎯 Objetivo
+
+Registrar Fases 008 e 009 como backlog Nice to Have (parked), sem implementação.
+
+### ✅ O que mudou
+
+- `docs/ROADMAP.md`: Fases 008 (Painel Operacional) e 009 (Observabilidade e Métricas) com status `Backlog`; observação de que o MVP termina na 007.
+- `docs/VISAO_DO_PRODUTO.md`: mesma observação e entradas no backlog funcional.
+
+### 🧠 Decisões
+
+- **Decisão:** 008/009 ficam estacionadas até nova priorização; não entram na progressão `Planejada` → `Concluída` do MVP.
+- **Decisão:** nenhuma alteração de código, arquitetura ou testes nesta sessão.
+
+### 📂 Arquivos impactados
+
+- `docs/ROADMAP.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:42
+
+### 🎯 Objetivo
+
+Implementar `sincronizarProfissionais` reutilizando `sincronizarProfissional` (Passo 3).
+
+### ✅ O que mudou
+
+- Loop sequencial com falha parcial e agregação em `ResultadoSincronizacao`.
+- Três testes multi-profissional; suíte do serviço atualizada.
+- Sem alterações em client, parser, repositório ou contratos do Passo 1.
+
+### 🧠 Decisões
+
+- **Decisão:** `sucessoGeral` exige sucesso de todos os profissionais; lista vazia é sucesso vacuoso.
+- **Decisão:** status da fase permanece `Planejada` (config, script e validação pendentes).
+
+### 📂 Arquivos impactados
+
+- `src/services/agenda-sync-service.ts`
+- `src/services/agenda-sync-service.test.ts`
+- `.fases/006-orquestracao-sincronizacao.md`
+- `docs/ROADMAP.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:36
+
+### 🎯 Objetivo
+
+Implementar `sincronizarProfissional` no `AgendaSyncService` (Passo 2), com testes unitários via fakes.
+
+### ✅ O que mudou
+
+- Fluxo sequencial: login → listar datas → HTML → parse → persistência → logout (`finally`).
+- Testes (9) cobrindo sucesso, falha de login, zero datas, persistência ok/falha, parser com throw e logout sempre.
+- `sincronizarProfissionais` permanece não implementado; client/parser/repositório intactos.
+- `npm run typecheck`, `npm run lint` e suíte completa (`npm test`, 24 testes) aprovados.
+
+### 🧠 Decisões
+
+- **Decisão:** falha parcial por data continua o loop; `sucesso` do profissional exige todas as datas ok.
+- **Decisão:** `dataReferencia = data` (heurística já validada nos scripts).
+- **Decisão:** exceção no parser/`obterHtml`/persistência não aborta o `finally` do logout.
+
+### 📂 Arquivos impactados
+
+- `src/services/agenda-sync-service.ts`
+- `src/services/agenda-sync-service.test.ts`
+- `package.json` (`test:agenda-sync`)
+- `.fases/006-orquestracao-sincronizacao.md`
+- `docs/ROADMAP.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:32
+
+### 🎯 Objetivo
+
+Congelar os contratos tipados de `AgendaSyncService` (Passo 1), sem lógica de sincronização.
+
+### ✅ O que mudou
+
+- Criado `src/services/agenda-sync-service.ts` com API pública, portas injetáveis e tipos `ResultadoSincronizacao*`.
+- Métodos `sincronizarProfissional` / `sincronizarProfissionais` apenas com TODOs e erro explícito de não implementado.
+- `npm run typecheck` aprovado; `ECNHClient`, parsers e repositories não alterados.
+
+### 🧠 Decisões
+
+- **Decisão:** porta `AgendaSyncPortalClient` (compatível com `ECNHClient`) + parser/`AgendaRepository` injetados.
+- **Decisão:** status da fase permanece `Planejada` até a lógica do escopo estar implementada.
+
+### 📂 Arquivos impactados
+
+- `src/services/agenda-sync-service.ts`
+- `.fases/006-orquestracao-sincronizacao.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:30
+
+### 🎯 Objetivo
+
+Iniciar oficialmente a Fase 006 (Passo 0): documentar escopo, critérios e estrutura proposta de `AgendaSyncService`, sem implementar lógica.
+
+### ✅ O que mudou
+
+- Criado `.fases/006-orquestracao-sincronizacao.md` com objetivo, escopo, fora de escopo, arquitetura, critérios de aceite e plano incremental.
+- `docs/ROADMAP.md` atualizado: situação da Fase 006 iniciada; entrega alinhada a `AgendaSyncService`.
+- Documentação de visão/arquitetura/domínio/README alinhada; status oficial permanece `Planejada` (convenção do projeto — não existe estado “Em implementação”).
+- Nenhuma alteração em `ECNHClient`, parser, `AgendaRepository` ou lógica de serviço.
+
+### 🧠 Decisões
+
+- **Decisão:** camada de casos de uso em `src/services` com nome `AgendaSyncService`.
+- **Decisão:** Passo 0 só documentação; código fica para aprovação do próximo passo.
+- **Decisão:** fora de escopo — cron (007), API HTTP e mudanças nos componentes existentes.
+
+### 📂 Arquivos impactados
+
+- `.fases/006-orquestracao-sincronizacao.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/MODELO_DOMINIO.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 10:29
+
+### 🎯 Objetivo
+
+Sincronizar a documentação para refletir a Fase 005 oficialmente `Concluída`, sem alterar código, testes ou evidências.
+
+### ✅ O que mudou
+
+- `docs/ROADMAP.md`: entrega da 005 atualizada com validação real concluída; seção “Situação da Fase 005” deixa explícito que não há pendência de credenciais nem de validação.
+- `docs/ARQUITETURA.md`, `docs/DECISOES.md` e `docs/VISAO_DO_PRODUTO.md` alinhados ao status `Concluída` (sem linguagem de fase em andamento ou backlog de 003B–005).
+- Sessão histórica de 09:55 permanece intacta (registrava `Implementada` e bloqueio por credenciais naquele momento); o estado atual do projeto é o da sessão 10:23 e desta sincronização.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** o status vigente da Fase 005 é `Concluída`; menções a “aguardando validação/credenciais” não descrevem mais o estado atual.
+- **Decisão:** não reescrever sessões anteriores do diário; apenas alinhar documentos de estado e registrar esta sincronização.
+
+### 📂 Arquivos impactados
+
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/DECISOES.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/API.md`
+- `CHANGELOG.md`
 
 ---
 

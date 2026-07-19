@@ -159,11 +159,13 @@ Comandos: `npm run discover:agenda-html`, `npm run test:agenda-parser`, `npm run
 
 A Fase 004 está `Concluída`. Detalhes em [.fases/004-extracao-agenda.md](../.fases/004-extracao-agenda.md).
 
-## Implementação da Fase 005
+## Implementação e conclusão da Fase 005
 
 `AgendaRepository` persiste e recupera `Agenda` tipada. A implementação `GoogleSheetsAgendaRepository` usa Service Account (`googleapis` Sheets v4), `AgendaSheetMapper` puro e a aba `Agenda`.
 
 Comandos: `npm run test:sheets`, `npm run discover:sheets`, `npm run validate:sheets`.
+
+A Fase 005 está `Concluída` (implementação + validação real).
 
 ## Validação reproduzível da Fase 005 em 19/07/2026
 

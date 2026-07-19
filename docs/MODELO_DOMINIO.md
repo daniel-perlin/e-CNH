@@ -114,3 +114,35 @@ ECNHClient -> HTML bruto / ResultadoLogin
 ```
 
 `ECNHClient` entrega transporte e HTML; o parser transforma HTML em modelos de domínio; `AgendaRepository` persiste/recupera esses modelos. A implementação `GoogleSheetsAgendaRepository` usa `AgendaSheetMapper` (puro) e não é conhecida pelo domínio.
+
+A Fase 006 introduz `AgendaSyncService` (`src/services`) para orquestrar esse encadeamento e devolver um `ResultadoSincronizacao` tipado, sem alterar client, parser ou repositório. Detalhes em [.fases/006-orquestracao-sincronizacao.md](../.fases/006-orquestracao-sincronizacao.md).
+
+## ResultadoSincronizacao
+
+Representa o retorno lógico da orquestração (Fase 006). Independente de HTTP, HTML e Sheets.
+
+| Elemento | Descrição |
+| -------- | --------- |
+| sucessoGeral | Verdadeiro somente se todos os profissionais sincronizaram com sucesso. |
+| profissionais | Lista de `ResultadoSincronizacaoProfissional`. |
+
+### ResultadoSincronizacaoProfissional
+
+| Elemento | Descrição |
+| -------- | --------- |
+| identificadorSeguro | Rótulo operacional (ex.: `ECNH_USER_3`), sem CPF. |
+| loginStatus | Status do login tipado. |
+| logoutExecutado | Indica se o logout rodou no `finally`. |
+| sucesso | Sucesso do profissional (todas as datas ok). |
+| datas | Lista de `ResultadoSincronizacaoData`. |
+
+### ResultadoSincronizacaoData
+
+| Elemento | Descrição |
+| -------- | --------- |
+| dataConsulta | Data `DD/MM/YYYY`. |
+| sucesso | Extração e persistência ok. |
+| itensExtraidos / linhasGravadas / linhasRemovidas | Contagens operacionais (sem PII). |
+| motivoFalhaExtracao / motivoFalhaPersistencia | Motivos tipados reutilizados das fases 004/005. |
+
+CPF e senha existem apenas na entrada efêmera da sincronização; nunca no resultado tipado.

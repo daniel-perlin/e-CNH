@@ -31,3 +31,9 @@ Os arquivos podem conter somente metadados técnicos, hashes e sinais booleanos.
 - Descoberta API (estática): `005-descoberta-api-sheets-2026-07-19.json`
 - Descoberta de conexão: `005-descoberta-conexao-sheets-*.json`
 - Validação de persistência: `005-validacao-sheets-*.json`
+
+## Validação oficial da Fase 006
+
+- Documento da fase: [006-orquestracao-sincronizacao.md](../../.fases/006-orquestracao-sincronizacao.md)
+- Validação da sincronização: `006-validacao-sincronizacao-*.json`
+- Comando: `npm run sync:agenda`

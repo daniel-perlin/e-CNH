@@ -2,7 +2,7 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto buscará as agendas futuras dos profissionais e manterá a aba `Agenda` atualizada de forma automatizada.
 
-> **Fase atual:** 005 — Integração Google Sheets (`Concluída`). Persistência via `AgendaRepository`. Próxima: Fase 006 — Orquestração multi-profissionais (`Planejada`).
+> **Fase atual:** 006 — Orquestração multi-profissionais (`Concluída`). `AgendaSyncService` + `npm run sync:agenda`. Próxima: Fase 007 — Agendamento automático (`Planejada`).
 
 ## Leitura recomendada
 
@@ -24,7 +24,7 @@ Consolidar agendas de diversos profissionais em uma única planilha reduz consul
 
 ## Arquitetura
 
-O sistema integra o portal diretamente por HTTP: Axios preserva a sessão no CookieJar, `ECNHClient` encapsula o protocolo, Cheerio transforma HTML SSR em objetos tipados e os serviços coordenam a sincronização futura. Consulte [a arquitetura](docs/ARQUITETURA.md) e o [fluxo HTTP](docs/FLUXO_HTTP.md) para detalhes.
+O sistema integra o portal diretamente por HTTP: Axios preserva a sessão no CookieJar, `ECNHClient` encapsula o protocolo, Cheerio transforma HTML SSR em objetos tipados e `AgendaSyncService` (Fase 006) orquestra a sincronização. Consulte [a arquitetura](docs/ARQUITETURA.md) e o [fluxo HTTP](docs/FLUXO_HTTP.md) para detalhes.
 
 ## Tecnologias
 
@@ -106,9 +106,19 @@ npm run validate:sheets
 
 Configure `GOOGLE_SHEETS_SPREADSHEET_ID`, o caminho do JSON da Service Account e compartilhe a planilha com o e-mail da conta (Editor). A aba `Agenda` deve existir.
 
+### Sincronização sob demanda (Fase 006)
+
+Com portal, profissionais (`ECNH_USER_<n>_ENABLED/NAME/CPF/PASSWORD`) e Sheets configurados:
+
+```bash
+npm run sync:agenda
+```
+
+O script compõe `AgendaSyncService` e executa `sincronizarProfissionais` sem cron.
+
 ### Estado da validação real
 
-Em 19/07/2026, a validação reproduzível aprovou autenticação, logout, navegação até o HTML de resultado, extração tipada da agenda e persistência no Google Sheets, com evidências em `docs/evidencias/`. As Fases 003A, 003B, 004 e 005 estão `Concluída`.
+Em 19/07/2026, a validação reproduzível aprovou autenticação, logout, navegação, extração tipada, persistência Sheets e orquestração multi-profissional (`npm run sync:agenda`), com evidências em `docs/evidencias/`. As Fases 003A, 003B, 004, 005 e 006 estão `Concluída`.
 
 Para reexecutar:
 
@@ -117,9 +127,10 @@ npm run validate:login
 npm run validate:agenda
 npm run validate:agenda-parser
 npm run validate:sheets
+npm run sync:agenda
 ```
 
-Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md), [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md), [.fases/004-extracao-agenda.md](.fases/004-extracao-agenda.md) e [.fases/005-integracao-google-sheets.md](.fases/005-integracao-google-sheets.md).
+Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md), [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md), [.fases/004-extracao-agenda.md](.fases/004-extracao-agenda.md), [.fases/005-integracao-google-sheets.md](.fases/005-integracao-google-sheets.md) e [.fases/006-orquestracao-sincronizacao.md](.fases/006-orquestracao-sincronizacao.md).
 
 ## Arquitetura definitiva
 
@@ -153,7 +164,7 @@ npm run build
 
 ## Roadmap e próximos passos
 
-Próximas fases: **006 — Orquestração multi-profissionais** e **007 — Agendamento automático (cron)**. Veja o [roadmap detalhado](docs/ROADMAP.md).
+Fase em andamento do MVP: **007 — Agendamento automático (cron)**. A Fase **006 — Orquestração multi-profissionais** está `Concluída` ([documento](.fases/006-orquestracao-sincronizacao.md)). Veja o [roadmap detalhado](docs/ROADMAP.md).
 
 ### Convenção de status
 

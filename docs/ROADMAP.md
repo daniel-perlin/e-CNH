@@ -10,11 +10,15 @@ Cada fase deve resolver um único problema e não antecipar funcionalidades post
 | Fase 003A — Autenticação HTTP               | `Concluída`    | Autenticação HTTP, sessão, CookieJar, verificação, logout HTTP e testes; sem agenda.    |
 | Fase 003B — Navegação autenticada           | `Concluída`    | Página de agenda, endpoints, parâmetros e HTML bruto; sem extração estruturada.                             |
 | Fase 004 — Extração de dados da agenda      | `Concluída`     | Parser HTML, modelos tipados e testes unitários; sem integração com planilha.                               |
-| Fase 005 — Integração Google Sheets         | `Concluída`    | Leitura/escrita e contrato da aba `Agenda` via `AgendaRepository`.                                          |
-| Fase 006 — Orquestração multi-profissionais | `Planejada`    | Caso de uso que coordena múltiplos profissionais e o fluxo completo de sincronização; execução sob demanda. |
+| Fase 005 — Integração Google Sheets         | `Concluída`    | Persistência via `AgendaRepository` / Google Sheets; validação real (Service Account, aba `Agenda`, substituição idempotente) concluída. |
+| Fase 006 — Orquestração multi-profissionais | `Concluída`    | `AgendaSyncService` + `sync:agenda`; multi-profissional sob demanda validado com evidência sanitizada.       |
 | Fase 007 — Agendamento automático (cron)    | `Planejada`    | Job agendado e proteção contra sobreposição de execuções.                                                   |
+| Fase 008 — Painel Operacional (Nice to Have)| `Backlog`      | Abas Controle/Execuções e metadados de sync; Apps Script opcional — **parked** (pós-MVP).                   |
+| Fase 009 — Observabilidade e Métricas (Nice to Have) | `Backlog` | Métricas, dashboards e alertas — **parked** (pós-MVP).                                                      |
 
-> **Situação da Fase 005:** `Concluída` em 19/07/2026. Service Account, aba `Agenda` e persistência idempotente validadas com evidências sanitizadas. Próxima fase: 006 — Orquestração multi-profissionais.
+> **Limite do MVP:** o MVP do projeto termina na Fase 007. As Fases 008 e 009 representam melhorias futuras (Nice to Have), não são pré-requisitos para que o sistema esteja funcional e permanecem em backlog até nova priorização.
+
+> **Situação da Fase 006:** oficialmente `Concluída` em 19/07/2026. Orquestração multi-profissional validada via `npm run sync:agenda` (6/7 profissionais ok; falha parcial tipada) com evidência sanitizada. Próxima fase do MVP: 007 — Agendamento automático (cron).
 
 ## Convenção de status
 
@@ -27,6 +31,8 @@ Cada fase da 003A à 007 possui exatamente um estado e progride sem saltos:
 - **Validada:** critérios executados no ambiente adequado, com evidências registradas.
 - **Concluída:** fase validada, sem pendências bloqueantes no escopo e com documentação obrigatória atualizada.
 
+As Fases 008 e 009 usam o estado `Backlog` (estacionadas / parked): visão documentada, sem implementação e fora da progressão do MVP até nova priorização.
+
 Um status só pode mudar quando a evidência correspondente estiver registrada no documento da fase e no diário do projeto.
 
 ## Alinhamento arquitetural
@@ -37,9 +43,38 @@ Um status só pode mudar quando a evidência correspondente estiver registrada n
 | 003B | `client`             | Navegação autenticada e obtenção de HTML         |
 | 004  | `parsers` / `models` | HTML → objetos de domínio tipados                |
 | 005  | `repositories`       | Objetos de domínio → Google Sheets               |
-| 006  | `services`           | Caso de uso de sincronização multi-profissionais |
+| 006  | `services`           | `AgendaSyncService`: orquestração multi-profissionais |
 | 007  | `jobs`               | Disparo automático e controle de concorrência    |
 
 ## Critério de avanço
 
-Antes de iniciar a próxima fase, a fase atual deve estar `Concluída`, com fatos observados, decisões relevantes e validações proporcionais ao risco registrados.
+Antes de iniciar a próxima fase do MVP (até a 007), a fase atual deve estar `Concluída`, com fatos observados, decisões relevantes e validações proporcionais ao risco registrados. As Fases 008 e 009 não entram nessa sequência até serem priorizadas.
+
+## Backlog pós-MVP (Nice to Have) — estacionado
+
+As fases abaixo **não fazem parte do MVP**, **não estão em implementação** e permanecem **parked** até nova priorização explícita.
+
+### Fase 008 — Painel Operacional (Nice to Have)
+
+**Status:** `Backlog` · Documento: [.fases/008-painel-operacional.md](../.fases/008-painel-operacional.md)
+
+Escopo conceitual (somente visão futura; nada a implementar agora):
+
+- aba `Controle` na planilha Google Sheets;
+- aba `Execuções` com histórico de sincronizações;
+- registro de metadados das execuções (status, duração, quantidade de profissionais, quantidade de registros, erros resumidos sem PII);
+- possível integração futura com Google Apps Script para um botão “Sincronizar Agora”;
+- não antecipa cron, orquestração ou mudanças nas Fases 006/007.
+
+### Fase 009 — Observabilidade e Métricas (Nice to Have)
+
+**Status:** `Backlog` · Documento: [.fases/009-observabilidade-metricas.md](../.fases/009-observabilidade-metricas.md)
+
+Escopo conceitual (somente visão futura; nada a implementar agora):
+
+- métricas operacionais;
+- estatísticas de sincronizações;
+- indicadores de desempenho;
+- dashboards e tendências;
+- alertas e monitoramento;
+- não é pré-requisito para o sistema funcional após a Fase 007.

@@ -16,12 +16,12 @@ Axios + CookieJar
         ▲
         │ HTML e contratos de navegação
         │
-AgendaService ──> AgendaParser (Cheerio) ──> AgendaRepository ──> Google Sheets
+AgendaSyncService ──> parseAgendaHtml (Cheerio) ──> AgendaRepository ──> Google Sheets
 ```
 
 `ECNHClient` é o centro da integração com o portal: autenticação, manutenção de sessão, transporte HTTP e navegação autenticada. Nenhuma outra camada realiza chamadas HTTP diretamente ao e-CNH. Parser e integração com Sheets trabalham sobre dados/HTML entregues pelos contratos do cliente e do serviço, sem conhecer Axios, cookies ou endpoints.
 
-A **Fase 003A — Autenticação HTTP** trata exclusivamente login e sessão. A **Fase 003B — Navegação autenticada** adiciona navegação pós-login e entrega HTML de agenda. A **Fase 004 — Extração de dados da agenda** converte esse HTML em modelos tipados via Cheerio. A **Fase 005 — Integração Google Sheets** persiste os modelos via `AgendaRepository` / `GoogleSheetsAgendaRepository`. As fases **006 — Orquestração multi-profissionais** e **007 — Agendamento automático (cron)** evoluem serviços e jobs, sem antecipar escopo.
+A **Fase 003A — Autenticação HTTP** trata exclusivamente login e sessão. A **Fase 003B — Navegação autenticada** adiciona navegação pós-login e entrega HTML de agenda. A **Fase 004 — Extração de dados da agenda** converte esse HTML em modelos tipados via Cheerio. A **Fase 005 — Integração Google Sheets** persiste os modelos via `AgendaRepository` / `GoogleSheetsAgendaRepository`. A **Fase 006 — Orquestração multi-profissionais** entrega `AgendaSyncService` e o script `npm run sync:agenda` (`Concluída`). A **Fase 007 — Agendamento automático (cron)** permanece fora do escopo atual.
 
 Os contratos conceituais entre essas camadas estão em [MODELO_DOMINIO.md](MODELO_DOMINIO.md). Eles orientam a evolução sem antecipar tipos, campos obrigatórios ou respostas HTTP ainda não confirmadas.
 
@@ -49,6 +49,7 @@ Playwright não é tecnologia principal e não será usado no fluxo produtivo no
 
 ## Limites confirmados
 
-- A Fase 005 implementou persistência via `AgendaRepository` e Google Sheets; orquestração multi-profissionais (006) e cron (007) permanecem pendentes.
+- A Fase 005 está `Concluída`: persistência via `AgendaRepository` / Google Sheets foi implementada e validada no ambiente real.
+- A Fase 006 está `Concluída`: `AgendaSyncService` orquestra multi-profissional sob demanda (`npm run sync:agenda`); cron (007) permanece pendente.
 - O `ECNHClient` continua responsável apenas por HTTP/sessão/HTML bruto; o parser não conhece Axios nem cookies; o domínio não conhece `googleapis`.
 - Credenciais, tokens e valores de cookies não podem ser persistidos ou registrados em logs.

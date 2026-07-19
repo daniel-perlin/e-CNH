@@ -62,7 +62,7 @@ Fluxo-alvo quando todas as fases previstas estiverem concluídas:
 | Navegação autenticada e download de HTML | **Concluída** (Fase 003B — Navegação autenticada); HTML bruto de resultado obtido                  |
 | Extração de dados da agenda              | **Concluída** (Fase 004 — Extração de dados da agenda)                                              |
 | Integração Google Sheets                 | **Concluída** (Fase 005 — Integração Google Sheets)                                                 |
-| Orquestração multi-profissionais         | **Pendente** (Fase 006 — Orquestração multi-profissionais)                                         |
+| Orquestração multi-profissionais         | **Concluída** (Fase 006 — Orquestração multi-profissionais)                                         |
 | Agendamento automático (cron)            | **Pendente** (Fase 007 — Agendamento automático)                                                   |
 
 ## MVP
@@ -121,22 +121,32 @@ Visão orientada a **capacidades**, não a bibliotecas ou pastas de código:
 
 Para o desenho técnico das camadas, consulte [ARQUITETURA.md](ARQUITETURA.md).
 
+## Evoluções pós-MVP (Nice to Have)
+
+> **Limite do MVP:** o MVP do projeto termina na Fase 007. As Fases 008 e 009 **não** fazem parte do MVP, **não** são pré-requisitos para o sistema funcional e permanecem **estacionadas (`Backlog` / parked)** até a conclusão da Fase 007 e nova priorização.
+
+| Fase | Nome | Status | Visão |
+| ---- | ---- | ------ | ----- |
+| 008 | Painel Operacional | `Backlog` | Abas `Controle` e `Execuções` na planilha; metadados de sync; Apps Script opcional para “Sincronizar Agora”. Detalhes: [.fases/008-painel-operacional.md](../.fases/008-painel-operacional.md) |
+| 009 | Observabilidade e Métricas | `Backlog` | Métricas, estatísticas, indicadores, dashboards/tendências e alertas — sem PII. Detalhes: [.fases/009-observabilidade-metricas.md](../.fases/009-observabilidade-metricas.md) |
+
+Enquanto estiverem em `Backlog`, essas fases **não** alteram arquitetura, domínio, APIs ou ADRs.
+
 ## Backlog de funcionalidades futuras
 
-Itens alinhados ao [ROADMAP.md](ROADMAP.md), em ordem sugerida:
+Itens alinhados ao [ROADMAP.md](ROADMAP.md), em ordem sugerida. As Fases 003B a 006 já estão `Concluída` e saíram deste backlog de entrega imediata.
+
+> O MVP cobre até a Fase 007. Itens 008 e 009 são Nice to Have (ver seção [Evoluções pós-MVP](#evoluções-pós-mvp-nice-to-have)).
 
 | Prioridade | Fase | Funcionalidade                   | Descrição                                                                         |
 | ---------- | ---- | -------------------------------- | --------------------------------------------------------------------------------- |
-| 1          | 003B | Navegação autenticada            | Acessar páginas pós-login e obter HTML de agenda sem interpretá-lo                |
-| 2          | 004  | Extração de dados da agenda      | Converter HTML SSR em modelos de Profissional, Paciente e Agenda                  |
-| 3          | 005  | Integração Google Sheets         | Ler contrato da planilha e atualizar aba `Agenda`                                 |
-| 4          | 006  | Orquestração multi-profissionais | Coordenar credenciais e fluxo completo de sincronização para vários profissionais |
-| 5          | 007  | Agendamento automático (cron)    | Rodar sincronização automaticamente com proteção contra sobreposição              |
-| —          | —    | Logout HTTP                      | Encerrar sessão no portal quando o endpoint for confirmado                        |
+| 1          | 007  | Agendamento automático (cron)    | Rodar sincronização automaticamente com proteção contra sobreposição              |
+| —          | 008  | Painel operacional (Nice to Have) | Abas Controle/Execuções e metadados de sync; Apps Script opcional — **Backlog / parked** |
+| —          | 009  | Observabilidade e métricas (Nice to Have) | Métricas, dashboards, alertas — **Backlog / parked** |
 | —          | —    | Classificação de falhas de login | Distinguir senha inválida, usuário bloqueado e erro de sistema com evidência      |
 | —          | —    | Retentativas e resiliência       | Tratar indisponibilidade, timeout e sessão expirada de forma controlada           |
 
-Itens **não priorizados** neste backlog permanecem como hipótese até haver necessidade operacional comprovada.
+Itens **não priorizados** neste backlog permanecem como hipótese até haver necessidade operacional comprovada. As Fases 008 e 009 estão explicitamente **estacionadas** e fora do MVP.
 
 ## Escopo do projeto
 

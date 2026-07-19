@@ -1,0 +1,92 @@
+{
+  "approved": true,
+  "finishedAt": "2026-07-19T13:53:48.000Z",
+  "kind": "validacao-sincronizacao-agenda",
+  "nodeVersion": "v26.5.0",
+  "phase": "006",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T13:53:15.000Z",
+  "steps": {
+    "command": "npm run sync:agenda",
+    "partialFailure": {
+      "identificadorSeguro": "ECNH_USER_4",
+      "loginStatus": "erro_desconhecido",
+      "logoutExecutado": true,
+      "sucesso": false
+    },
+    "profissionais": [
+      {
+        "datasOk": 4,
+        "datasTotal": 4,
+        "identificadorSeguro": "ECNH_USER_1",
+        "itensExtraidos": 25,
+        "loginStatus": "sucesso",
+        "logoutExecutado": true,
+        "sucesso": true
+      },
+      {
+        "datasOk": 4,
+        "datasTotal": 4,
+        "identificadorSeguro": "ECNH_USER_2",
+        "itensExtraidos": 19,
+        "loginStatus": "sucesso",
+        "logoutExecutado": true,
+        "sucesso": true
+      },
+      {
+        "datasOk": 4,
+        "datasTotal": 4,
+        "identificadorSeguro": "ECNH_USER_3",
+        "itensExtraidos": 17,
+        "loginStatus": "sucesso",
+        "logoutExecutado": true,
+        "sucesso": true
+      },
+      {
+        "datasOk": 0,
+        "datasTotal": 0,
+        "identificadorSeguro": "ECNH_USER_4",
+        "itensExtraidos": 0,
+        "loginStatus": "erro_desconhecido",
+        "logoutExecutado": true,
+        "sucesso": false
+      },
+      {
+        "datasOk": 4,
+        "datasTotal": 4,
+        "identificadorSeguro": "ECNH_USER_5",
+        "itensExtraidos": 14,
+        "loginStatus": "sucesso",
+        "logoutExecutado": true,
+        "sucesso": true
+      },
+      {
+        "datasOk": 4,
+        "datasTotal": 4,
+        "identificadorSeguro": "ECNH_USER_6",
+        "itensExtraidos": 15,
+        "loginStatus": "sucesso",
+        "logoutExecutado": true,
+        "sucesso": true
+      },
+      {
+        "datasOk": 4,
+        "datasTotal": 4,
+        "identificadorSeguro": "ECNH_USER_7",
+        "itensExtraidos": 15,
+        "loginStatus": "sucesso",
+        "logoutExecutado": true,
+        "sucesso": true
+      }
+    ],
+    "sucessoGeral": false,
+    "unitTests": {
+      "failed": 0,
+      "passed": 32,
+      "total": 32
+    }
+  },
+  "summary": {
+    "note": "Orquestração multi-profissional validada via npm run sync:agenda. Seis profissionais sincronizaram com sucesso; ECNH_USER_4 falhou no login com status tipado e logout executado (falha parcial). Evidência sem CPF, senha, cookies ou dados de pacientes."
+  }
+}

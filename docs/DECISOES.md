@@ -66,11 +66,11 @@
 - **Status:** aceito
 - **Contexto:** a Fase 004 confirmou que o HTML de resultado contém `table#agenda` com nove colunas nomeadas em `th`, enquanto classes Bootstrap/`list_titulo`/`style` são só apresentação. A data consultada não permanece confiável no formulário após o POST.
 - **Decisão:** o parser localiza a tabela por `table#agenda` (fallback: fieldset `Resultado` + cabeçalhos), liga células pelo texto do `th` e recebe `dataConsulta` como contexto opcional do chamador. Modelos representam domínio (`Paciente`, `ItemAgenda`, `Agenda`), não o layout HTML.
-- **Consequência:** `ECNHClient` continua devolvendo HTML bruto; `parseAgendaHtml` é puro e testável. Integração com Sheets (Fase 005) consome os modelos sem conhecer seletores.
+- **Consequência:** `ECNHClient` continua devolvendo HTML bruto; `parseAgendaHtml` é puro e testável. A persistência Sheets (Fase 005, `Concluída`) consome os modelos sem conhecer seletores.
 
 ## ADR-012 — Persistência de agenda via AgendaRepository e Google Sheets
 
 - **Status:** aceito
-- **Contexto:** a Fase 005 precisa gravar `Agenda` tipada em planilha sem acoplar domínio ao `googleapis`, e preparar substituição futura do destino (Postgres, SQLite, etc.).
+- **Contexto:** a Fase 005 precisava gravar `Agenda` tipada em planilha sem acoplar domínio ao `googleapis`, e preparar substituição futura do destino (Postgres, SQLite, etc.).
 - **Decisão:** expor `AgendaRepository` como porta; implementar `GoogleSheetsAgendaRepository` com Service Account; converter domínio ↔ linhas em `AgendaSheetMapper` puro; autenticar via JSON da Service Account; layout da aba `Agenda` inclui coluna `Profissional`; substituir linhas pelo par `Data` + `Profissional` (sem append cego nem upsert).
-- **Consequência:** serviços futuros dependem só da interface; testes unitários cobrem mapper e repositório sem rede; a orquestração multi-profissional (Fase 006) não exige mudança estrutural na planilha.
+- **Consequência:** serviços futuros dependem só da interface; testes unitários cobrem mapper e repositório sem rede; a orquestração multi-profissional (Fase 006) não exige mudança estrutural na planilha. Validação real em 19/07/2026 confirmou a decisão; a Fase 005 está `Concluída`.
