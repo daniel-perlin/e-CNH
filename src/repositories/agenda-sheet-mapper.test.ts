@@ -12,12 +12,15 @@ describe('AgendaSheetMapper', () => {
 
   it('expõe o cabeçalho canônico na ordem fixa', () => {
     assert.deepEqual(mapper.cabecalho(), [...CABECALHOS_ABA_AGENDA]);
-    assert.equal(mapper.cabecalho()[1], 'Unidade');
-    assert.equal(mapper.cabecalho()[2], 'Data de Agendamento');
-    assert.equal(mapper.cabecalho().at(-1), 'Data de inclusão');
+    assert.equal(mapper.cabecalho()[0], 'UNIDADE');
+    assert.equal(mapper.cabecalho()[1], 'AGENDAMENTO DO DETRAN');
+    assert.equal(mapper.cabecalho()[2], 'HORÁRIO');
+    assert.equal(mapper.cabecalho()[3], 'PACIENTE');
+    assert.equal(mapper.cabecalho().at(-1), 'DATA DE INCLUSÃO');
+    assert.equal(mapper.cabecalho().length, 8);
   });
 
-  it('converte agenda tipada em linhas sem cabeçalho', () => {
+  it('converte agenda tipada em linhas sem cabeçalho e sem CPF/metadados', () => {
     const agenda: Agenda = {
       dataConsulta: '13/07/2026',
       itens: [
@@ -44,20 +47,16 @@ describe('AgendaSheetMapper', () => {
     });
     assert.equal(linhas.length, 1);
     assert.deepEqual(linhas[0], [
-      'Profissional Teste',
       'LIMÃO',
       '13/07/2026',
       '08:00',
-      '000.000.000-00',
       'PACIENTE FIXTURE UM',
       '(11) 900000001',
       'paciente1@example.test',
-      'Primeira Habilitação',
-      'B',
-      'Apto',
-      'Pendente',
+      'Profissional Teste',
       timestampFixo
     ]);
+    assert.equal(linhas[0]?.includes('000.000.000-00'), false);
   });
 
   it('agenda vazia produz zero linhas', () => {
@@ -93,9 +92,9 @@ describe('AgendaSheetMapper', () => {
       unidadeOperacional: 'VILA CARRÃO',
       dataInclusao: timestampFixo
     });
-    assert.equal(linhas[0]?.[7], 'paciente@example.test');
-    assert.equal(linhas[0]?.[6], '(11) 900000001');
-    assert.equal(linhas[0]?.[1], 'VILA CARRÃO');
+    assert.equal(linhas[0]?.[5], 'paciente@example.test');
+    assert.equal(linhas[0]?.[4], '(11) 900000001');
+    assert.equal(linhas[0]?.[0], 'VILA CARRÃO');
   });
 
   it('aceita cabeçalhos legados Data e Última sincronização', () => {
@@ -134,23 +133,20 @@ describe('AgendaSheetMapper', () => {
     assert.equal(registros[0]?.dataConsulta, '13/07/2026');
     assert.equal(registros[0]?.dataInclusao, '01/01/2026 10:00');
     assert.equal(registros[0]?.unidadeOperacional, undefined);
+    assert.equal(registros[0]?.item.paciente.cpf, '000.000.000-00');
+    assert.equal(registros[0]?.item.paciente.nome, 'PACIENTE LEGADO');
   });
 
-  it('lê e preserva a coluna Unidade', () => {
+  it('lê e preserva a coluna UNIDADE no layout oficial', () => {
     const linhas = [
       [
-        'Profissional Teste',
         'CAPÃO REDONDO',
         '15/07/2026',
         '14:15',
-        '222.222.222-22',
         'PACIENTE UNIDADE',
         '',
         '',
-        '',
-        'B',
-        '',
-        '',
+        'Profissional Teste',
         timestampFixo
       ]
     ];
@@ -158,23 +154,19 @@ describe('AgendaSheetMapper', () => {
     const registros = mapper.linhasParaRegistros(linhas, [...CABECALHOS_ABA_AGENDA]);
     assert.equal(registros[0]?.unidadeOperacional, 'CAPÃO REDONDO');
     assert.equal(registros[0]?.item.horario, '14:15');
+    assert.equal(registros[0]?.item.paciente.cpf, undefined);
   });
 
   it('liga colunas pelo texto do cabeçalho mesmo com ordem diferente', () => {
     const cabecalhos = [
-      'Hora',
-      'Nome',
-      'Profissional',
-      'Unidade',
-      'Data de Agendamento',
-      'CPF',
-      'Telefone',
-      'E-mail',
-      'Tipo de Processo',
-      'Categoria',
-      'Status do Exame Médico',
-      'Status do Exame Psicológico',
-      'Data de inclusão'
+      'HORÁRIO',
+      'PACIENTE',
+      'PROFISSIONAL',
+      'UNIDADE',
+      'AGENDAMENTO DO DETRAN',
+      'TELEFONE',
+      'EMAIL',
+      'DATA DE INCLUSÃO'
     ];
     const linhas = [
       [
@@ -183,11 +175,6 @@ describe('AgendaSheetMapper', () => {
         'Profissional Teste',
         'LIMÃO',
         '15/07/2026',
-        '222.222.222-22',
-        '',
-        '',
-        '',
-        'B',
         '',
         '',
         timestampFixo

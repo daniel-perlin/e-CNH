@@ -1,4 +1,4 @@
-import type { Agenda } from '../models/agenda.js';
+import type { Agenda, ItemAgenda } from '../models/agenda.js';
 import type { GoogleSheetsValuesPort } from '../client/google-sheets-client.js';
 import { isDataAgendamentoAtiva } from '../utils/agenda-date.js';
 import { normalizeCpfKey } from '../utils/cpf.js';
@@ -13,7 +13,11 @@ import {
   CABECALHO_DATA_AGENDAMENTO_LEGADO,
   CABECALHO_DATA_INCLUSAO_LEGADO,
   CABECALHOS_ABA_AGENDA,
-  NOME_ABA_AGENDA_PADRAO
+  CABECALHOS_ABA_AGENDA_LEGADO,
+  FAIXA_COLUNAS_LEITURA_ABA_AGENDA,
+  INDICE_COLUNA_TECNICA_CPF,
+  NOME_ABA_AGENDA_PADRAO,
+  ULTIMA_COLUNA_PERSISTENCIA_ABA_AGENDA
 } from './agenda-sheet-headers.js';
 import { AgendaSheetMapper, type LinhaAgendaPersistida } from './agenda-sheet-mapper.js';
 
@@ -30,8 +34,9 @@ export interface GoogleSheetsAgendaRepositoryOptions {
 
 /**
  * Persistência da agenda em Google Sheets.
- * Cadastro de pacientes ativos: mantém apenas Data de Agendamento ≥ hoje;
- * CPF normalizado é a chave única enquanto o paciente permanece ativo.
+ * Cadastro de pacientes ativos: mantém apenas agendamento DETRAN ≥ hoje;
+ * chave de negócio / deduplicação: CPF normalizado (B004/B005) — inalterada.
+ * A projeção operacional (`CABECALHOS_ABA_AGENDA`) não exibe CPF.
  */
 export class GoogleSheetsAgendaRepository implements AgendaRepository {
   private readonly mapper: AgendaSheetMapper;
@@ -79,7 +84,10 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       const registrosExistentes =
         cabecalhoAtual === undefined
           ? []
-          : this.mapper.linhasParaRegistros(corpo, cabecalhoAtual);
+          : this.hidratarCpfTecnico(
+              this.mapper.linhasParaRegistros(corpo, cabecalhoAtual),
+              corpo
+            );
 
       const ativos: LinhaAgendaPersistida[] = [];
       let linhasRemovidas = 0;
@@ -108,14 +116,13 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
             : registro.profissional === profissional
               ? unidadeOperacional
               : '';
-        const linha = this.mapper.agendaParaLinhas(
-          { dataConsulta: registro.dataConsulta, itens: [registro.item] },
-          {
-            profissional: registro.profissional,
-            unidadeOperacional: unidadeLinha,
-            dataInclusao: registro.dataInclusao ?? ''
-          }
-        )[0];
+        const linha = this.projetarLinhaComCpfTecnico(
+          registro.item,
+          registro.dataConsulta,
+          registro.profissional,
+          unidadeLinha,
+          registro.dataInclusao ?? ''
+        );
         if (linha !== undefined) {
           linhasAtivas.push(linha);
         }
@@ -131,10 +138,13 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
             continue;
           }
 
-          const linha = this.mapper.agendaParaLinhas(
-            { dataConsulta, itens: [item] },
-            { profissional, unidadeOperacional, dataInclusao }
-          )[0];
+          const linha = this.projetarLinhaComCpfTecnico(
+            item,
+            dataConsulta,
+            profissional,
+            unidadeOperacional,
+            dataInclusao
+          );
           if (linha === undefined) {
             continue;
           }
@@ -179,7 +189,11 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       return null;
     }
 
-    const registros = this.mapper.linhasParaRegistros(matriz.slice(1), cabecalho);
+    const corpo = matriz.slice(1);
+    const registros = this.hidratarCpfTecnico(
+      this.mapper.linhasParaRegistros(corpo, cabecalho),
+      corpo
+    );
     const agenda = this.mapper.registrosParaAgenda(registros, data, profissional);
     if (agenda.itens.length === 0) {
       return null;
@@ -187,25 +201,75 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
     return agenda;
   }
 
+  /**
+   * Projeção oficial (8 colunas) + CPF técnico na coluna seguinte (fora do contrato visual).
+   */
+  private projetarLinhaComCpfTecnico(
+    item: ItemAgenda,
+    dataConsulta: string,
+    profissional: string,
+    unidadeOperacional: string,
+    dataInclusao: string
+  ): string[] | undefined {
+    const linha = this.mapper.agendaParaLinhas(
+      { dataConsulta, itens: [item] },
+      { profissional, unidadeOperacional, dataInclusao }
+    )[0];
+    if (linha === undefined) {
+      return undefined;
+    }
+    const projetada = [...linha];
+    while (projetada.length < INDICE_COLUNA_TECNICA_CPF) {
+      projetada.push('');
+    }
+    projetada[INDICE_COLUNA_TECNICA_CPF] = item.paciente.cpf?.trim() ?? '';
+    return projetada;
+  }
+
+  /**
+   * Reinjeta CPF da coluna técnica (ou mantém o CPF legado já mapeado) no domínio.
+   */
+  private hidratarCpfTecnico(
+    registros: LinhaAgendaPersistida[],
+    corpo: readonly (readonly string[])[]
+  ): LinhaAgendaPersistida[] {
+    return registros.map((registro, index) => {
+      if (registro.item.paciente.cpf !== undefined) {
+        return registro;
+      }
+      const cpfTecnico = corpo[index]?.[INDICE_COLUNA_TECNICA_CPF]?.trim() ?? '';
+      if (cpfTecnico.length === 0) {
+        return registro;
+      }
+      return {
+        ...registro,
+        item: {
+          ...registro.item,
+          paciente: { ...registro.item.paciente, cpf: cpfTecnico }
+        }
+      };
+    });
+  }
+
   private async lerMatriz(): Promise<string[][]> {
-    return this.sheets.getValues(this.rangeCompleto());
+    return this.sheets.getValues(this.rangeLeitura());
   }
 
   private async reescreverAba(valores: string[][]): Promise<void> {
-    await this.sheets.clearValues(this.rangeCompleto());
+    await this.sheets.clearValues(this.rangeLeitura());
     if (valores.length === 0) {
       return;
     }
     await this.sheets.updateValues(this.rangeEscrita(valores), valores);
   }
 
-  private rangeCompleto(): string {
-    return `'${this.escapeSheetName(this.sheetName)}'!A:M`;
+  private rangeLeitura(): string {
+    return `'${this.escapeSheetName(this.sheetName)}'!${FAIXA_COLUNAS_LEITURA_ABA_AGENDA}`;
   }
 
   private rangeEscrita(valores: string[][]): string {
     const ultimaLinha = Math.max(valores.length, 1);
-    return `'${this.escapeSheetName(this.sheetName)}'!A1:M${ultimaLinha}`;
+    return `'${this.escapeSheetName(this.sheetName)}'!A1:${ULTIMA_COLUNA_PERSISTENCIA_ABA_AGENDA}${ultimaLinha}`;
   }
 
   private escapeSheetName(name: string): string {
@@ -213,29 +277,40 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   }
 
   private cabecalhoCompativel(cabecalho: readonly string[]): boolean {
-    const comUnidade = [...CABECALHOS_ABA_AGENDA];
-    const semUnidade = CABECALHOS_ABA_AGENDA.filter((titulo) => titulo !== 'Unidade');
+    const legado = [...CABECALHOS_ABA_AGENDA_LEGADO];
+    const legadoSemUnidade = CABECALHOS_ABA_AGENDA_LEGADO.filter(
+      (titulo) => titulo !== 'Unidade'
+    );
 
     const variantes: readonly string[][] = [
-      comUnidade,
-      this.substituirCabecalho(comUnidade, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
-      this.substituirCabecalho(comUnidade, 'Data de inclusão', CABECALHO_DATA_INCLUSAO_LEGADO),
+      [...CABECALHOS_ABA_AGENDA],
+      legado,
+      this.substituirCabecalho(legado, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
+      this.substituirCabecalho(legado, 'Data de inclusão', CABECALHO_DATA_INCLUSAO_LEGADO),
       this.substituirCabecalho(
-        this.substituirCabecalho(comUnidade, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
+        this.substituirCabecalho(legado, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
         'Data de inclusão',
         CABECALHO_DATA_INCLUSAO_LEGADO
       ),
-      semUnidade,
-      this.substituirCabecalho(semUnidade, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
-      this.substituirCabecalho(semUnidade, 'Data de inclusão', CABECALHO_DATA_INCLUSAO_LEGADO),
+      legadoSemUnidade,
       this.substituirCabecalho(
-        this.substituirCabecalho(semUnidade, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
+        legadoSemUnidade,
+        'Data de Agendamento',
+        CABECALHO_DATA_AGENDAMENTO_LEGADO
+      ),
+      this.substituirCabecalho(legadoSemUnidade, 'Data de inclusão', CABECALHO_DATA_INCLUSAO_LEGADO),
+      this.substituirCabecalho(
+        this.substituirCabecalho(
+          legadoSemUnidade,
+          'Data de Agendamento',
+          CABECALHO_DATA_AGENDAMENTO_LEGADO
+        ),
         'Data de inclusão',
         CABECALHO_DATA_INCLUSAO_LEGADO
       ),
-      semUnidade.slice(0, -1),
+      legadoSemUnidade.slice(0, -1),
       this.substituirCabecalho(
-        [...semUnidade.slice(0, -1)],
+        [...legadoSemUnidade.slice(0, -1)],
         'Data de Agendamento',
         CABECALHO_DATA_AGENDAMENTO_LEGADO
       )

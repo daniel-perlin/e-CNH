@@ -9,29 +9,30 @@ import { InMemoryGoogleSheetsValues } from './in-memory-google-sheets-values.js'
 /** 20/07/2026 15:00 UTC = 12:00 em America/Sao_Paulo. */
 const HOJE_FIXO = new Date('2026-07-20T15:00:00.000Z');
 
-/** Índices da linha canônica (com coluna Unidade). */
+/** Índices do layout oficial (CABECALHOS_ABA_AGENDA). */
 const COL = {
-  profissional: 0,
-  unidade: 1,
-  dataAgendamento: 2,
-  nome: 5,
-  dataInclusao: 12
+  unidade: 0,
+  dataAgendamento: 1,
+  paciente: 3,
+  profissional: 6,
+  dataInclusao: 7
 } as const;
 
-const RANGE = "'Agenda'!A:M";
+const RANGE_LEITURA = "'Agenda'!A:Z";
 
 function agendaFixture(
   dataConsulta: string,
   horario: string,
   nome: string,
-  cpf: string
+  cpf: string,
+  telefone = ''
 ): Agenda {
   return {
     dataConsulta,
     itens: [
       {
         horario,
-        paciente: { nome, cpf },
+        paciente: { nome, cpf, ...(telefone.length > 0 ? { telefone } : {}) },
         categoria: 'B',
         tipoProcesso: 'Primeira Habilitação'
       }
@@ -50,7 +51,7 @@ describe('GoogleSheetsAgendaRepository', () => {
   it('agendamento anterior a hoje é removido', async () => {
     const { sheets, repository } = criarRepositorio();
 
-    await sheets.updateValues(RANGE, [
+    await sheets.updateValues(RANGE_LEITURA, [
       [
         'Profissional',
         'Data de Agendamento',
@@ -88,8 +89,18 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     assert.equal(resultado.sucesso, true);
     assert.equal(resultado.linhasRemovidas, 1);
-    const matriz = await sheets.getValues(RANGE);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 1);
+    assert.deepEqual(matriz[0], [
+      'UNIDADE',
+      'AGENDAMENTO DO DETRAN',
+      'HORÁRIO',
+      'PACIENTE',
+      'TELEFONE',
+      'EMAIL',
+      'PROFISSIONAL',
+      'DATA DE INCLUSÃO'
+    ]);
   });
 
   it('agendamento de hoje é mantido', async () => {
@@ -101,10 +112,12 @@ describe('GoogleSheetsAgendaRepository', () => {
     );
 
     assert.equal(resultado.linhasGravadas, 1);
-    const matriz = await sheets.getValues(RANGE);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 2);
+    assert.equal(matriz[0]?.length, 8);
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
     assert.equal(matriz[1]?.[COL.dataAgendamento], '20/07/2026');
+    assert.equal(matriz[1]?.slice(0, 8).length, 8);
   });
 
   it('agendamento futuro é mantido', async () => {
@@ -116,11 +129,11 @@ describe('GoogleSheetsAgendaRepository', () => {
     );
 
     assert.equal(resultado.linhasGravadas, 1);
-    const matriz = await sheets.getValues(RANGE);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz[1]?.[COL.dataAgendamento], '21/07/2026');
   });
 
-  it('paciente removido e retornando meses depois recebe nova linha e nova Data de inclusão', async () => {
+  it('paciente removido e retornando meses depois recebe nova linha e nova DATA DE INCLUSÃO', async () => {
     const sheets = new InMemoryGoogleSheetsValues();
     const repositoryJulho = new GoogleSheetsAgendaRepository({
       sheets,
@@ -131,11 +144,10 @@ describe('GoogleSheetsAgendaRepository', () => {
       agendaFixture('20/07/2026', '08:00', 'PACIENTE RECORRENTE', '333.333.333-33'),
       { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
     );
-    const matrizJulho = await sheets.getValues(RANGE);
+    const matrizJulho = await sheets.getValues(RANGE_LEITURA);
     const dataInclusaoOriginal = matrizJulho[1]?.[COL.dataInclusao];
     assert.ok(dataInclusaoOriginal);
 
-    // Avança o calendário: agendamento antigo fica no passado e é removido
     const repositoryOutubro = new GoogleSheetsAgendaRepository({
       sheets,
       agora: new Date('2026-10-01T15:00:00.000Z')
@@ -152,22 +164,48 @@ describe('GoogleSheetsAgendaRepository', () => {
     );
     assert.equal(reinclusao.linhasGravadas, 1);
 
-    const matriz = await sheets.getValues(RANGE);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 2);
     assert.equal(matriz[1]?.[COL.dataAgendamento], '05/10/2026');
     assert.notEqual(matriz[1]?.[COL.dataInclusao], dataInclusaoOriginal);
     assert.match(matriz[1]?.[COL.dataInclusao] ?? '', /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
   });
 
-  it('CPF impede duplicidade enquanto o paciente permanece ativo', async () => {
+  it('CPF legado na planilha impede duplicidade enquanto o paciente permanece ativo', async () => {
     const { sheets, repository } = criarRepositorio();
 
-    await repository.salvarAgenda(
-      agendaFixture('20/07/2026', '08:00', 'PACIENTE ORIGINAL', '000.000.000-00'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
-    );
-    const matrizInicial = await sheets.getValues(RANGE);
-    const dataInclusao = matrizInicial[1]?.[COL.dataInclusao];
+    await sheets.updateValues(RANGE_LEITURA, [
+      [
+        'Profissional',
+        'Unidade',
+        'Data de Agendamento',
+        'Hora',
+        'CPF',
+        'Nome',
+        'Telefone',
+        'E-mail',
+        'Tipo de Processo',
+        'Categoria',
+        'Status do Exame Médico',
+        'Status do Exame Psicológico',
+        'Data de inclusão'
+      ],
+      [
+        'Profissional Alpha',
+        'LIMÃO',
+        '20/07/2026',
+        '08:00',
+        '000.000.000-00',
+        'PACIENTE ORIGINAL',
+        '',
+        '',
+        '',
+        'B',
+        '',
+        '',
+        '19/07/2026 10:00'
+      ]
+    ]);
 
     const segunda = await repository.salvarAgenda(
       agendaFixture('25/07/2026', '11:00', 'PACIENTE RENOMEADO', '00000000000'),
@@ -175,17 +213,44 @@ describe('GoogleSheetsAgendaRepository', () => {
     );
 
     assert.equal(segunda.linhasGravadas, 0);
-    const matriz = await sheets.getValues(RANGE);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 2);
-    assert.equal(matriz[1]?.[COL.nome], 'PACIENTE ORIGINAL');
+    assert.equal(matriz[0]?.[COL.unidade], 'UNIDADE');
+    assert.equal(matriz[1]?.[COL.paciente], 'PACIENTE ORIGINAL');
+    assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
+  });
+
+  it('CPF impede duplicidade enquanto o paciente permanece ativo (projeção sem coluna CPF)', async () => {
+    const { sheets, repository } = criarRepositorio();
+
+    await repository.salvarAgenda(
+      agendaFixture('20/07/2026', '08:00', 'PACIENTE ORIGINAL', '000.000.000-00'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+    );
+    const matrizInicial = await sheets.getValues(RANGE_LEITURA);
+    const dataInclusao = matrizInicial[1]?.[COL.dataInclusao];
+    assert.equal(matrizInicial[0]?.length, 8);
+    assert.equal(matrizInicial[1]?.[COL.paciente], 'PACIENTE ORIGINAL');
+    // CPF técnico fora do contrato visual (coluna após as 8 oficiais)
+    assert.equal(matrizInicial[1]?.[8], '000.000.000-00');
+
+    const segunda = await repository.salvarAgenda(
+      agendaFixture('25/07/2026', '11:00', 'PACIENTE RENOMEADO', '00000000000'),
+      { profissional: 'Profissional Beta', unidadeOperacional: 'CAPÃO REDONDO' }
+    );
+
+    assert.equal(segunda.linhasGravadas, 0);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.equal(matriz.length, 2);
+    assert.equal(matriz[1]?.[COL.paciente], 'PACIENTE ORIGINAL');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
     assert.equal(matriz[1]?.[COL.dataInclusao], dataInclusao);
   });
 
-  it('preenche Unidade em paciente já ativo quando a coluna estava vazia (legado)', async () => {
+  it('preenche UNIDADE em paciente já ativo quando a coluna estava vazia (legado)', async () => {
     const { sheets, repository } = criarRepositorio();
 
-    await sheets.updateValues(RANGE, [
+    await sheets.updateValues(RANGE_LEITURA, [
       [
         'Profissional',
         'Data de Agendamento',
@@ -223,10 +288,10 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     assert.equal(resultado.sucesso, true);
     assert.equal(resultado.linhasGravadas, 0);
-    const matriz = await sheets.getValues(RANGE);
-    assert.equal(matriz[0]?.[COL.unidade], 'Unidade');
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.equal(matriz[0]?.[COL.unidade], 'UNIDADE');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
-    assert.equal(matriz[1]?.[COL.nome], 'PACIENTE LEGADO');
+    assert.equal(matriz[1]?.[COL.paciente], 'PACIENTE LEGADO');
   });
 
   it('pacientes diferentes continuam sendo inseridos normalmente', async () => {
@@ -242,7 +307,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     );
 
     assert.equal(segundo.linhasGravadas, 1);
-    const matriz = await sheets.getValues(RANGE);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 3);
   });
 
@@ -255,7 +320,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     );
 
     assert.equal(resultado.linhasGravadas, 0);
-    const matriz = await sheets.getValues(RANGE);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 1);
   });
 

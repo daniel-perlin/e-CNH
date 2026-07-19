@@ -13,7 +13,8 @@ Documento **único** responsável pelas evoluções do e-CNH após o MVP.
 
 - O **MVP foi concluído na Fase 007**. O sistema já está operacional.
 - **B012**, **B011**, **B010** e **B013** estão **✅ Concluídos**.
-- Próxima prioridade: itens futuros do catálogo / D3 fixtures amplas (se priorizado).
+- Item pendente de baixa prioridade: **B014** (separar projeção operacional de metadados técnicos de sync).
+- Demais prioridades futuras: D3 fixtures amplas (se priorizado).
 
 ## Convenções
 
@@ -46,6 +47,7 @@ Melhorias usam IDs sequenciais: `B001`, `B002`, `B003`, …
 | B011 | ✅ Concluído | Alta | Escolha genérica de Perfil / Visão (unidade) | `openDialogChoice` / `openChoice` / segundo `autenticar`; config `UNIDADE`/`UNID_TRANSITO`; validado com multi-unidade real. |
 | B012 | ✅ Concluído | Alta | Arquitetura de perfis profissionais do portal | Strategy extensível para múltiplos perfis (Psicólogo, Médico e futuros); validada com Médico real. |
 | B013 | ✅ Concluído | Alta | Coluna Unidade na Agenda | Nome operacional por profissional (`CLINIC` → resolver centralizado → coluna Unidade). |
+| B014 | ⏳ Pendente | Baixa | Separar projeção operacional de metadados técnicos | Evoluir além da coluna técnica de CPF da v1.0 (aba técnica, store auxiliar ou equivalente). |
 
 Itens **B006–B009** (Painel Operacional / Observabilidade) foram **removidos do escopo do produto** e não fazem mais parte deste catálogo.
 
@@ -116,3 +118,27 @@ Contexto: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGAC
 | Clínica Carrão/Zona Leste | VILA CARRÃO |
 
 Novas unidades: adicionar apenas no registro centralizado do resolver.
+
+## Detalhamento — B014
+
+### B014 — Separar projeção operacional de metadados técnicos de sincronização
+
+| Campo | Valor |
+| ----- | ----- |
+| Status | ⏳ Pendente |
+| Prioridade | 🟢 Baixa |
+
+**Contexto (v1.0):** o contrato visual da aba `Agenda` tem 8 colunas operacionais (`CABECALHOS_ABA_AGENDA`), sem CPF. O CPF permanece a chave de negócio (B004/B005). Para preservar a deduplicação entre sincronizações, a implementação atual mantém o CPF em **coluna técnica adjacente**, fora do cabeçalho oficial. Essa coluna técnica é decisão de implementação da **v1.0**, não um objetivo arquitetural permanente (ver ADR-018).
+
+**Objetivo futuro:** separar claramente:
+
+- **projeção operacional** — planilha usada pela clínica (somente as 8 colunas);
+- **metadados técnicos de sincronização** — identidade/deduplicação e demais dados que o sync precisa e a clínica não deve ver no layout operacional.
+
+**Alternativas a avaliar (não decidir agora):**
+
+- aba técnica separada na mesma planilha;
+- armazenamento auxiliar fora da aba `Agenda`;
+- outra estratégia que elimine a coluna técnica “invisível” na aba operacional.
+
+**Fora de escopo imediato:** alterar comportamento, remover a coluna técnica da v1.0 ou escolher a solução final nesta tarefa.

@@ -120,7 +120,7 @@
 - **Contexto:** a planilha precisa exibir a unidade operacional do profissional (LIMÃO, CAPÃO REDONDO, VILA CARRÃO). Esse valor não existe na agenda HTML do paciente; a fonte é `ECNH_USER_<n>_CLINIC` no `.env`, com nomenclatura diferente da operacional.
 - **Decisão:**
   - resolver centralizado `resolveNomeUnidadeOperacional` em `src/utils/unidade-operacional.ts` (mapa único, extensível);
-  - traduzir `CLINIC` na fronteira de config (`sync-professionals`) e propagar `unidadeOperacional` em `EntradaSincronizacaoProfissional` → `ContextoPersistenciaAgenda` → coluna **Unidade**;
+  - traduzir `CLINIC` na fronteira de config (`sync-professionals`) e propagar `unidadeOperacional` em `EntradaSincronizacaoProfissional` → `ContextoPersistenciaAgenda` → coluna **UNIDADE**;
   - não misturar com B011 (`unidadeDesejada` / `idUnidTransito` do portal).
 - **Consequência:** novas clínicas exigem apenas uma entrada no mapa do resolver; o domínio/Sheets não conhecem strings de clínica do `.env`.
 
@@ -139,3 +139,13 @@
 - **Consequência:** qualquer profissional que cair em `openDialogNewSession` completa o login HTTP de forma genérica; o sync deixa de depender de encerramento manual no portal.
 - **Contrato HTTP (19/07/2026):** evidência confirmada — atalho HTTP equivalente a `forceLogout()` alcançou área autenticada e marcador B012 sem redirect e sem GET intermediário. Artefatos: `docs/evidencias/003e-contrato-congelado-force-logout-2026-07-19.json`, `docs/evidencias/003e-relatorio-investigacao-force-logout.md`.
 - **Validação (19/07/2026):** evidência confirmada (`ECNH_USER_3`) — login com ramo B010, perfil `psicologo`, logout HTTP. Artefato: `docs/evidencias/003e-consolidacao-force-logout-2026-07-19.json`. B010 / Fase 003E `Concluída`.
+
+## ADR-018 — Coluna técnica de CPF na planilha (v1.0) e evolução futura
+
+- **Status:** aceito para a v1.0; evolução permanente registrada como backlog **B014** (baixa prioridade)
+- **Contexto:** o layout operacional da aba `Agenda` passou a exibir apenas 8 colunas (`CABECALHOS_ABA_AGENDA`), sem CPF. O CPF continua sendo a identidade oficial do paciente e a chave de deduplicação (B004/B005). Sem algum meio de recuperar o CPF entre sincronizações, a unicidade de paciente ativo quebraria após a regravação no layout novo.
+- **Decisão (v1.0):**
+  - manter o contrato visual da clínica com as 8 colunas oficiais;
+  - preservar o CPF em **coluna técnica adjacente** (fora de `CABECALHOS_ABA_AGENDA`, sem título no cabeçalho oficial) exclusivamente para a deduplicação entre syncs;
+  - **não** tratar essa coluna técnica como objetivo arquitetural permanente nem como parte do produto operacional.
+- **Consequência:** B004/B005 permanecem válidos na v1.0 sem expor o CPF no layout da clínica. A separação futura entre projeção operacional e metadados técnicos fica registrada em **B014** (aba técnica, store auxiliar ou equivalente — a solução não é escolhida agora).

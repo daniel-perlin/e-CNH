@@ -2,14 +2,94 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** B010 / Fase 003E — Sessão já autenticada (`✅ Concluído`)  
-> **Próxima prioridade:** D3 fixtures de protocolo amplas / itens futuros do backlog  
-> **Última atualização:** 2026-07-19 17:25 BRT  
-> **Última sessão executada:** 19/07/2026 • 17:25 — Implementação e validação B010 forceLogout
+> **Fase atual:** Layout oficial da aba Agenda (projeção Sheets simplificada)  
+> **Próxima prioridade:** B014 (baixa) — separar projeção operacional de metadados técnicos; D3 fixtures se priorizado  
+> **Última atualização:** 2026-07-19 18:40 BRT  
+> **Última sessão executada:** 19/07/2026 • 18:40 — Backlog B014 / ADR-018 coluna técnica CPF
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 18:40
+
+### 🎯 Objetivo
+
+Registrar que a coluna técnica de CPF é decisão de implementação da v1.0 (não objetivo arquitetural permanente) e abrir item de backlog para evolução futura.
+
+### ✅ O que mudou
+
+- **B014** (⏳ Pendente, prioridade Baixa): separar projeção operacional de metadados técnicos de sincronização.
+- **ADR-018:** documenta a coluna técnica de CPF como solução aceita na v1.0, com evolução futura em B014.
+- Nenhuma alteração de código, comportamento ou testes.
+
+### 🧠 Decisões
+
+- Coluna técnica permanece na v1.0; não remover agora.
+- Solução futura (aba técnica, store auxiliar, etc.) **não** é escolhida nesta sessão — apenas registrada como possível.
+
+### 📂 Arquivos impactados
+
+- `docs/BACKLOG.md`
+- `docs/DECISOES.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 18:35
+
+### 🎯 Objetivo
+
+Alinhar arquitetura/documentação: CPF continua sendo a identidade oficial do paciente (B004/B005); só a projeção visual da planilha omite o CPF.
+
+### ✅ O que mudou
+
+- Removida qualquer noção de identidade PACIENTE+TELEFONE.
+- Deduplicação no repositório volta a usar **somente CPF**.
+- Documentação (MODELO, README, ARQUITETURA, CHANGELOG) deixa explícito: mudou a projeção, não a regra de negócio.
+- Coluna técnica adjacente (fora de `CABECALHOS_ABA_AGENDA`) preserva o CPF entre syncs sem incluí-lo no contrato visual da clínica.
+
+### 🧠 Decisões
+
+- Domínio / sync / deduplicação → CPF (inalterado).
+- Planilha operacional → 8 colunas sem CPF no cabeçalho oficial.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/google-sheets-agenda-repository.ts` (+ test)
+- `src/repositories/agenda-sheet-headers.ts`
+- `docs/MODELO_DOMINIO.md`, `docs/ARQUITETURA.md`, `README.md`, `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 18:30
+
+### 🎯 Objetivo
+
+Evoluir o contrato da planilha Google Sheets para o layout operacional simplificado (produto), sem alterar domínio nem sincronização.
+
+### ✅ O que mudou
+
+- `CABECALHOS_ABA_AGENDA` passou a ser a única fonte de verdade do layout oficial (8 colunas).
+- Mapper grava apenas as 8 colunas de `CABECALHOS_ABA_AGENDA`: UNIDADE, AGENDAMENTO DO DETRAN, HORÁRIO, PACIENTE, TELEFONE, EMAIL, PROFISSIONAL, DATA DE INCLUSÃO.
+- CPF e metadados de exame deixam de constar no **contrato visual** da planilha (permanecem no domínio; deduplicação continua por CPF).
+- Leitura compatível com layout legado; próxima sync reescreve no layout novo.
+- Faixa de escrita derivada do layout oficial (+ coluna técnica de CPF fora do cabeçalho operacional, só para preservar B005).
+
+### 🧠 Decisões
+
+- Mudança apenas na projeção Sheets (`agenda-sheet-headers` / mapper / repositório).
+- Domínio, parser e sincronização inalterados: **CPF continua sendo a chave de negócio (B004/B005)** para identidade e deduplicação.
+- O contrato visual da clínica (`CABECALHOS_ABA_AGENDA`) não inclui CPF; a identidade não passou a ser PACIENTE+TELEFONE.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-sheet-headers.ts`
+- `src/repositories/agenda-sheet-mapper.ts` (+ test)
+- `src/repositories/google-sheets-agenda-repository.ts` (+ test)
+- `docs/MODELO_DOMINIO.md`, `README.md`, `CHANGELOG.md`, `docs/DECISOES.md` (nomenclatura UNIDADE)
 
 ---
 

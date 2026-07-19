@@ -10,7 +10,7 @@ Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O pr
 - **Sistema operacional** (sincronização sob demanda e agendada)
 - **Perfis do portal:** B012 concluída — Psicólogo e Médico; registro extensível
 - **Multi-unidade:** B011 concluída — escolha genérica via `UNIDADE` / `UNID_TRANSITO`
-- **Aba Agenda:** cadastro de pacientes ativos (CPF único; remove datas passadas automaticamente); coluna **Unidade** com o nome operacional do profissional (`CLINIC`)
+- **Aba Agenda:** layout operacional simplificado (UNIDADE, AGENDAMENTO DO DETRAN, HORÁRIO, PACIENTE, TELEFONE, EMAIL, PROFISSIONAL, DATA DE INCLUSÃO); pacientes ativos (remove datas passadas); unidade a partir de `CLINIC`
 - **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005, B010–B013 concluídos
 
 ## Leitura recomendada
@@ -122,11 +122,14 @@ Configure `GOOGLE_SHEETS_SPREADSHEET_ID`, o caminho do JSON da Service Account e
 
 Em cada sincronização, a persistência:
 
+- reescreve a aba no **layout oficial** (8 colunas operacionais: UNIDADE → DATA DE INCLUSÃO);
 - insere pacientes novos (CPF ainda não presente entre os ativos);
-- preserva pacientes ativos com o mesmo CPF (sem duplicar);
-- remove automaticamente linhas cuja **Data de Agendamento** é anterior a hoje (`America/Sao_Paulo`);
-- grava **Data de inclusão** na primeira entrada do paciente no ciclo ativo atual;
-- grava **Unidade** com o nome operacional derivado de `ECNH_USER_<n>_CLINIC` (ex.: LIMÃO, CAPÃO REDONDO, VILA CARRÃO).
+- preserva pacientes ativos com o mesmo CPF (sem duplicar) — B004/B005 inalterados;
+- remove automaticamente linhas cujo **AGENDAMENTO DO DETRAN** é anterior a hoje (`America/Sao_Paulo`);
+- grava **DATA DE INCLUSÃO** na primeira entrada do paciente no ciclo ativo atual;
+- grava **UNIDADE** com o nome operacional derivado de `ECNH_USER_<n>_CLINIC` (ex.: LIMÃO, CAPÃO REDONDO, VILA CARRÃO).
+
+O CPF permanece a chave de negócio no domínio e na deduplicação; não faz parte das colunas operacionais exibidas à clínica.
 
 ### Sincronização sob demanda (Fase 006)
 

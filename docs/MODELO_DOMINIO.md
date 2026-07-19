@@ -20,7 +20,7 @@ Representa um médico ou psicólogo credenciado que possui acesso individual ao 
 | cpf                 | Identificador usado na autenticação.          | Sensível; nunca exibir em logs.                   |
 | senha               | Segredo usado no login.                       | Entrada efêmera; nunca persistir ou retornar.     |
 | clínica             | Valor de `ECNH_USER_<n>_CLINIC` no `.env`.     | Traduzido para **unidade operacional** via `resolveNomeUnidadeOperacional` (não vem do HTML da agenda). |
-| unidade operacional | Nome exibido na planilha (coluna Unidade).    | Exemplos: `LIMÃO`, `CAPÃO REDONDO`, `VILA CARRÃO`. Distinto da unidade/visão do portal (B011). |
+| unidade operacional | Nome exibido na planilha (coluna UNIDADE).    | Exemplos: `LIMÃO`, `CAPÃO REDONDO`, `VILA CARRÃO`. Distinto da unidade/visão do portal (B011). |
 | função              | Papel profissional no portal (`psicologo` / `medico`). | Resolvido no HTML pós-login; opcionalmente `ECNH_USER_<n>_PROFILE`. |
 | status do login     | Estado lógico da autenticação mais recente.   | Derivado de `ResultadoLogin`; não contém segredo. |
 
@@ -97,14 +97,29 @@ Representa o retorno lógico da persistência domínio → destino (Fase 005). I
 | -------- | --------- |
 | sucesso | Persistência concluída. |
 | linhasGravadas | Quantidade de linhas **novas** inseridas (CPF ainda não ativo na planilha). |
-| linhasRemovidas | Quantidade de linhas removidas por Data de Agendamento anterior a hoje (B005). |
+| linhasRemovidas | Quantidade de linhas removidas por agendamento DETRAN anterior a hoje (B005). |
 | motivoFalha | `contexto-incompleto`, `data-consulta-ausente`, `cabecalho-incompativel` ou `erro-infraestrutura`. |
 
-O contexto de persistência inclui `profissional` (coluna Profissional) e `unidadeOperacional` (coluna Unidade). A senha do profissional nunca entra nesta camada.
+O contexto de persistência inclui `profissional` (coluna **PROFISSIONAL**) e `unidadeOperacional` (coluna **UNIDADE**). A senha do profissional nunca entra nesta camada.
 
-**Regra da planilha (B005):** a aba `Agenda` é um cadastro de **pacientes ativos**. Em cada sincronização, permanecem apenas linhas cuja Data de Agendamento é hoje ou futura (calendário `America/Sao_Paulo`). CPF normalizado é a chave única enquanto o paciente está ativo; se o paciente sair (data passada) e voltar depois, a reinclusão gera nova Data de inclusão.
+**Projeção Google Sheets (layout oficial / contrato da clínica):** a aba `Agenda` **exibe** apenas estas colunas, nesta ordem (fonte: `CABECALHOS_ABA_AGENDA`):
 
-**Coluna Unidade (B013):** cada linha recebe o nome operacional derivado do `CLINIC` do profissional sincronizado — não do HTML da agenda do paciente.
+1. UNIDADE  
+2. AGENDAMENTO DO DETRAN  
+3. HORÁRIO  
+4. PACIENTE  
+5. TELEFONE  
+6. EMAIL  
+7. PROFISSIONAL  
+8. DATA DE INCLUSÃO  
+
+CPF, tipo de processo, categoria e status de exames permanecem no **domínio** (`Paciente` / `ItemAgenda`) e na extração HTML. O CPF **não** faz parte do contrato visual da planilha.
+
+**Regra de negócio (B004/B005) — inalterada:** a aba `Agenda` é um cadastro de **pacientes ativos**. Em cada sincronização, permanecem apenas linhas cujo agendamento DETRAN é hoje ou futuro (calendário `America/Sao_Paulo`). O **CPF normalizado continua sendo a chave única** do paciente enquanto ele está ativo (domínio, sincronização e deduplicação). Se o paciente sair (data passada) e voltar depois, a reinclusão gera nova DATA DE INCLUSÃO. A mudança de layout é só de **projeção**: o CPF deixa de ser exibido nas colunas operacionais; a identidade de negócio não mudou.
+
+**Implementação da projeção:** o mapper grava só as 8 colunas de `CABECALHOS_ABA_AGENDA`. Para a deduplicação por CPF continuar funcionando entre sincronizações sem colocar o CPF no contrato visual, o repositório preserva o valor em coluna técnica adjacente (sem título no cabeçalho oficial) — fora do layout operacional da clínica, sem mudar a regra B004/B005.
+
+**Coluna UNIDADE (B013):** cada linha recebe o nome operacional derivado do `CLINIC` do profissional sincronizado — não do HTML da agenda do paciente.
 
 ## Relação entre as camadas
 

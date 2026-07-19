@@ -5,10 +5,10 @@ import type { Agenda } from '../models/agenda.js';
  * Não faz parte do modelo HTML; identifica o profissional na planilha.
  */
 export interface ContextoPersistenciaAgenda {
-  /** Nome do profissional gravado na coluna Profissional. */
+  /** Nome do profissional gravado na coluna PROFISSIONAL. */
   profissional: string;
   /**
-   * Nome operacional da unidade (coluna Unidade).
+   * Nome operacional da unidade (coluna UNIDADE).
    * Derivado de `CLINIC` via `resolveNomeUnidadeOperacional` — não vem da agenda HTML.
    */
   unidadeOperacional: string;
