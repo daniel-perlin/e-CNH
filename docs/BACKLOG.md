@@ -1,40 +1,49 @@
 # Backlog
 
-## Objetivo
+Documento **único** responsável por **todas as evoluções futuras** do e-CNH — melhorias incrementais e iniciativas estratégicas (Nice to Have).
 
-O MVP do projeto foi **oficialmente concluído na Fase 007**. O sistema já está **operacional**: autenticação, navegação, extração, persistência em Google Sheets, orquestração multi-profissional e agendamento automático.
+## ROADMAP × BACKLOG
 
-Tudo listado neste documento representa **melhorias futuras**. São itens **Nice to Have**: úteis para a operação ou para a evolução do produto, mas **não necessários** para o funcionamento do sistema.
+| Documento | Papel |
+| --------- | ----- |
+| [ROADMAP.md](ROADMAP.md) | Histórico da **construção do MVP** (Fases 000–007). Não lista evoluções futuras. |
+| **BACKLOG.md** (este arquivo) | **Única** fonte de melhorias futuras (incrementais ou estratégicas). |
 
-Este arquivo é o **catálogo oficial** de melhorias futuras. A partir do encerramento do MVP, o desenvolvimento deixa de seguir fases obrigatórias e passa a ser guiado por este backlog.
+## Contexto pós-MVP
 
-Para o histórico das fases do MVP (000–007), consulte [ROADMAP.md](ROADMAP.md).
+- O **MVP foi concluído na Fase 007**. O sistema já está operacional.
+- Não há fases obrigatórias após a 007.
+- Visões preliminares do antigo Painel Operacional e de Observabilidade (quando existirem em `.fases/`) são apenas referência histórica; o rastreamento ativo está neste catálogo.
 
-## Priorizadas
+Itens aqui listados **não são necessários** para o funcionamento do sistema.
 
-Nenhum item priorizado no momento.
+## Convenções
 
-## Em estudo
+### Status
 
-Itens candidatos a evolução, ainda sem compromisso de implementação nem detalhamento técnico.
+| Status | Significado |
+| ------ | ----------- |
+| ⏳ Pendente | Ainda não iniciado |
+| 🚧 Em andamento | Em implementação ou validação |
+| ✅ Concluído | Entregue e documentado |
+| ❄️ Estacionado | Pausado / Nice to Have até nova priorização |
 
-### Fase 008 — Painel Operacional
+### Prioridade
 
-Melhoria futura (Nice to Have). Visão preliminar em [.fases/008-painel-operacional.md](../.fases/008-painel-operacional.md). Não faz parte do MVP.
+`Alta` · `Média` · `Baixa`
 
-### Fase 009 — Observabilidade e Métricas
+### Identificadores
 
-Melhoria futura (Nice to Have). Visão preliminar em [.fases/009-observabilidade-metricas.md](../.fases/009-observabilidade-metricas.md). Não faz parte do MVP.
+Melhorias usam IDs sequenciais: `B001`, `B002`, `B003`, …
 
-### Features candidatas
+## Catálogo
 
-Ideias registradas apenas como backlog. Sem documentação técnica, arquitetura, ADR ou implementação neste momento.
-
-| ID | Nome | Descrição |
-| -- | ---- | --------- |
-| FEATURE-001 | Informações de sincronização | Adicionar metadados de sincronização na planilha, como timestamp da última atualização (data/hora), permitindo que o operador saiba quando aquela linha foi sincronizada. |
-| FEATURE-002 | Normalização automática de dados | Padronizar automaticamente dados vindos do portal, como e-mails em caixa baixa, telefones sem DDD, formatação consistente de nomes e outros ajustes de qualidade dos dados. |
-
-## Concluídas
-
-Nenhum item do backlog pós-MVP concluído ainda. As entregas do MVP (Fases 000–007) estão registradas no [ROADMAP.md](ROADMAP.md).
+| ID | Status | Prioridade | Título | Descrição |
+| -- | ------ | ---------- | ------ | --------- |
+| B001 | ✅ Concluído | Média | Normalizar e-mails | Converter e-mails para lowercase (com trim) antes da persistência na planilha. |
+| B002 | ⏳ Pendente | Média | Normalizar telefones | Adicionar DDD 11 quando o telefone vier sem DDD. |
+| B003 | ⏳ Pendente | Alta | Coluna "Última sincronização" | Adicionar na aba `Agenda` o timestamp da última atualização de cada linha. |
+| B004 | ❄️ Estacionado | Baixa | Aba "Controle" | Criar aba `Controle` na planilha Google Sheets (Painel Operacional). |
+| B005 | ❄️ Estacionado | Baixa | Aba "Execuções" | Criar aba `Execuções` com histórico das sincronizações. |
+| B006 | ❄️ Estacionado | Baixa | Botão "Sincronizar Agora" | Botão via Apps Script para disparo manual (Nice to Have). |
+| B007 | ❄️ Estacionado | Baixa | Observabilidade e métricas | Métricas operacionais, dashboards/tendências e alertas sem PII (Nice to Have). |

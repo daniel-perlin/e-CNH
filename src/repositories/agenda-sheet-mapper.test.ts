@@ -58,6 +58,31 @@ describe('AgendaSheetMapper', () => {
     assert.equal(linhas.length, 0);
   });
 
+  it('normaliza e-mail (trim + lowercase) na persistência sem alterar outros campos', () => {
+    const agenda: Agenda = {
+      dataConsulta: '13/07/2026',
+      itens: [
+        {
+          horario: '08:00',
+          paciente: {
+            cpf: '000.000.000-00',
+            nome: 'PACIENTE FIXTURE UM',
+            telefone: '(11) 90000-0001',
+            email: '  PaCiEnTe@Example.TEST  '
+          },
+          tipoProcesso: 'Primeira Habilitação',
+          categoria: 'B'
+        }
+      ]
+    };
+
+    const linhas = mapper.agendaParaLinhas(agenda, { profissional: 'Profissional Teste' });
+    assert.equal(linhas[0]?.[6], 'paciente@example.test');
+    assert.equal(linhas[0]?.[3], '000.000.000-00');
+    assert.equal(linhas[0]?.[4], 'PACIENTE FIXTURE UM');
+    assert.equal(linhas[0]?.[5], '(11) 90000-0001');
+  });
+
   it('reconstrói registros e agenda a partir de linhas', () => {
     const linhas = [
       [

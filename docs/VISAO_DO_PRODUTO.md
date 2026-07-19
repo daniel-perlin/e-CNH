@@ -94,7 +94,7 @@ Esse MVP corresponde, no roadmap técnico, às **Fases 000 a 007**. O MVP foi **
 
 O produto principal já está concluído. Não existem mais fases obrigatórias do MVP.
 
-Melhorias futuras — incluindo as antigas Fases 008 e 009 e quaisquer novas funcionalidades — passam a ser controladas pelo catálogo oficial em [BACKLOG.md](BACKLOG.md). Novas funcionalidades **deixam de seguir** a estrutura rígida de fases do MVP (`Planejada` → `Implementada` → `Validada` → `Concluída`).
+Melhorias futuras — incrementais ou estratégicas — passam a ser controladas exclusivamente pelo catálogo em [BACKLOG.md](BACKLOG.md). Novas funcionalidades **deixam de seguir** a estrutura rígida de fases do MVP (`Planejada` → `Implementada` → `Validada` → `Concluída`).
 
 Itens do backlog são **Nice to Have**: não são necessários para o funcionamento do sistema.
 

@@ -4,12 +4,118 @@
 >
 > **Fase atual:** Fase 007 — Agendamento automático (cron) (`Concluída`) — MVP concluído  
 > **Próxima fase:** sem fase obrigatória; evoluções em `docs/BACKLOG.md`  
-> **Última atualização:** 2026-07-19 11:28 BRT  
-> **Última sessão executada:** 19/07/2026 • 11:28 — Backlog oficial pós-MVP
+> **Última atualização:** 2026-07-19 11:42 BRT  
+> **Última sessão executada:** 19/07/2026 • 11:42 — B001 normalização de e-mails
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 11:42
+
+### 🎯 Objetivo
+
+Implementar B001: normalizar e-mails (trim + lowercase) antes da persistência no Google Sheets.
+
+### ✅ O que mudou
+
+- Criada função pura `normalizeEmail` em `src/utils/email.ts`.
+- `AgendaSheetMapper` aplica a normalização apenas na coluna E-mail ao gerar linhas.
+- Testes unitários para a utilidade e cobertura no mapper.
+- B001 marcado como ✅ Concluído no BACKLOG.
+- Parser, sincronização e demais campos inalterados.
+
+### 🧠 Decisões
+
+- **Decisão:** normalização só na preparação para persistência (mapper); domínio/parser preservam o valor bruto do portal.
+
+### 📂 Arquivos impactados
+
+- `src/utils/email.ts`
+- `src/utils/email.test.ts`
+- `src/repositories/agenda-sheet-mapper.ts`
+- `src/repositories/agenda-sheet-mapper.test.ts`
+- `docs/BACKLOG.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 11:39
+
+### 🎯 Objetivo
+
+Eliminar duplicidade entre ROADMAP e BACKLOG: ROADMAP apenas MVP; BACKLOG único para evoluções futuras.
+
+### ✅ O que mudou
+
+- Removida do ROADMAP a seção **Backlog Estratégico** e qualquer listagem das Fases 008/009.
+- Após a Fase 007, ROADMAP aponta apenas para `docs/BACKLOG.md`.
+- BACKLOG passa a ser o único documento de melhorias futuras (incrementais ou estratégicas); incluído B007 (observabilidade).
+- README e visão do produto alinhados; fases 000–007 inalteradas.
+- Nenhuma implementação, arquitetura ou ADR foi alterada.
+
+### 🧠 Decisões
+
+- **Decisão:** ROADMAP = histórico do MVP (000–007); BACKLOG = única fonte de evoluções pós-MVP.
+
+### 📂 Arquivos impactados
+
+- `docs/ROADMAP.md`
+- `docs/BACKLOG.md`
+- `README.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 11:36
+
+### 🎯 Objetivo
+
+Reorganizar `docs/BACKLOG.md` como documento oficial das melhorias incrementais (IDs B00x, status e prioridade).
+
+### ✅ O que mudou
+
+- BACKLOG: tabela oficial com B001–B006; convenções de status (Pendente / Em andamento / Concluído / Estacionado) e prioridade (Alta / Média / Baixa).
+- Diferença ROADMAP × BACKLOG documentada no início do arquivo.
+- Fases 008/009 permanecem estratégicas no ROADMAP; backlog cobre apenas incrementos.
+- Nenhuma implementação, arquitetura ou ADR foi alterada.
+
+### 🧠 Decisões
+
+- **Decisão:** IDs sequenciais `B00n` para melhorias incrementais; B004–B006 estacionados como recortes Nice to Have da visão do Painel Operacional.
+
+### 📂 Arquivos impactados
+
+- `docs/BACKLOG.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 11:34
+
+### 🎯 Objetivo
+
+Reorganizar `docs/ROADMAP.md` com seção visual **Backlog Estratégico (Nice to Have)** para as Fases 008 e 009, sem alterar implementação.
+
+### ✅ O que mudou
+
+- ROADMAP: MVP (000–007) explícito como concluído na Fase 007; seção separada **Backlog Estratégico** só com 008/009 (opcionais, estacionadas).
+- Referência a `BACKLOG.md` para melhorias incrementais pós-MVP.
+- README alinhado à nova organização do roadmap.
+- Nenhuma implementação, arquitetura, ADR, teste ou evidência foi alterada.
+
+### 🧠 Decisões
+
+- **Decisão:** Fases 008/009 ficam no ROADMAP como Backlog Estratégico; features incrementais continuam em `docs/BACKLOG.md`.
+
+### 📂 Arquivos impactados
+
+- `docs/ROADMAP.md`
+- `README.md`
+- `CHANGELOG.md`
 
 ---
 

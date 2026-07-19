@@ -14,8 +14,8 @@ Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O pr
 
 - [Visão do produto](docs/VISAO_DO_PRODUTO.md) — objetivo, usuários, fluxo operacional, MVP, escopo e evolução pós-MVP
 - [Arquitetura](docs/ARQUITETURA.md) — camadas técnicas, responsabilidades e limites de integração
-- [Roadmap](docs/ROADMAP.md) — fases do MVP (000–007) e limite pós-MVP
-- [Backlog](docs/BACKLOG.md) — catálogo oficial de melhorias futuras
+- [Roadmap](docs/ROADMAP.md) — construção do MVP (Fases 000–007)
+- [Backlog](docs/BACKLOG.md) — evoluções futuras (incrementais e estratégicas)
 - [Diagnóstico da autenticação HTTP](docs/DIAGNOSTICO_AUTENTICACAO_HTTP.md) — hipóteses, evidências pendentes e plano para validar a Fase 003A
 - [Matriz de divergências da autenticação](docs/MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md) — comparação detalhada entre navegador e `ECNHClient`
 - [Auditoria do POST `method=autenticar`](docs/AUDITORIA_POST_AUTENTICAR.md) — payload, headers, cookies, redirects e charset produzidos pelo cliente
@@ -193,7 +193,10 @@ npm run build
 
 ## Roadmap e próximos passos
 
-MVP do produto **concluído** na Fase **007 — Agendamento automático (cron)** (`Concluída`, [documento](.fases/007-agendamento-automatico.md)). Não há fases obrigatórias após a 007. Melhorias futuras (incluindo 008/009 e features candidatas) estão em [docs/BACKLOG.md](docs/BACKLOG.md). Histórico das fases do MVP: [docs/ROADMAP.md](docs/ROADMAP.md).
+MVP do produto **concluído** na Fase **007 — Agendamento automático (cron)** (`Concluída`, [documento](.fases/007-agendamento-automatico.md)).
+
+- [Roadmap](docs/ROADMAP.md): histórico da construção do MVP (Fases 000–007).
+- [Backlog](docs/BACKLOG.md): única fonte de evoluções futuras.
 
 ### Convenção de status (MVP)
 
