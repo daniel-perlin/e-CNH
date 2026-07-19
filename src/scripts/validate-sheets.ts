@@ -13,8 +13,8 @@ const PROFISSIONAL_VALIDACAO = 'VALIDACAO_FASE_005';
 const DATA_VALIDACAO = '01/01/2099';
 
 /**
- * Validação reproduzível: grava fixture sintética, lê de volta e limpa o par data/profissional.
- * Não registra PII nem conteúdo de células na evidência.
+ * Validação reproduzível: grava fixture sintética futura, lê de volta e confirma
+ * deduplicação por CPF entre pacientes ativos. Não registra PII na evidência.
  */
 async function main(): Promise<void> {
   const startedAt = new Date();
@@ -63,25 +63,32 @@ async function main(): Promise<void> {
     profissional: PROFISSIONAL_VALIDACAO
   });
 
-  const limpeza = await repository.salvarAgenda(
+  const deduplicacao = await repository.salvarAgenda(fixture, {
+    profissional: PROFISSIONAL_VALIDACAO
+  });
+
+  const agendaVazia = await repository.salvarAgenda(
     { dataConsulta: DATA_VALIDACAO, itens: [] },
     { profissional: PROFISSIONAL_VALIDACAO }
   );
 
-  const posLimpeza = await repository.listarPorData(DATA_VALIDACAO, {
+  const aposAgendaVazia = await repository.listarPorData(DATA_VALIDACAO, {
     profissional: PROFISSIONAL_VALIDACAO
   });
 
   const approved =
     escrita.sucesso === true &&
-    escrita.linhasGravadas === 2 &&
+    (escrita.linhasGravadas === 2 || escrita.linhasGravadas === 0) &&
     leitura !== null &&
     leitura.itens.length === 2 &&
     leitura.itens[0]?.horario === '08:00' &&
     leitura.itens[1]?.horario === '09:00' &&
-    limpeza.sucesso === true &&
-    limpeza.linhasRemovidas === 2 &&
-    posLimpeza === null;
+    deduplicacao.sucesso === true &&
+    deduplicacao.linhasGravadas === 0 &&
+    agendaVazia.sucesso === true &&
+    agendaVazia.linhasRemovidas === 0 &&
+    aposAgendaVazia !== null &&
+    aposAgendaVazia.itens.length === 2;
 
   const evidencePath = await saveEvidence({
     approved,
@@ -89,13 +96,17 @@ async function main(): Promise<void> {
     kind: 'validacao-persistencia-google-sheets',
     nodeVersion: process.version,
     phase: '005',
-    schemaVersion: 1,
+    schemaVersion: 2,
     startedAt: startedAt.toISOString(),
     steps: {
-      cleanup: {
-        linhasRemovidas: limpeza.linhasRemovidas ?? null,
-        posLimpezaVazia: posLimpeza === null,
-        sucesso: limpeza.sucesso
+      emptyAgendaKeepsPatients: {
+        linhasRemovidas: agendaVazia.linhasRemovidas ?? null,
+        aindaPresente: aposAgendaVazia !== null,
+        sucesso: agendaVazia.sucesso
+      },
+      dedupe: {
+        linhasGravadas: deduplicacao.linhasGravadas ?? null,
+        sucesso: deduplicacao.sucesso
       },
       readBack: {
         itemCount: leitura?.itens.length ?? 0,
@@ -109,7 +120,7 @@ async function main(): Promise<void> {
     },
     summary: {
       note: approved
-        ? 'Persistência Sheets validada com fixture sintética; evidência sem PII nem conteúdo de células.'
+        ? 'Persistência Sheets validada (pacientes ativos por CPF); evidência sem PII nem conteúdo de células.'
         : 'Validação de persistência Sheets não atendeu aos critérios estruturais.'
     }
   });

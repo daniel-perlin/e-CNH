@@ -36,10 +36,7 @@ describe('normalizePhone', () => {
   });
 
   it('normaliza múltiplos telefones separados por barra', () => {
-    assert.equal(
-      normalizePhone('991354797 / (11) 9479-08238'),
-      '(11) 991354797 / (11) 947908238'
-    );
+    assert.equal(normalizePhone('991354797 / (11) 9479-08238'), '(11) 991354797 / (11) 947908238');
   });
 
   it('omite telefones descartados na lista múltipla', () => {

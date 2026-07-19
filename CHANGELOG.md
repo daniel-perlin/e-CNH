@@ -4,12 +4,150 @@
 >
 > **Fase atual:** Fase 007 — Agendamento automático (cron) (`Concluída`) — MVP concluído  
 > **Próxima fase:** sem fase obrigatória; evoluções em `docs/BACKLOG.md`  
-> **Última atualização:** 2026-07-19 11:59 BRT  
-> **Última sessão executada:** 19/07/2026 • 11:59 — B002 normalização de telefones
+> **Última atualização:** 2026-07-19 12:49 BRT  
+> **Última sessão executada:** 19/07/2026 • 12:49 — B005 pacientes ativos
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 12:49
+
+### 🎯 Objetivo
+
+Implementar B005: cadastro de pacientes ativos na aba Agenda, substituindo o cadastro permanente da B004.
+
+### ✅ O que mudou
+
+- Coluna `Data` renomeada para `Data de Agendamento`.
+- Persistência mantém apenas agendamentos ≥ hoje (`America/Sao_Paulo`); remove automaticamente datas passadas.
+- CPF continua chave única enquanto o paciente está ativo; reinclusão após remoção gera nova Data de inclusão.
+- Documentação atualizada (BACKLOG, README, visão, domínio, arquitetura) sem textos de cadastro permanente.
+- Domínio (`Agenda`, `Paciente`, `AgendaRepository`) inalterado.
+- B005 marcada como ✅ Concluído; B004 documentada como supersedida neste aspecto.
+
+### 🧠 Decisões
+
+- **Decisão:** B005 substitui oficialmente a decisão de cadastro permanente da B004.
+- **Decisão:** comparação de datas por calendário real, nunca textual.
+
+### 📂 Arquivos impactados
+
+- `src/utils/agenda-date.ts`
+- `src/utils/agenda-date.test.ts`
+- `src/repositories/agenda-sheet-headers.ts`
+- `src/repositories/agenda-sheet-mapper.ts`
+- `src/repositories/agenda-sheet-mapper.test.ts`
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `src/scripts/validate-sheets.ts`
+- `docs/BACKLOG.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/MODELO_DOMINIO.md`
+- `docs/ARQUITETURA.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 12:39
+
+### 🎯 Objetivo
+
+Implementar B004: cadastro acumulado de pacientes na aba Agenda, com CPF como chave única.
+
+### ✅ O que mudou
+
+- Coluna operacional renomeada de "Última sincronização" para "Data de inclusão" (primeira aparição).
+- `GoogleSheetsAgendaRepository` deixa de substituir por data/profissional; passa a inserir apenas CPFs novos.
+- CPF existente: linha e Data de inclusão preservadas; sem duplicata.
+- `normalizeCpfKey` para índice por dígitos; leitura compatível com cabeçalho legado.
+- Domínio (`Agenda`, `Paciente`, `AgendaRepository`) inalterado.
+- B004 marcado como ✅ Concluído; itens estratégicos do painel renumerados (B005–B008).
+
+### 🧠 Decisões
+
+- **Decisão:** chave exclusiva = CPF normalizado (11 dígitos); nome não participa da deduplicação.
+- **Decisão:** agenda vazia não remove pacientes já cadastrados.
+
+### 📂 Arquivos impactados
+
+- `src/utils/cpf.ts`
+- `src/utils/cpf.test.ts`
+- `src/utils/sync-timestamp.ts`
+- `src/repositories/agenda-sheet-headers.ts`
+- `src/repositories/agenda-sheet-mapper.ts`
+- `src/repositories/agenda-sheet-mapper.test.ts`
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `src/scripts/validate-sheets.ts`
+- `docs/MODELO_DOMINIO.md`
+- `docs/BACKLOG.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 12:25
+
+### 🎯 Objetivo
+
+Implementar B003: coluna operacional "Última sincronização" na aba Agenda.
+
+### ✅ O que mudou
+
+- Utilitário `formatSyncTimestamp` (`America/Sao_Paulo`, `DD/MM/YYYY HH:mm`).
+- Cabeçalho canônico da aba Agenda com coluna final "Última sincronização".
+- `AgendaSheetMapper` e `GoogleSheetsAgendaRepository` gravam o mesmo timestamp em todas as linhas de uma persistência.
+- Timestamp não entra no domínio Agenda/Paciente; linhas preservadas mantêm o valor anterior.
+- Compatibilidade de leitura com cabeçalho legado (sem a nova coluna).
+- B003 marcado como ✅ Concluído.
+
+### 🧠 Decisões
+
+- **Decisão:** timestamp gerado uma vez por `salvarAgenda` e reutilizado nas linhas novas daquela escrita.
+- **Decisão:** coluna apenas na persistência Sheets; contratos públicos de domínio inalterados.
+
+### 📂 Arquivos impactados
+
+- `src/utils/sync-timestamp.ts`
+- `src/utils/sync-timestamp.test.ts`
+- `src/repositories/agenda-sheet-headers.ts`
+- `src/repositories/agenda-sheet-mapper.ts`
+- `src/repositories/agenda-sheet-mapper.test.ts`
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `docs/BACKLOG.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 12:20
+
+### 🎯 Objetivo
+
+Corrigir erros de diagnóstico na pasta `src/utils` (testes fora do projeto TypeScript) e formatação.
+
+### ✅ O que mudou
+
+- Testes passam a integrar o `tsconfig.json` (typecheck/IDE); build usa `tsconfig.build.json` sem emitir `*.test.ts`.
+- `agenda-parser.test.ts` deixa de usar `import.meta` (incompatível com o módulo CJS do projeto).
+- Prettier em `phone.test.ts`; detecção de dígito repetido em `phone.ts` sem backreference.
+
+### 🧠 Decisões
+
+- **Decisão:** typecheck inclui testes; emit de produção continua sem testes.
+
+### 📂 Arquivos impactados
+
+- `tsconfig.json`
+- `tsconfig.build.json`
+- `package.json`
+- `src/parsers/agenda-parser.test.ts`
+- `src/utils/phone.ts`
+- `src/utils/phone.test.ts`
+- `CHANGELOG.md`
 
 ---
 

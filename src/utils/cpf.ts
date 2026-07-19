@@ -11,3 +11,15 @@ export function formatCpfForPortal(cpf: string): string | undefined {
 
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 }
+
+/**
+ * Normaliza CPF para chave de deduplicação na planilha (somente dígitos).
+ * Retorna `undefined` quando não há exatamente 11 dígitos.
+ */
+export function normalizeCpfKey(cpf: string): string | undefined {
+  const digits = cpf.replace(/\D/g, '');
+  if (digits.length !== 11) {
+    return undefined;
+  }
+  return digits;
+}

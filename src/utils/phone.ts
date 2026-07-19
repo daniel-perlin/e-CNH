@@ -37,5 +37,6 @@ function normalizarTelefoneUnico(telefone: string): string {
 }
 
 function isDigitoUnicoRepetido(digitos: string): boolean {
-  return digitos.length > 0 && /^(\d)\1*$/.test(digitos);
+  const primeiro = digitos[0];
+  return primeiro !== undefined && [...digitos].every((digito) => digito === primeiro);
 }

@@ -1,33 +1,49 @@
 import type { Agenda } from '../models/agenda.js';
 import type { GoogleSheetsValuesPort } from '../client/google-sheets-client.js';
+import { isDataAgendamentoAtiva } from '../utils/agenda-date.js';
+import { normalizeCpfKey } from '../utils/cpf.js';
+import { formatSyncTimestamp } from '../utils/sync-timestamp.js';
 
 import type {
   AgendaRepository,
   ContextoPersistenciaAgenda,
   ResultadoPersistenciaAgenda
 } from './agenda-repository.js';
-import { CABECALHOS_ABA_AGENDA, NOME_ABA_AGENDA_PADRAO } from './agenda-sheet-headers.js';
-import { AgendaSheetMapper } from './agenda-sheet-mapper.js';
+import {
+  CABECALHO_DATA_AGENDAMENTO_LEGADO,
+  CABECALHO_DATA_INCLUSAO_LEGADO,
+  CABECALHOS_ABA_AGENDA,
+  NOME_ABA_AGENDA_PADRAO
+} from './agenda-sheet-headers.js';
+import { AgendaSheetMapper, type LinhaAgendaPersistida } from './agenda-sheet-mapper.js';
 
 export interface GoogleSheetsAgendaRepositoryOptions {
   mapper?: AgendaSheetMapper;
   sheetName?: string;
   sheets: GoogleSheetsValuesPort;
+  /**
+   * Instante de referência do “hoje” (fuso America/Sao_Paulo).
+   * Destinado a testes; em produção usa `new Date()`.
+   */
+  agora?: Date;
 }
 
 /**
  * Persistência da agenda em Google Sheets.
- * Delega conversão de domínio ao `AgendaSheetMapper` e I/O ao port de valores.
+ * Cadastro de pacientes ativos: mantém apenas Data de Agendamento ≥ hoje;
+ * CPF normalizado é a chave única enquanto o paciente permanece ativo.
  */
 export class GoogleSheetsAgendaRepository implements AgendaRepository {
   private readonly mapper: AgendaSheetMapper;
   private readonly sheetName: string;
   private readonly sheets: GoogleSheetsValuesPort;
+  private readonly agora: Date | undefined;
 
   public constructor(options: GoogleSheetsAgendaRepositoryOptions) {
     this.sheets = options.sheets;
     this.mapper = options.mapper ?? new AgendaSheetMapper();
     this.sheetName = options.sheetName?.trim() || NOME_ABA_AGENDA_PADRAO;
+    this.agora = options.agora;
   }
 
   public async salvarAgenda(
@@ -45,6 +61,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
     }
 
     try {
+      const referencia = this.agora ?? new Date();
       const matriz = await this.lerMatriz();
       const cabecalhoAtual = matriz[0];
       const corpo = matriz.length > 0 ? matriz.slice(1) : [];
@@ -59,25 +76,64 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           ? []
           : this.mapper.linhasParaRegistros(corpo, cabecalhoAtual);
 
-      const preservados = registrosExistentes.filter(
-        (registro) =>
-          !(registro.dataConsulta === dataConsulta && registro.profissional === profissional)
-      );
-      const linhasRemovidas = registrosExistentes.length - preservados.length;
-
-      const novasLinhas = this.mapper.agendaParaLinhas(agenda, { profissional });
-      const linhasPreservadas: string[][] = [];
-      for (const registro of preservados) {
-        const linha = this.mapper.agendaParaLinhas(
-          { dataConsulta: registro.dataConsulta, itens: [registro.item] },
-          { profissional: registro.profissional }
-        )[0];
-        if (linha !== undefined) {
-          linhasPreservadas.push(linha);
+      const ativos: LinhaAgendaPersistida[] = [];
+      let linhasRemovidas = 0;
+      for (const registro of registrosExistentes) {
+        if (isDataAgendamentoAtiva(registro.dataConsulta, referencia)) {
+          ativos.push(registro);
+        } else {
+          linhasRemovidas += 1;
         }
       }
 
-      const valoresFinais = [cabecalho, ...linhasPreservadas, ...novasLinhas];
+      const cpfsAtivos = new Set<string>();
+      for (const registro of ativos) {
+        const chave = normalizeCpfKey(registro.item.paciente.cpf ?? '');
+        if (chave !== undefined) {
+          cpfsAtivos.add(chave);
+        }
+      }
+
+      const linhasAtivas: string[][] = [];
+      for (const registro of ativos) {
+        const linha = this.mapper.agendaParaLinhas(
+          { dataConsulta: registro.dataConsulta, itens: [registro.item] },
+          {
+            profissional: registro.profissional,
+            dataInclusao: registro.dataInclusao ?? ''
+          }
+        )[0];
+        if (linha !== undefined) {
+          linhasAtivas.push(linha);
+        }
+      }
+
+      const dataInclusao = formatSyncTimestamp(referencia);
+      const novasLinhas: string[][] = [];
+
+      if (isDataAgendamentoAtiva(dataConsulta, referencia)) {
+        for (const item of agenda.itens) {
+          const chave = normalizeCpfKey(item.paciente.cpf ?? '');
+          if (chave !== undefined && cpfsAtivos.has(chave)) {
+            continue;
+          }
+
+          const linha = this.mapper.agendaParaLinhas(
+            { dataConsulta, itens: [item] },
+            { profissional, dataInclusao }
+          )[0];
+          if (linha === undefined) {
+            continue;
+          }
+
+          novasLinhas.push(linha);
+          if (chave !== undefined) {
+            cpfsAtivos.add(chave);
+          }
+        }
+      }
+
+      const valoresFinais = [cabecalho, ...linhasAtivas, ...novasLinhas];
       await this.reescreverAba(valoresFinais);
 
       return {
@@ -131,12 +187,12 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   }
 
   private rangeCompleto(): string {
-    return `'${this.escapeSheetName(this.sheetName)}'!A:K`;
+    return `'${this.escapeSheetName(this.sheetName)}'!A:L`;
   }
 
   private rangeEscrita(valores: string[][]): string {
     const ultimaLinha = Math.max(valores.length, 1);
-    return `'${this.escapeSheetName(this.sheetName)}'!A1:K${ultimaLinha}`;
+    return `'${this.escapeSheetName(this.sheetName)}'!A1:L${ultimaLinha}`;
   }
 
   private escapeSheetName(name: string): string {
@@ -144,9 +200,53 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   }
 
   private cabecalhoCompativel(cabecalho: readonly string[]): boolean {
-    if (cabecalho.length < CABECALHOS_ABA_AGENDA.length) {
+    const variantes: readonly string[][] = [
+      [...CABECALHOS_ABA_AGENDA],
+      this.substituirCabecalho(
+        [...CABECALHOS_ABA_AGENDA],
+        'Data de Agendamento',
+        CABECALHO_DATA_AGENDAMENTO_LEGADO
+      ),
+      this.substituirCabecalho(
+        [...CABECALHOS_ABA_AGENDA],
+        'Data de inclusão',
+        CABECALHO_DATA_INCLUSAO_LEGADO
+      ),
+      this.substituirCabecalho(
+        this.substituirCabecalho(
+          [...CABECALHOS_ABA_AGENDA],
+          'Data de Agendamento',
+          CABECALHO_DATA_AGENDAMENTO_LEGADO
+        ),
+        'Data de inclusão',
+        CABECALHO_DATA_INCLUSAO_LEGADO
+      ),
+      CABECALHOS_ABA_AGENDA.slice(0, -1),
+      this.substituirCabecalho(
+        [...CABECALHOS_ABA_AGENDA.slice(0, -1)],
+        'Data de Agendamento',
+        CABECALHO_DATA_AGENDAMENTO_LEGADO
+      )
+    ];
+
+    return variantes.some((esperado) => this.cabecalhosIguais(cabecalho, esperado));
+  }
+
+  private substituirCabecalho(
+    cabecalhos: string[],
+    atual: string,
+    novo: string
+  ): string[] {
+    return cabecalhos.map((titulo) => (titulo === atual ? novo : titulo));
+  }
+
+  private cabecalhosIguais(
+    atual: readonly string[],
+    esperado: readonly string[]
+  ): boolean {
+    if (atual.length < esperado.length) {
       return false;
     }
-    return CABECALHOS_ABA_AGENDA.every((esperado, index) => cabecalho[index]?.trim() === esperado);
+    return esperado.every((titulo, index) => atual[index]?.trim() === titulo);
   }
 }

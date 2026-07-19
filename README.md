@@ -1,6 +1,6 @@
 # e-CNH
 
-Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto buscará as agendas futuras dos profissionais e manterá a aba `Agenda` atualizada de forma automatizada.
+Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto consulta as agendas dos profissionais e mantém na aba `Agenda` apenas os **pacientes com agendamento ativo** (hoje ou futuro).
 
 > **Fase atual:** 007 — Agendamento automático (cron) (`Concluída`). Daemon `job:agenda` + lock global + `sync:agenda`. MVP do produto concluído. Evoluções futuras em [docs/BACKLOG.md](docs/BACKLOG.md).
 
@@ -8,6 +8,7 @@ Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O pr
 
 - **MVP concluído** (Fases 000–007)
 - **Sistema operacional** (sincronização sob demanda e agendada)
+- **Aba Agenda:** cadastro de pacientes ativos (CPF único; remove datas passadas automaticamente)
 - **Evoluções futuras** registradas em [docs/BACKLOG.md](docs/BACKLOG.md) (Nice to Have; sem fases obrigatórias após a 007)
 
 ## Leitura recomendada
@@ -115,6 +116,13 @@ npm run validate:sheets
 ```
 
 Configure `GOOGLE_SHEETS_SPREADSHEET_ID`, o caminho do JSON da Service Account e compartilhe a planilha com o e-mail da conta (Editor). A aba `Agenda` deve existir.
+
+Em cada sincronização, a persistência:
+
+- insere pacientes novos (CPF ainda não presente entre os ativos);
+- preserva pacientes ativos com o mesmo CPF (sem duplicar);
+- remove automaticamente linhas cuja **Data de Agendamento** é anterior a hoje (`America/Sao_Paulo`);
+- grava **Data de inclusão** na primeira entrada do paciente no ciclo ativo atual.
 
 ### Sincronização sob demanda (Fase 006)
 

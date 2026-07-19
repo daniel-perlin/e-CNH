@@ -4,7 +4,9 @@ Este documento descreve o **e-CNH** do ponto de vista funcional: problema, usuá
 
 ## Objetivo do projeto
 
-Automatizar a consolidação das **agendas futuras** de profissionais credenciados no portal **e-CNH SP** em uma **planilha Google Sheets**, mantendo a aba `Agenda` atualizada sem consulta manual repetida ao portal.
+Automatizar a consolidação das **agendas ativas** (hoje ou futuras) de profissionais credenciados no portal **e-CNH SP** em uma **planilha Google Sheets**, mantendo a aba `Agenda` atualizada sem consulta manual repetida ao portal.
+
+A aba `Agenda` representa os pacientes com agendamentos ativos (hoje ou futuros). Pacientes cuja Data de Agendamento já passou são removidos automaticamente na sincronização.
 
 O sistema substitui o trabalho operacional de abrir o portal, autenticar-se, navegar até a agenda e copiar ou conferir dados manualmente.
 
@@ -25,7 +27,7 @@ O e-CNH centraliza essa rotina em um processo automatizado, previsível e audit�
 
 | Usuário                              | Papel                                                     | Relação com o produto                                                                              |
 | ------------------------------------ | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **Operador administrativo**          | Responsável pela planilha e pela rotina de acompanhamento | Consome a aba `Agenda` atualizada; não precisa acessar o portal para cada consulta                 |
+| **Operador administrativo**          | Responsável pela planilha e pela rotina de acompanhamento | Consome a aba `Agenda` com pacientes ativos; não precisa acessar o portal para cada consulta |
 | **Responsável técnico / mantenedor** | Configura credenciais, planilha e execução                | Instala, configura variáveis de ambiente, acompanha logs e valida sincronizações                   |
 | **Profissional credenciado**         | Médico ou psicólogo com acesso individual ao portal       | Fonte dos dados; fornece credenciais autorizadas para a integração                                 |
 | **Agente de IA ou desenvolvedor**    | Evolui o sistema por fases                                | Usa documentação funcional e técnica para implementar incrementos sem perder o contexto do produto |
@@ -133,11 +135,11 @@ Para o desenho técnico das camadas, consulte [ARQUITETURA.md](ARQUITETURA.md).
 
 O e-CNH **está dentro do escopo** quando a atividade:
 
-- sincroniza **agendas futuras** do portal e-CNH SP para Google Sheets;
+- sincroniza **agendas ativas** (hoje ou futuras) do portal e-CNH SP para Google Sheets;
 - usa **HTTP direto** e parsing de HTML SSR como estratégia principal;
 - respeita credenciais autorizadas e política de privacidade dos dados pessoais;
 - evolui por entregas documentadas e testáveis (MVP por fases; pós-MVP via [BACKLOG.md](BACKLOG.md));
-- mantém a planilha como **destino operacional** da equipe administrativa.
+- mantém a planilha como **destino operacional** da equipe administrativa, com a aba `Agenda` restrita a pacientes ativos.
 
 ## Itens explicitamente fora do escopo
 
@@ -148,7 +150,7 @@ Os itens abaixo **não fazem parte** deste produto, salvo decisão explícita fu
 | Interface web ou aplicativo mobile para usuários finais       | O produto é um sincronizador backend, não um front-end                   |
 | Substituição ou espelhamento completo do portal e-CNH         | Apenas extração de agendas para planilha                                 |
 | Automação por navegador (Playwright) em produção              | Estratégia principal é HTTP direto; browser fica restrito a investigação |
-| Agendas passadas ou histórico completo                        | Foco em **agendas futuras**                                              |
+| Agendas passadas ou histórico completo                        | A planilha mantém só ativos; passados são removidos na sync              |
 | Outros estados ou portais CNH fora do e-CNH SP observado      | Escopo limitado ao portal documentado                                    |
 | CRM, prontuário eletrônico ou sistemas clínicos               | Destino é Google Sheets, não outro sistema de saúde                      |
 | Notificações a pacientes (SMS, e-mail, WhatsApp)              | Fora da cadeia de valor da consolidação de agenda                        |

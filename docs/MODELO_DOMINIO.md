@@ -95,11 +95,13 @@ Representa o retorno lógico da persistência domínio → destino (Fase 005). I
 | Elemento | Descrição |
 | -------- | --------- |
 | sucesso | Persistência concluída. |
-| linhasGravadas | Quantidade de linhas escritas na operação. |
-| linhasRemovidas | Quantidade de linhas removidas do par Data+Profissional. |
+| linhasGravadas | Quantidade de linhas **novas** inseridas (CPF ainda não ativo na planilha). |
+| linhasRemovidas | Quantidade de linhas removidas por Data de Agendamento anterior a hoje (B005). |
 | motivoFalha | `contexto-incompleto`, `data-consulta-ausente`, `cabecalho-incompativel` ou `erro-infraestrutura`. |
 
 O contexto de persistência inclui `profissional` (coluna da planilha). A senha do profissional nunca entra nesta camada.
+
+**Regra da planilha (B005):** a aba `Agenda` é um cadastro de **pacientes ativos**. Em cada sincronização, permanecem apenas linhas cuja Data de Agendamento é hoje ou futura (calendário `America/Sao_Paulo`). CPF normalizado é a chave única enquanto o paciente está ativo; se o paciente sair (data passada) e voltar depois, a reinclusão gera nova Data de inclusão.
 
 ## Relação entre as camadas
 

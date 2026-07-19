@@ -1,15 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import { fileURLToPath } from 'node:url';
 
 import { parseAgendaHtml } from './agenda-parser.js';
 
-const fixturesDirectory = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../fixtures/agenda'
-);
+const fixturesDirectory = join(process.cwd(), 'fixtures/agenda');
 
 function loadFixture(name: string): string {
   return readFileSync(join(fixturesDirectory, name), 'utf8');

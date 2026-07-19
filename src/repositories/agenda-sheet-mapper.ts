@@ -3,6 +3,8 @@ import { normalizeEmail } from '../utils/email.js';
 import { normalizePhone } from '../utils/phone.js';
 
 import {
+  CABECALHO_DATA_AGENDAMENTO_LEGADO,
+  CABECALHO_DATA_INCLUSAO_LEGADO,
   CABECALHOS_ABA_AGENDA,
   type CabecalhoAbaAgenda
 } from './agenda-sheet-headers.js';
@@ -11,6 +13,11 @@ import {
 export interface ContextoLinhaAgenda {
   /** Nome do profissional gravado na coluna Profissional. */
   profissional: string;
+  /**
+   * Data da primeira inclusão do paciente ativo (`DD/MM/YYYY HH:mm`).
+   * Em linhas novas: timestamp da execução; em linhas existentes ativas: valor preservado.
+   */
+  dataInclusao: string;
 }
 
 /** Uma linha lógica da aba Agenda (domínio + contexto de persistência). */
@@ -18,6 +25,8 @@ export interface LinhaAgendaPersistida {
   dataConsulta: string;
   item: ItemAgenda;
   profissional: string;
+  /** Valor da coluna operacional; ausente em planilhas legadas. */
+  dataInclusao?: string;
 }
 
 /**
@@ -39,8 +48,11 @@ export class AgendaSheetMapper {
   public agendaParaLinhas(agenda: Agenda, contexto: ContextoLinhaAgenda): string[][] {
     const profissional = contexto.profissional.trim();
     const dataConsulta = agenda.dataConsulta?.trim() ?? '';
+    const dataInclusao = contexto.dataInclusao;
 
-    return agenda.itens.map((item) => this.itemParaLinha(item, profissional, dataConsulta));
+    return agenda.itens.map((item) =>
+      this.itemParaLinha(item, profissional, dataConsulta, dataInclusao)
+    );
   }
 
   /**
@@ -56,16 +68,21 @@ export class AgendaSheetMapper {
 
     for (const linha of linhas) {
       const profissional = this.celula(linha, indices, 'Profissional');
-      const dataConsulta = this.celula(linha, indices, 'Data');
+      const dataConsulta = this.celula(linha, indices, 'Data de Agendamento');
       if (profissional === undefined || dataConsulta === undefined) {
         continue;
       }
 
-      registros.push({
+      const dataInclusao = this.celula(linha, indices, 'Data de inclusão');
+      const registro: LinhaAgendaPersistida = {
         dataConsulta,
         profissional,
         item: this.linhaParaItem(linha, indices)
-      });
+      };
+      if (dataInclusao !== undefined) {
+        registro.dataInclusao = dataInclusao;
+      }
+      registros.push(registro);
     }
 
     return registros;
@@ -92,7 +109,8 @@ export class AgendaSheetMapper {
   private itemParaLinha(
     item: ItemAgenda,
     profissional: string,
-    dataConsulta: string
+    dataConsulta: string,
+    dataInclusao: string
   ): string[] {
     return [
       profissional,
@@ -105,7 +123,8 @@ export class AgendaSheetMapper {
       item.tipoProcesso ?? '',
       item.categoria ?? '',
       item.statusExameMedico ?? '',
-      item.statusExamePsicologico ?? ''
+      item.statusExamePsicologico ?? '',
+      dataInclusao
     ];
   }
 
@@ -165,6 +184,14 @@ export class AgendaSheetMapper {
     for (let index = 0; index < cabecalhos.length; index += 1) {
       const titulo = cabecalhos[index]?.trim();
       if (titulo === undefined || titulo.length === 0) {
+        continue;
+      }
+      if (titulo === CABECALHO_DATA_AGENDAMENTO_LEGADO) {
+        indices.set('Data de Agendamento', index);
+        continue;
+      }
+      if (titulo === CABECALHO_DATA_INCLUSAO_LEGADO) {
+        indices.set('Data de inclusão', index);
         continue;
       }
       const canonico = CABECALHOS_ABA_AGENDA.find((candidato) => candidato === titulo);
