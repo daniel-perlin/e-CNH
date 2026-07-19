@@ -1,0 +1,249 @@
+{
+  "attempts": [
+    {
+      "approved": false,
+      "durationMs": 262,
+      "finishedAt": "2026-07-19T10:26:48.739Z",
+      "number": 1,
+      "requests": [
+        {
+          "durationMs": 146,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29582,
+          "bodySha256": "049075d411be718fda2938fe343861ad723343ae5bd4d9b0526177e3ccf5ade6",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 36,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16075,
+          "bodySha256": "be3bacd801061703020b75777e09bbf251d44614658d7857bd964dc97757bffe",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 78,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29640,
+          "bodySha256": "4886103583bc3f17263a2163a860919ffc575ab395ab69d29dd4e53627e87d7f",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:26:48.476Z"
+    },
+    {
+      "approved": false,
+      "durationMs": 321,
+      "finishedAt": "2026-07-19T10:27:34.060Z",
+      "number": 2,
+      "requests": [
+        {
+          "durationMs": 179,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29581,
+          "bodySha256": "c4916cf962de77399fdb611c0f056c4f4143aad4700c0d0176aaa2e899b28db2",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 34,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16074,
+          "bodySha256": "35534d59f0078cc181947608423d95d966c999ab742136f6b7a3b15ad352c543",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 106,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29641,
+          "bodySha256": "700e6c7e798b46d6b74507a7265ca576ff864c38784cf3e144ec73e65a9a901c",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:27:33.738Z"
+    },
+    {
+      "approved": false,
+      "durationMs": 244,
+      "finishedAt": "2026-07-19T10:28:19.306Z",
+      "number": 3,
+      "requests": [
+        {
+          "durationMs": 132,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29581,
+          "bodySha256": "6fb95a07f0a2d830dc3bbed2f0d1d41eafa0feab673ca3c7705747f007066d6d",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 34,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16075,
+          "bodySha256": "0917baf43b6f27c9be9bc22e8ebbc486435ed064c94169711fdcda5cec81d940",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 76,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29642,
+          "bodySha256": "9625122776cf48c38bcc94209fb9dcf23936287ec29791ad4e0a76afc1851c9c",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:28:19.061Z"
+    },
+    {
+      "approved": false,
+      "durationMs": 363,
+      "finishedAt": "2026-07-19T10:29:04.670Z",
+      "number": 4,
+      "requests": [
+        {
+          "durationMs": 209,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29582,
+          "bodySha256": "a707659a6bd501a48097d9c6efd3e195ccac0816478b1331dc6c330e2d61ddbc",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 37,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16075,
+          "bodySha256": "fc289f797a98d1653c1384b62c908169f56b52d82e11d10db903cff737b94d5c",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 116,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29641,
+          "bodySha256": "db830707277145fa0536a7e652a954d6811f8eaa0bb18c12dd10c9b40afb8f62",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:29:04.307Z"
+    },
+    {
+      "approved": false,
+      "durationMs": 264,
+      "finishedAt": "2026-07-19T10:29:49.934Z",
+      "number": 5,
+      "requests": [
+        {
+          "durationMs": 119,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29581,
+          "bodySha256": "1ebdb44aa6f86350cbc0b81f3f6252f52efb4fff0022c4b3b1c453f8fec3e4db",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 38,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16075,
+          "bodySha256": "0a2f6897e0886421e389fc0f4c29659f23ad2326d9a398bbddbc2115e4f97fcb",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 105,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29641,
+          "bodySha256": "e9f6ab1c68b70cba3ac2180bf082fee1197a0d7e9a430fd0b29ce87bc6e6b7e6",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:29:49.671Z"
+    }
+  ],
+  "criteria": {
+    "consecutiveApprovedAttempts": 5,
+    "delayMsBetweenAttempts": 45000,
+    "finalMarker": "Imprimir Agenda Diária do Psicólogo",
+    "loginFormAbsent": true,
+    "protectedFormPresent": true,
+    "requestSequence": [
+      "GET /gefor/SGU/login.do?method=iniciarLogin",
+      "POST /gefor/SGU/login.do",
+      "POST /gefor/SGU/login.do"
+    ],
+    "sessionCookie": "JSESSIONID"
+  },
+  "credentialsSource": "ECNH_USER_2",
+  "finishedAt": "2026-07-19T10:29:49.935Z",
+  "nodeVersion": "v26.5.0",
+  "phase": "003A",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T10:26:48.476Z",
+  "summary": {
+    "approved": false,
+    "approvedAttempts": 0,
+    "failedAttempts": 5,
+    "totalAttempts": 5
+  }
+}

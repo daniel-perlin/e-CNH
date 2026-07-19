@@ -1,0 +1,73 @@
+{
+  "attempts": [
+    {
+      "approved": false,
+      "durationMs": 245,
+      "finishedAt": "2026-07-19T10:30:30.684Z",
+      "number": 1,
+      "requests": [
+        {
+          "durationMs": 145,
+          "method": "GET",
+          "status": 200,
+          "url": "/gefor/SGU/login.do?method=iniciarLogin",
+          "bodyBytes": 29581,
+          "bodySha256": "02182b917d16f326106b4d86b5458ef03d9d06b6e3df6995cee551591f279653",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 45,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 16074,
+          "bodySha256": "3550bb82241b1e4570cf6c64f4e2e2171b8d41166ba78ab91adf06e4f4f099ef",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        },
+        {
+          "durationMs": 53,
+          "method": "POST",
+          "status": 200,
+          "url": "/gefor/SGU/login.do",
+          "bodyBytes": 29502,
+          "bodySha256": "350565fd3dfe068758659b935b88739115b9babce4d048698e92a6cdd6a3e366",
+          "containsAuthenticatedMarker": false,
+          "containsLoginForm": true,
+          "containsProtectedForm": false
+        }
+      ],
+      "resultStatus": "erro_desconhecido",
+      "sessionCookiePresent": true,
+      "startedAt": "2026-07-19T10:30:30.439Z"
+    }
+  ],
+  "criteria": {
+    "consecutiveApprovedAttempts": 1,
+    "delayMsBetweenAttempts": 5000,
+    "finalMarker": "Imprimir Agenda Diária do Psicólogo",
+    "loginFormAbsent": true,
+    "protectedFormPresent": true,
+    "requestSequence": [
+      "GET /gefor/SGU/login.do?method=iniciarLogin",
+      "POST /gefor/SGU/login.do",
+      "POST /gefor/SGU/login.do"
+    ],
+    "sessionCookie": "JSESSIONID"
+  },
+  "credentialsSource": "ECNH_USER_14",
+  "finishedAt": "2026-07-19T10:30:30.684Z",
+  "nodeVersion": "v26.5.0",
+  "phase": "003A",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T10:30:30.438Z",
+  "summary": {
+    "approved": false,
+    "approvedAttempts": 0,
+    "failedAttempts": 1,
+    "totalAttempts": 1
+  }
+}

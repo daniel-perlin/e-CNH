@@ -1,0 +1,40 @@
+{
+  "name": "e-cnh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sincronizador de agendas futuras entre o portal e-CNH SP e Google Sheets.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:login": "tsx src/scripts/test-login.ts",
+    "validate:login": "tsx src/scripts/validate-login.ts"
+  },
+  "dependencies": {
+    "axios": "^1.8.4",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.5.0",
+    "googleapis": "^144.0.0",
+    "http-cookie-agent": "^8.0.0",
+    "pino": "^9.6.0",
+    "tough-cookie": "^6.0.2",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@types/node": "^22.15.2",
+    "eslint": "^9.24.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.30.1"
+  }
+}

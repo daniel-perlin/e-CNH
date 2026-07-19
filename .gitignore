@@ -1,0 +1,20 @@
+# Dependencies and generated files
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Tooling and OS files
+.DS_Store
+.eslintcache
+.idea/
+.vscode/
