@@ -41,7 +41,7 @@ describe('AgendaSheetMapper', () => {
       '08:00',
       '000.000.000-00',
       'PACIENTE FIXTURE UM',
-      '(11) 90000-0001',
+      '(11) 900000001',
       'paciente1@example.test',
       'Primeira Habilitação',
       'B',
@@ -80,7 +80,29 @@ describe('AgendaSheetMapper', () => {
     assert.equal(linhas[0]?.[6], 'paciente@example.test');
     assert.equal(linhas[0]?.[3], '000.000.000-00');
     assert.equal(linhas[0]?.[4], 'PACIENTE FIXTURE UM');
-    assert.equal(linhas[0]?.[5], '(11) 90000-0001');
+    assert.equal(linhas[0]?.[5], '(11) 900000001');
+  });
+
+  it('normaliza telefone na persistência sem alterar o domínio dos demais campos', () => {
+    const agenda: Agenda = {
+      dataConsulta: '13/07/2026',
+      itens: [
+        {
+          horario: '09:00',
+          paciente: {
+            cpf: '000.000.000-00',
+            nome: 'PACIENTE FIXTURE DOIS',
+            telefone: '00000000 / 991354797 / (11) 9479-08238',
+            email: 'dois@example.test'
+          }
+        }
+      ]
+    };
+
+    const linhas = mapper.agendaParaLinhas(agenda, { profissional: 'Profissional Teste' });
+    assert.equal(linhas[0]?.[5], '(11) 991354797 / (11) 947908238');
+    assert.equal(linhas[0]?.[4], 'PACIENTE FIXTURE DOIS');
+    assert.equal(linhas[0]?.[6], 'dois@example.test');
   });
 
   it('reconstrói registros e agenda a partir de linhas', () => {

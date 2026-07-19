@@ -1,5 +1,6 @@
 import type { Agenda, ItemAgenda, Paciente } from '../models/agenda.js';
 import { normalizeEmail } from '../utils/email.js';
+import { normalizePhone } from '../utils/phone.js';
 
 import {
   CABECALHOS_ABA_AGENDA,
@@ -99,7 +100,7 @@ export class AgendaSheetMapper {
       item.horario ?? '',
       item.paciente.cpf ?? '',
       item.paciente.nome ?? '',
-      item.paciente.telefone ?? '',
+      normalizePhone(item.paciente.telefone ?? ''),
       normalizeEmail(item.paciente.email ?? ''),
       item.tipoProcesso ?? '',
       item.categoria ?? '',

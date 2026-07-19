@@ -4,12 +4,41 @@
 >
 > **Fase atual:** Fase 007 — Agendamento automático (cron) (`Concluída`) — MVP concluído  
 > **Próxima fase:** sem fase obrigatória; evoluções em `docs/BACKLOG.md`  
-> **Última atualização:** 2026-07-19 11:42 BRT  
-> **Última sessão executada:** 19/07/2026 • 11:42 — B001 normalização de e-mails
+> **Última atualização:** 2026-07-19 11:59 BRT  
+> **Última sessão executada:** 19/07/2026 • 11:59 — B002 normalização de telefones
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 11:59
+
+### 🎯 Objetivo
+
+Implementar B002: normalizar telefones antes da persistência no Google Sheets.
+
+### ✅ O que mudou
+
+- Criada função pura `normalizePhone` em `src/utils/phone.ts` (lixo, DDD 11, hífens, espaços, listas com `/`).
+- `AgendaSheetMapper` aplica a normalização apenas na coluna Telefone ao gerar linhas.
+- Testes unitários da utilidade e cobertura no mapper.
+- B002 marcado como ✅ Concluído no BACKLOG.
+- Domínio (`Paciente.telefone`), parser e contratos públicos inalterados.
+
+### 🧠 Decisões
+
+- **Decisão:** normalização só na preparação para persistência (mapper), no mesmo padrão de B001.
+
+### 📂 Arquivos impactados
+
+- `src/utils/phone.ts`
+- `src/utils/phone.test.ts`
+- `src/repositories/agenda-sheet-mapper.ts`
+- `src/repositories/agenda-sheet-mapper.test.ts`
+- `docs/BACKLOG.md`
+- `CHANGELOG.md`
 
 ---
 

@@ -41,7 +41,7 @@ Melhorias usam IDs sequenciais: `B001`, `B002`, `B003`, …
 | ID | Status | Prioridade | Título | Descrição |
 | -- | ------ | ---------- | ------ | --------- |
 | B001 | ✅ Concluído | Média | Normalizar e-mails | Converter e-mails para lowercase (com trim) antes da persistência na planilha. |
-| B002 | ⏳ Pendente | Média | Normalizar telefones | Adicionar DDD 11 quando o telefone vier sem DDD. |
+| B002 | ✅ Concluído | Média | Normalizar telefones | Remover lixo/hífens, DDD 11 em celular de 9 dígitos e normalizar listas com `/` antes da persistência. |
 | B003 | ⏳ Pendente | Alta | Coluna "Última sincronização" | Adicionar na aba `Agenda` o timestamp da última atualização de cada linha. |
 | B004 | ❄️ Estacionado | Baixa | Aba "Controle" | Criar aba `Controle` na planilha Google Sheets (Painel Operacional). |
 | B005 | ❄️ Estacionado | Baixa | Aba "Execuções" | Criar aba `Execuções` com histórico das sincronizações. |
