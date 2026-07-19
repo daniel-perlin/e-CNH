@@ -175,7 +175,8 @@ async function executeAttempt(
     const client = new ECNHClient({
       baseUrl,
       logger: createEvidenceLogger(state),
-      perfilEsperado: credentials.perfilEsperado
+      perfilEsperado: credentials.perfilEsperado,
+      unidadeDesejada: credentials.unidadeDesejada
     });
     const result = await client.login(credentials.cpf, credentials.password);
     const durationMs = roundDuration(performance.now() - startedAtPerformance);

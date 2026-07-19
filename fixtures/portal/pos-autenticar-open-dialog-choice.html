@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <title>eCNHsp - DETRAN - São Paulo</title>
+    <script>
+      var temErros = false;
+      function callAppFunctions() {
+        if (!temErros) {
+          openDialogChoice('false', '[cpf-sanitizado]', '[senha-sanitizada]');
+        }
+      }
+    </script>
+  </head>
+  <body onload="callAppFunctions()">
+    <form name="LoginActionForm" method="post" action="/gefor/SGU/login.do">
+      <input type="hidden" name="method" value="autenticar" />
+      <input type="hidden" name="idUnidTransito" value="-1" />
+    </form>
+  </body>
+</html>

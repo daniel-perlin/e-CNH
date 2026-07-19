@@ -98,3 +98,18 @@
   - propagar `perfilId` em `ResultadoSincronizacaoProfissional` (sem PII).
 - **Consequência:** Psicólogo permanece compatível sem config; Médico autentica e consulta com `consultarAgendaMedico`. Novos perfis exigem evidência + entrada no registro.
 - **Validação (19/07/2026):** evidência confirmada com profissional Médico real (Italo / `ECNH_USER_16`) — login, resolução de perfil `medico`, consulta `consultarAgendaMedico` e sincronização completa. Artefato: `docs/evidencias/003c-consolidacao-perfil-medico-2026-07-19.json`. B012 / Fase 003C `Concluída`.
+
+## ADR-015 — Escolha de unidade/visão no login HTTP
+
+- **Status:** aceito e implementado (Fase 003D / B011 `Concluída`)
+- **Contexto:** após `POST method=autenticar`, alguns profissionais recebem HTML que ainda é a tela de login, com JavaScript `openDialogChoice` abrindo GreyBox em `GET method=openChoice` (“Escolha de Perfil e/ou Visão”). Sem executar essa escolha, o critério B012 (marcador de perfil) não é alcançado. Esse comportamento é **distinto** do perfil profissional (Psicólogo/Médico) e da sessão já aberta (B010).
+- **Decisão:**
+  - tratar a escolha **dentro** do `ECNHAuthenticationProtocol`, **antes** de `resolverPerfilNoHtml` (B012);
+  - módulo dedicado de escolha de unidade (ex.: `EscolhaUnidadePortal`) — **não** misturar com `PerfilProfissionalPortal`;
+  - fluxo genérico: detectar → `openChoice` → listar opções → resolver config → submeter → continuar autenticação;
+  - configuração por profissional: `ECNH_USER_<n>_UNIDADE` (rótulo do `<option>`) e opcionalmente `ECNH_USER_<n>_UNID_TRANSITO` (value); precedência id > label; obrigatória só se o diálogo aparecer; sem default global; sem auto-seleção da primeira opção;
+  - zero regras por nome, índice `ECNH_USER_*` ou hardcode de unidade no código;
+  - B010 (`openDialogNewSession` / `forceLogout`) permanece fora de escopo.
+- **Consequência:** profissionais sem multi-unidade seguem o caminho atual. Profissionais com multi-unidade passam a completar o login via a mesma infraestrutura, diferindo apenas na configuração.
+- **Contrato HTTP (Passo 1, 19/07/2026):** evidência confirmada — no browser, `enviar()` (`choice.js`) copia `idUnidTransito` para o `LoginActionForm` pai e reenvia `POST method=autenticar` (não POSTA o formulário `openChoice`). Após esse segundo `autenticar` com unidade, o HTML já traz a área autenticada e o marcador B012. Artefato: `docs/evidencias/003d-descoberta-enviar-escolha-unidade-2026-07-19.json`.
+- **Validação (19/07/2026):** evidência confirmada com profissional multi-unidade real (`ECNH_USER_17`) — escolha via `UNIDADE=CIR-SAO PAULO`, B012 `medico`, agenda/parser e sync Sheets. Artefato: `docs/evidencias/003d-consolidacao-escolha-unidade-2026-07-19.json`. B011 / Fase 003D `Concluída`.

@@ -1,0 +1,82 @@
+{
+  "phase": "003D",
+  "backlogId": "B011",
+  "schemaVersion": 1,
+  "kind": "consolidacao-escolha-unidade",
+  "confirmedAt": "2026-07-19T18:01:56.542Z",
+  "credentialsSource": "ECNH_USER_17",
+  "professionalLabel": "Caio",
+  "unidadeConfigurada": {
+    "label": "CIR-SAO PAULO"
+  },
+  "validation": {
+    "openDialogChoiceDetected": true,
+    "openChoiceGet": true,
+    "unidadeResolvida": {
+      "label": "CIR-SAO PAULO",
+      "value": "18"
+    },
+    "segundoAutenticar": {
+      "method": "autenticar",
+      "idUnidTransito": "18"
+    },
+    "b012": {
+      "perfilId": "medico",
+      "methodAgenda": "consultarAgendaMedico"
+    },
+    "agenda": {
+      "datasConsultadas": 4,
+      "datas": ["15/07/2026", "16/07/2026", "22/07/2026", "23/07/2026"]
+    },
+    "parser": {
+      "sucesso": true,
+      "totalItens": 49,
+      "porData": [
+        { "data": "15/07/2026", "itens": 18 },
+        { "data": "16/07/2026", "itens": 6 },
+        { "data": "22/07/2026", "itens": 19 },
+        { "data": "23/07/2026", "itens": 6 }
+      ]
+    },
+    "sheetsSync": {
+      "sucesso": true,
+      "perfilId": "medico",
+      "loginStatus": "sucesso",
+      "datas": [
+        {
+          "dataConsulta": "15/07/2026",
+          "sucesso": true,
+          "itensExtraidos": 18,
+          "linhasGravadas": 0,
+          "nota": "Data passada relativa a 19/07/2026 — B005 não persiste agendamentos passados."
+        },
+        {
+          "dataConsulta": "16/07/2026",
+          "sucesso": true,
+          "itensExtraidos": 6,
+          "linhasGravadas": 0,
+          "nota": "Data passada relativa a 19/07/2026 — B005 não persiste agendamentos passados."
+        },
+        {
+          "dataConsulta": "22/07/2026",
+          "sucesso": true,
+          "itensExtraidos": 19,
+          "linhasGravadas": 19
+        },
+        {
+          "dataConsulta": "23/07/2026",
+          "sucesso": true,
+          "itensExtraidos": 6,
+          "linhasGravadas": 6
+        }
+      ],
+      "linhasGravadasFuturas": 25
+    }
+  },
+  "notes": [
+    "Evidência confirmada: B011 genérico validado com profissional multi-unidade real.",
+    "Evidência confirmada: openDialogChoice → openChoice → segundo autenticar com idUnidTransito=18 (CIR-SAO PAULO via UNIDADE).",
+    "Evidência confirmada: B012 resolveu medico e consultarAgendaMedico.",
+    "Evidência confirmada: parser extraiu 49 itens; sync gravou 25 linhas de datas futuras (B005)."
+  ]
+}

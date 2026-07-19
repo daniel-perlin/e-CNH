@@ -101,7 +101,7 @@ A evolução do produto ocorre em duas frentes documentadas no [BACKLOG.md](BACK
 1. **Melhorias incrementais (B001–B005)** — já concluídas; refinaram o produto operacional (normalização, cadastro ativo, etc.).
 2. **Evolução arquitetural (B012 / 003C)** — `✅ Concluída`: a fronteira do portal admite **múltiplos perfis profissionais** (Psicólogo, Médico e perfis futuros), com mínimo impacto nas demais camadas. Validada com profissional Médico real (Italo): login, perfil, agenda e sync completo.
 
-Limitações operacionais de homologação (**B010**, **B011**) permanecem no backlog e devem ser **reavaliadas** à luz da B012 já concluída.
+Limitações operacionais de homologação: **B011** concluída (escolha de unidade); **B010** (sessão já autenticada) permanece no backlog.
 
 Itens antigos de Painel Operacional / Observabilidade foram **removidos do escopo do produto**.
 

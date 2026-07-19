@@ -139,7 +139,7 @@ Não consultar agenda, não navegar em páginas de agenda, não fazer parsing e 
 
 **Diagnóstico:** o peer remoto ou um intermediário encerrou o socket TLS antes de entregar uma resposta HTTP completa. A conexão nova por etapa é uma divergência comprovada em relação ao Chrome, mas não existe evidência suficiente para classificá-la como causa.
 
-A auditoria completa está em [AUDITORIA_HTTP_TLS_AUTENTICACAO.md](../docs/AUDITORIA_HTTP_TLS_AUTENTICACAO.md).
+A auditoria completa está em [AUDITORIA_HTTP_TLS_AUTENTICACAO.md](../docs/archive/autenticacao-003a/AUDITORIA_HTTP_TLS_AUTENTICACAO.md).
 
 **Resultado registrado à época:** uma saída `status=sucesso` levou a fase a `Validada`. O checkpoint posterior demonstrou que essa execução não possui resposta preservada e reclassificou a fase.
 
@@ -163,7 +163,7 @@ A auditoria completa está em [AUDITORIA_HTTP_TLS_AUTENTICACAO.md](../docs/AUDIT
 
 **Plano mínimo:** preservar um único par de `HttpCookieAgent` e `HttpsCookieAgent` com keep-alive durante a transação e medir o resultado antes de considerar retry. O protocolo de autenticação não deve ser alterado.
 
-A análise completa está em [ROBUSTEZ_AUTENTICACAO_HTTP.md](../docs/ROBUSTEZ_AUTENTICACAO_HTTP.md).
+A análise completa está em [ROBUSTEZ_AUTENTICACAO_HTTP.md](../docs/archive/autenticacao-003a/ROBUSTEZ_AUTENTICACAO_HTTP.md).
 
 ### Reutilização de agentes e bateria de validação em 18/07/2026
 
@@ -210,7 +210,7 @@ Existe um HTML autenticado em `/tmp/ecnh-login-before.html`, mas ele pertence a 
 
 **Resultado:** o sucesso interno foi observado, mas não possui evidência durável e independente da resposta externa. Conforme a convenção do projeto, a Fase 003A retorna para `Implementada`.
 
-O checkpoint completo está em [CHECKPOINT_EVIDENCIA_AUTENTICACAO.md](../docs/CHECKPOINT_EVIDENCIA_AUTENTICACAO.md).
+O checkpoint completo está em [CHECKPOINT_EVIDENCIA_AUTENTICACAO.md](../docs/archive/autenticacao-003a/CHECKPOINT_EVIDENCIA_AUTENTICACAO.md).
 
 ### Validação reproduzível em 19/07/2026
 

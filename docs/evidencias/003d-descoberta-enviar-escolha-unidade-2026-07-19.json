@@ -1,0 +1,120 @@
+{
+  "phase": "003D",
+  "backlogId": "B011",
+  "schemaVersion": 1,
+  "kind": "descoberta-enviar-escolha-unidade",
+  "discoveredAt": "2026-07-19T17:51:30.376Z",
+  "credentialsSource": "ECNH_USER_17",
+  "classification": "evidencia_confirmada",
+  "browserBehavior": {
+    "choiceJs": "/GFR/js/app/sgu/choice.js",
+    "enviarDoesDirectPostOfOpenChoiceForm": false,
+    "enviarCopiesToParentLoginForm": [
+      "idGrupoUsuario",
+      "idCFC",
+      "idUnidTransito",
+      "autenticadoCyberark"
+    ],
+    "thenCalls": "parent.parent.login() → LoginActionForm.submit()",
+    "parentFormMethodHidden": "autenticar"
+  },
+  "httpEquivalent": {
+    "url": "/gefor/SGU/login.do",
+    "absoluteUrlExample": "https://www.e-cnhsp.sp.gov.br/gefor/SGU/login.do",
+    "httpMethod": "POST",
+    "contentType": "application/x-www-form-urlencoded",
+    "strutsMethod": "autenticar",
+    "note": "Mesmo method=autenticar do primeiro POST de credenciais; a diferença crítica é idUnidTransito preenchido com o value da unidade escolhida."
+  },
+  "openChoice": {
+    "url": "/gefor/SGU/login.do?method=openChoice&autenticadoCyberark=false",
+    "httpMethod": "GET",
+    "httpStatus": 200,
+    "selectName": "idUnidTransito",
+    "optionsObserved": [
+      { "value": "18", "label": "CIR-SAO PAULO" },
+      { "value": "781", "label": "POUPATEMPO CANINDE" },
+      { "value": "901", "label": "POUPATEMPO CIDADE ADEMAR" },
+      { "value": "925", "label": "POUPATEMPO ITAQUERA" },
+      { "value": "923", "label": "POUPATEMPO LAPA" },
+      { "value": "905", "label": "POUPATEMPO SANTO AMARO" },
+      { "value": "900", "label": "POUPATEMPO SE" }
+    ],
+    "selectedForDiscovery": {
+      "label": "CIR-SAO PAULO",
+      "value": "18",
+      "note": "Seleção apenas para descoberta; implementação deve resolver via config UNIDADE/UNID_TRANSITO."
+    }
+  },
+  "secondAutenticarBodyFields": {
+    "method": "autenticar",
+    "novaSenha": "",
+    "novaSenha1": "",
+    "alteraSenha": "false",
+    "idGrupoUsuario": "-1",
+    "idCFC": "",
+    "idUnidTransito": "<value da opção escolhida>",
+    "msgPublicacao": "",
+    "consultaAgenda": "true",
+    "autenticadoCyberark": "false",
+    "codigo": "[REDACTED]",
+    "senha": "[REDACTED]"
+  },
+  "requiredWhenUnitChoiceAppears": [
+    "method=autenticar",
+    "idUnidTransito=<value não vazio de option>",
+    "codigo",
+    "senha",
+    "consultaAgenda=true",
+    "CookieJar com JSESSIONID da sessão anterior"
+  ],
+  "optionalOrContextFields": [
+    "idGrupoUsuario (presente no form; -1 neste caso sem select de perfil)",
+    "idCFC (vazio neste caso)",
+    "autenticadoCyberark=false",
+    "novaSenha / novaSenha1 / alteraSenha / msgPublicacao"
+  ],
+  "responseAfterSecondAutenticar": {
+    "httpStatus": 200,
+    "redirectLocationHeader": null,
+    "finalUrlRemainedLoginDo": true,
+    "htmlBytes": 73353,
+    "bodySha256": "4261fb2988b1ba4f688b38cbe3bcabd6b29c47cf59ba1ab49bbb244f41765bbf",
+    "containsLoginForm": false,
+    "containsDivisaoEquitativaForm": true,
+    "containsAgendaSelect": true,
+    "authenticatedMarker": "Imprimir Agenda Diária do Médico",
+    "perfilIdResolvableByB012": "medico",
+    "methodAgenda": "consultarAgendaMedico",
+    "intermediatePage": false,
+    "additionalPostRequired": false,
+    "additionalGetRequired": false,
+    "additionalJavaScriptRequiredForAuthSuccess": false
+  },
+  "cookies": {
+    "namesObservedInJar": ["JSESSIONID", "visid_incap_*", "incap_ses_*"],
+    "values": "[REDACTED]",
+    "newSessionTokenAfterChoice": false,
+    "note": "Mesmo CookieJar; JSESSIONID renovado apenas no logout (finalizarLogin)."
+  },
+  "headersRelevant": {
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Origin": "origem do portal",
+    "Referer": "URL de login.do",
+    "Cookie": "[REDACTED — CookieJar]"
+  },
+  "sequence": [
+    "GET method=iniciarLogin",
+    "POST method=iniciarLoginAgenda",
+    "POST method=autenticar (idUnidTransito=-1) → HTML com openDialogChoice",
+    "GET method=openChoice&autenticadoCyberark=false → select idUnidTransito",
+    "POST method=autenticar (idUnidTransito=<escolhido>) → área autenticada / agenda",
+    "GET method=finalizarLogin (logout da descoberta)"
+  ],
+  "contractFrozen": true,
+  "notes": [
+    "Evidência confirmada: ENVIAR no browser não POSTA o formulário openChoice; reenvia autenticar no form pai com idUnidTransito.",
+    "Evidência confirmada: após o segundo autenticar, o HTML já contém o marcador B012 (Médico) e DivisaoEquitativaForm.",
+    "Hipótese descartada nesta execução: etapa intermediária adicional após ENVIAR."
+  ]
+}

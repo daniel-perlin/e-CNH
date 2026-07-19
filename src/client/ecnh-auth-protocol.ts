@@ -3,6 +3,14 @@ import { AxiosError } from 'axios';
 import { LoginCredentials, LoginResult } from '../types/auth.js';
 import { AuthTransport } from './auth-transport.js';
 import {
+  extrairAutenticadoCyberarkDeOpenDialogChoice,
+  htmlContemFormularioEscolhaUnidade,
+  htmlRequerEscolhaUnidade,
+  parseOpcoesUnidadeTransito,
+  resolverUnidadeConfigurada,
+  type UnidadeDesejadaConfig
+} from './escolha-unidade-portal.js';
+import {
   type PerfilProfissionalId,
   type PerfilProfissionalPortal,
   obterPerfilPorId,
@@ -20,6 +28,10 @@ export type AuthenticationLoginOutcome =
 export interface AuthenticationLoginOptions {
   /** Perfil esperado (config); se definido, deve coincidir com o HTML. */
   perfilEsperado?: PerfilProfissionalId;
+  /**
+   * Unidade desejada (B011). Obrigatória somente se o portal emitir `openDialogChoice`.
+   */
+  unidadeDesejada?: UnidadeDesejadaConfig;
 }
 
 /**
@@ -74,21 +86,8 @@ export class ECNHAuthenticationProtocol {
         url: LOGIN_PATH
       });
 
-      const response = await transport.request<string>({
-        data: new URLSearchParams([
-          ['method', 'autenticar'],
-          ['novaSenha', ''],
-          ['novaSenha1', ''],
-          ['alteraSenha', 'false'],
-          ['idGrupoUsuario', '-1'],
-          ['idCFC', ''],
-          ['idUnidTransito', '-1'],
-          ['msgPublicacao', ''],
-          ['consultaAgenda', 'true'],
-          ['autenticadoCyberark', 'false'],
-          ['codigo', credentials.cpf],
-          ['senha', credentials.password]
-        ]).toString(),
+      const firstAuth = await transport.request<string>({
+        data: this.buildAutenticarBody(credentials, '-1', 'false'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           Origin: loginOrigin,
@@ -99,33 +98,29 @@ export class ECNHAuthenticationProtocol {
         url: LOGIN_PATH
       });
 
-      const hasSessionCookie = await transport.hasCookie(SESSION_COOKIE_NAME);
-      const perfilDetectado = resolverPerfilNoHtml(response.data);
+      let htmlAutenticado = firstAuth.data;
 
-      if (!hasSessionCookie || perfilDetectado === undefined) {
-        return {
-          message:
-            'O portal respondeu ao login, mas os sinais de autenticação confirmados não foram encontrados.',
-          status: 'erro_desconhecido'
-        };
+      const perfilImediato = resolverPerfilNoHtml(htmlAutenticado);
+      if (perfilImediato === undefined && htmlRequerEscolhaUnidade(htmlAutenticado)) {
+        const escolha = await this.completarEscolhaUnidade(
+          credentials,
+          transport,
+          htmlAutenticado,
+          loginOrigin,
+          loginUrl,
+          options.unidadeDesejada
+        );
+        if (escolha.status !== 'ok') {
+          return escolha;
+        }
+        htmlAutenticado = escolha.html;
       }
 
-      if (
-        options.perfilEsperado !== undefined &&
-        options.perfilEsperado !== perfilDetectado.id
-      ) {
-        return {
-          message: `Perfil configurado (${options.perfilEsperado}) diverge do HTML autenticado (${perfilDetectado.id}).`,
-          status: 'erro_desconhecido'
-        };
-      }
-
-      const perfil =
-        options.perfilEsperado !== undefined
-          ? obterPerfilPorId(options.perfilEsperado)
-          : perfilDetectado;
-
-      return { html: response.data, perfil, status: 'sucesso' };
+      return this.classificarSucessoAutenticacao(
+        htmlAutenticado,
+        await transport.hasCookie(SESSION_COOKIE_NAME),
+        options.perfilEsperado
+      );
     } catch (error) {
       return this.fromTransportError(error);
     }
@@ -144,6 +139,118 @@ export class ECNHAuthenticationProtocol {
       responseEncoding: 'latin1',
       url: LOGOUT_PATH
     });
+  }
+
+  /**
+   * B011: GET openChoice → resolver unidade → segundo POST autenticar.
+   * Contrato: docs/evidencias/003d-descoberta-enviar-escolha-unidade-2026-07-19.json
+   */
+  private async completarEscolhaUnidade(
+    credentials: LoginCredentials,
+    transport: AuthTransport,
+    htmlPosAutenticar: string,
+    loginOrigin: string,
+    loginUrl: string,
+    unidadeDesejada: UnidadeDesejadaConfig | undefined
+  ): Promise<
+    | { html: string; status: 'ok' }
+    | Exclude<LoginResult, { status: 'sucesso' }>
+  > {
+    const autenticadoCyberark =
+      extrairAutenticadoCyberarkDeOpenDialogChoice(htmlPosAutenticar);
+
+    const openChoice = await transport.request<string>({
+      headers: {
+        Referer: loginUrl
+      },
+      method: 'GET',
+      responseEncoding: 'latin1',
+      url: `${LOGIN_PATH}?method=openChoice&autenticadoCyberark=${encodeURIComponent(autenticadoCyberark)}`
+    });
+
+    if (!htmlContemFormularioEscolhaUnidade(openChoice.data)) {
+      return {
+        message:
+          'O portal indicou openDialogChoice, mas a resposta de openChoice não contém o formulário de escolha de unidade esperado.',
+        status: 'erro_desconhecido'
+      };
+    }
+
+    const opcoes = parseOpcoesUnidadeTransito(openChoice.data);
+    const resolucao = resolverUnidadeConfigurada(opcoes, unidadeDesejada);
+    if (resolucao.status === 'erro') {
+      return {
+        message: resolucao.motivo,
+        status: 'erro_desconhecido'
+      };
+    }
+
+    const secondAuth = await transport.request<string>({
+      data: this.buildAutenticarBody(
+        credentials,
+        resolucao.opcao.value,
+        autenticadoCyberark
+      ),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Origin: loginOrigin,
+        Referer: loginUrl
+      },
+      method: 'POST',
+      responseEncoding: 'latin1',
+      url: LOGIN_PATH
+    });
+
+    return { html: secondAuth.data, status: 'ok' };
+  }
+
+  private buildAutenticarBody(
+    credentials: LoginCredentials,
+    idUnidTransito: string,
+    autenticadoCyberark: string
+  ): string {
+    return new URLSearchParams([
+      ['method', 'autenticar'],
+      ['novaSenha', ''],
+      ['novaSenha1', ''],
+      ['alteraSenha', 'false'],
+      ['idGrupoUsuario', '-1'],
+      ['idCFC', ''],
+      ['idUnidTransito', idUnidTransito],
+      ['msgPublicacao', ''],
+      ['consultaAgenda', 'true'],
+      ['autenticadoCyberark', autenticadoCyberark],
+      ['codigo', credentials.cpf],
+      ['senha', credentials.password]
+    ]).toString();
+  }
+
+  private classificarSucessoAutenticacao(
+    html: string,
+    hasSessionCookie: boolean,
+    perfilEsperado: PerfilProfissionalId | undefined
+  ): AuthenticationLoginOutcome {
+    const perfilDetectado = resolverPerfilNoHtml(html);
+
+    if (!hasSessionCookie || perfilDetectado === undefined) {
+      return {
+        message:
+          'O portal respondeu ao login, mas os sinais de autenticação confirmados não foram encontrados.',
+        status: 'erro_desconhecido'
+      };
+    }
+
+    if (perfilEsperado !== undefined && perfilEsperado !== perfilDetectado.id) {
+      return {
+        message: `Perfil configurado (${perfilEsperado}) diverge do HTML autenticado (${perfilDetectado.id}).`,
+        status: 'erro_desconhecido'
+      };
+    }
+
+    const perfil =
+      perfilEsperado !== undefined ? obterPerfilPorId(perfilEsperado) : perfilDetectado;
+
+    return { html, perfil, status: 'sucesso' };
   }
 
   private fromTransportError(error: unknown): Exclude<LoginResult, { status: 'sucesso' }> {

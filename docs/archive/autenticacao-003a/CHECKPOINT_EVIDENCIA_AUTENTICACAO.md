@@ -124,4 +124,4 @@ Pela convenção do projeto, `Validada` exige critérios executados com evidênc
 
 **Reclassificação histórica:** a Fase 003A retornou de `Validada` para `Implementada` por falta de evidência durável naquele momento.
 
-**Atualização em 19/07/2026:** a validação reproduzível posterior aprovou cinco autenticações distintas com hashes e sinais estruturais; a fase está novamente `Validada`. Consulte [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md).
+**Atualização em 19/07/2026:** a validação reproduzível posterior aprovou cinco autenticações distintas com hashes e sinais estruturais; a fase está novamente `Validada`. Consulte [VALIDACAO_REPRODUZIVEL_003A.md](../../VALIDACAO_REPRODUZIVEL_003A.md).

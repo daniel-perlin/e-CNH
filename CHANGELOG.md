@@ -2,14 +2,267 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** B012 / 003C — Arquitetura de perfis profissionais do portal (`Concluída`)  
-> **Próxima prioridade:** reavaliar B010 e B011  
-> **Última atualização:** 2026-07-19 14:34 BRT  
-> **Última sessão executada:** 19/07/2026 • 14:34 — Conclusão B012 (validação Médico Italo)
+> **Fase atual:** B011 / 003D — Escolha de Perfil e/ou Visão (`Concluída`)  
+> **Próxima prioridade:** Sprint 1.0 — Estabilização (fechamento; D3 fixtures de protocolo em sprint futura)  
+> **Última atualização:** 2026-07-19 15:44 BRT  
+> **Última sessão executada:** 19/07/2026 • 15:44 — Sprint 1.0 Passo D (S1-03 D1+D2)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 15:44
+
+### 🎯 Objetivo
+
+Executar o Passo D da Sprint 1.0 (S1-03): fixtures HTML sanitizadas + testes unitários das funções puras do protocolo HTTP (D1 + D2).
+
+### ✅ O que mudou
+
+- Criado `fixtures/portal/` com HTML sintético: login, openDialogChoice, openChoice, autenticado psicólogo/médico + README.
+- `escolha-unidade-portal.test.ts` e `perfil-profissional-portal.test.ts` passam a carregar essas fixtures (detecção, parse, resolução cruzada entre estados).
+- Agenda com tabela continua em `fixtures/agenda/` (já coberta).
+
+### 🧠 Decisões
+
+- **D1 + D2 entregues** nesta sprint (mínimo obrigatório do plano).
+- **D3 adiada** (testes de `ECNHAuthenticationProtocol` com `AuthTransport` fake) para sprint futura — exigiria scaffolding de transporte e cresceria além do escopo incremental aprovado.
+- Nenhum código de produção alterado; sem mudança de comportamento.
+
+### 📂 Arquivos impactados
+
+- `fixtures/portal/README.md`
+- `fixtures/portal/login-form.html`
+- `fixtures/portal/pos-autenticar-open-dialog-choice.html`
+- `fixtures/portal/open-choice-unidades.html`
+- `fixtures/portal/autenticado-psicologo.html`
+- `fixtures/portal/autenticado-medico.html`
+- `src/client/escolha-unidade-portal.test.ts`
+- `src/client/perfil-profissional-portal.test.ts`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 15:42
+
+### 🎯 Objetivo
+
+Executar o Passo C da Sprint 1.0 (S1-04): unificar a duplicação de `resolvePerfilEsperadoEnv` sem alterar comportamento.
+
+### ✅ O que mudou
+
+- Extraída `resolvePerfilEsperadoEnv` para `src/config/perfil-esperado-env.ts`.
+- `login-credentials.ts` e `sync-professionals.ts` passam a importar a função compartilhada.
+- Removidas as duas cópias privadas idênticas.
+
+### 🧠 Decisões
+
+- Mesma lógica, mensagens de erro e precedência PROFILE > ROLE.
+- Sem novas camadas, sem unificar DTOs, sem outros refactors.
+- APIs públicas de resolução de login/sync inalteradas.
+
+### 📂 Arquivos impactados
+
+- `src/config/perfil-esperado-env.ts` (novo)
+- `src/config/login-credentials.ts`
+- `src/config/sync-professionals.ts`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 15:40
+
+### 🎯 Objetivo
+
+Executar o Passo B da Sprint 1.0 (S1-02): alinhar a documentação viva ao estado atual do sistema, sem alterar comportamento.
+
+### ✅ O que mudou
+
+- `docs/API.md`: tabela B010/B011 corrigida (B011 tratado); endpoints `openChoice` e segundo `autenticar`; ramo B011 descrito na autenticação.
+- `docs/FLUXO_HTTP.md`: diagrama com ramo opcional B011; desvios B010 vs B011 corretos; seção ECONNRESET substituída por ponte para validação 003A + archive.
+- `docs/ARQUITETURA.md`: pós-MVP menciona 003C/B012 e 003D/B011.
+- `docs/DECISOES.md`: ADR-015 status atualizado para aceito e implementado (`Concluída`).
+
+### 🧠 Decisões
+
+- Somente alinhamento documental; nenhum código de produção alterado.
+- Afirmações “B011 não tratado / sem automação” removidas dos docs vivos.
+
+### 📂 Arquivos impactados
+
+- `docs/API.md`
+- `docs/FLUXO_HTTP.md`
+- `docs/ARQUITETURA.md`
+- `docs/DECISOES.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 15:32
+
+### 🎯 Objetivo
+
+Executar o Passo A da Sprint 1.0 (S1-01): arquivar documentação investigativa da autenticação HTTP, sem alterar comportamento do sistema.
+
+### ✅ O que mudou
+
+- Criada a pasta `docs/archive/autenticacao-003a/` com README explicando o caráter histórico.
+- Movidos para o archive: diagnóstico, matriz de divergências, auditorias (POST autenticar e HTTP/TLS), robustez e checkpoint de evidência.
+- `docs/EVIDENCIA_HAR_AUTENTICACAO.md` permanece documentação viva (contrato HAR).
+- README: leitura recomendada separa SoT operacional do histórico da engenharia reversa 003A.
+- Links atualizados em `docs/API.md`, `docs/FLUXO_HTTP.md` e `.fases/003-login-http.md`.
+
+### 🧠 Decisões
+
+- Preferência de pasta: `docs/archive/` (não `docs/arquivo/`).
+- HAR permanece vivo; demais docs investigativos de auth vão ao archive.
+- Sessões antigas do CHANGELOG não foram reescritas (histórico preservado).
+
+### 📂 Arquivos impactados
+
+- `docs/archive/autenticacao-003a/README.md`
+- `docs/archive/autenticacao-003a/DIAGNOSTICO_AUTENTICACAO_HTTP.md`
+- `docs/archive/autenticacao-003a/MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md`
+- `docs/archive/autenticacao-003a/AUDITORIA_POST_AUTENTICAR.md`
+- `docs/archive/autenticacao-003a/AUDITORIA_HTTP_TLS_AUTENTICACAO.md`
+- `docs/archive/autenticacao-003a/ROBUSTEZ_AUTENTICACAO_HTTP.md`
+- `docs/archive/autenticacao-003a/CHECKPOINT_EVIDENCIA_AUTENTICACAO.md`
+- `README.md`
+- `docs/API.md`
+- `docs/FLUXO_HTTP.md`
+- `.fases/003-login-http.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 15:02
+
+### 🎯 Objetivo
+
+Validar B011 / Fase 003D em ambiente real (Passo 5) e promover a concluídos.
+
+### ✅ O que mudou
+
+- Validação `ECNH_USER_17`: openDialogChoice → openChoice → CIR-SAO PAULO (`18`) → medico → agenda/parser (49 itens) → sync Sheets (25 linhas futuras).
+- Evidência sanitizada registrada.
+- B011 e Fase 003D promovidos a `✅ Concluído` / `Concluída`.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** fluxo genérico B011 funciona ponta a ponta com profissional multi-unidade.
+- Config operacional `UNIDADE` pertence ao `.env` do profissional (não ao código).
+- B010 permanece pendente.
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/003d-consolidacao-escolha-unidade-2026-07-19.json`
+- `docs/evidencias/README.md`
+- `.fases/003d-escolha-unidade-visao.md`
+- `docs/BACKLOG.md`
+- `docs/ROADMAP.md`
+- `docs/DECISOES.md`
+- `docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/ARQUITETURA.md`
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 14:56
+
+### 🎯 Objetivo
+
+Implementar B011 de forma genérica (contratos, protocolo HTTP e config), preservando B012.
+
+### ✅ O que mudou
+
+- Módulo `escolha-unidade-portal` (detectar, parse, match) com testes.
+- `ECNHAuthenticationProtocol`: ramo pós-`autenticar` → `openChoice` → segundo `autenticar` com `idUnidTransito`.
+- Config `ECNH_USER_<n>_UNIDADE` / `UNID_TRANSITO` em login e sync; wire no `ECNHClient`.
+- Fase 003D promovida a `Implementada`.
+
+### 🧠 Decisões
+
+- B012 isolado; unidade não entra em `PerfilProfissionalPortal`.
+- Sem hardcode de profissional ou de id de unidade.
+- Validação real fica para o Passo 5.
+
+### 📂 Arquivos impactados
+
+- `src/client/escolha-unidade-portal.ts`
+- `src/client/escolha-unidade-portal.test.ts`
+- `src/client/ecnh-auth-protocol.ts`
+- `src/client/ecnh-client.ts`
+- `src/config/login-credentials.ts`
+- `src/config/sync-professionals.ts`
+- `src/config/sync-professionals.test.ts`
+- `src/services/agenda-sync-service.ts`
+- `src/composition/agenda-sync-runtime.ts`
+- `src/scripts/test-login.ts` / `test-agenda.ts` / `validate-*.ts` / `discover-agenda-html.ts`
+- `.fases/003d-escolha-unidade-visao.md`
+- `docs/BACKLOG.md` / `docs/ROADMAP.md` / `README.md` / `.env.example`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 14:52
+
+### 🎯 Objetivo
+
+Congelar o contrato HTTP do fluxo “Escolha de Perfil e/ou Visão” (Passo 1), sem código de produção.
+
+### ✅ O que mudou
+
+- Descoberta: `enviar()` em `choice.js` não POSTA `openChoice`; reenvia `method=autenticar` no form pai com `idUnidTransito`.
+- Após o segundo `autenticar`, HTML autenticado com marcador Médico (B012 aplicável).
+- Evidência sanitizada registrada.
+
+### 🧠 Decisões
+
+- **Contrato congelado** para implementação dos Passos 2–3.
+- Seleção de unidade na implementação continua via config genérica (`UNIDADE` / `UNID_TRANSITO`), não hardcode.
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/003d-descoberta-enviar-escolha-unidade-2026-07-19.json`
+- `docs/evidencias/README.md`
+- `.fases/003d-escolha-unidade-visao.md`
+- `docs/DECISOES.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 19/07/2026 • 14:47
+
+### 🎯 Objetivo
+
+Iniciar B011 / Fase 003D com documentação e ADR (Passo 0), sem código de produção.
+
+### ✅ O que mudou
+
+- Criada Fase 003D (`Planejada`) para suporte genérico à escolha de unidade/visão.
+- Registrado ADR-015.
+- B011 promovido a 🚧 Em andamento no backlog; foco atual do projeto.
+- ROADMAP atualizado com 003D / B011.
+
+### 🧠 Decisões
+
+- Implementação genérica: nenhuma regra por profissional/nome/índice/`idUnidTransito` hardcoded.
+- Config por profissional: `UNIDADE` + `UNID_TRANSITO` opcional; B012 permanece isolado.
+- Contrato do POST ENVIAR fica para o Passo 1 (descoberta com evidência).
+
+### 📂 Arquivos impactados
+
+- `.fases/003d-escolha-unidade-visao.md`
+- `docs/DECISOES.md`
+- `docs/BACKLOG.md`
+- `docs/ROADMAP.md`
+- `README.md`
+- `.env.example`
+- `CHANGELOG.md`
 
 ---
 

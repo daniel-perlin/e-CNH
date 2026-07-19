@@ -64,6 +64,30 @@ describe('resolveEnabledSyncProfessionals', () => {
     assert.equal(comRole[0]?.perfilEsperado, 'psicologo');
   });
 
+  it('mapeia UNIDADE / UNID_TRANSITO para unidadeDesejada', () => {
+    const comLabel = resolveEnabledSyncProfessionals({
+      ECNH_USER_1_ENABLED: 'true',
+      ECNH_USER_1_NAME: 'Alpha',
+      ECNH_USER_1_CPF: '111.111.111-11',
+      ECNH_USER_1_PASSWORD: 'a',
+      ECNH_USER_1_UNIDADE: 'CIR-SAO PAULO'
+    });
+    assert.deepEqual(comLabel[0]?.unidadeDesejada, { label: 'CIR-SAO PAULO' });
+
+    const comId = resolveEnabledSyncProfessionals({
+      ECNH_USER_2_ENABLED: 'true',
+      ECNH_USER_2_NAME: 'Beta',
+      ECNH_USER_2_CPF: '222.222.222-22',
+      ECNH_USER_2_PASSWORD: 'b',
+      ECNH_USER_2_UNID_TRANSITO: '18',
+      ECNH_USER_2_UNIDADE: 'OUTRA'
+    });
+    assert.deepEqual(comId[0]?.unidadeDesejada, {
+      label: 'OUTRA',
+      idUnidTransito: '18'
+    });
+  });
+
   it('falha com PROFILE inválido', () => {
     assert.throws(
       () =>

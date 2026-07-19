@@ -12,7 +12,8 @@ async function main(): Promise<void> {
   const credentials = resolveLoginCredentials();
   const client = new ECNHClient({
     baseUrl,
-    perfilEsperado: credentials.perfilEsperado
+    perfilEsperado: credentials.perfilEsperado,
+    unidadeDesejada: credentials.unidadeDesejada
   });
   const result = await client.login(credentials.cpf, credentials.password);
 

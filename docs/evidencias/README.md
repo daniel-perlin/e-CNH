@@ -50,3 +50,10 @@ Os arquivos podem conter somente metadados técnicos, hashes e sinais booleanos.
 - Documento da fase: [003c-perfis-profissionais-portal.md](../../.fases/003c-perfis-profissionais-portal.md)
 - Consolidação Médico (Italo / `ECNH_USER_16`): `003c-consolidacao-perfil-medico-2026-07-19.json`
 - Escopo validado: login, resolução de perfil `medico`, consulta `consultarAgendaMedico`, sincronização completa
+
+## Descoberta da Fase 003D / B011
+
+- Documento da fase: [003d-escolha-unidade-visao.md](../../.fases/003d-escolha-unidade-visao.md)
+- Descoberta do ENVIAR / segundo `autenticar`: `003d-descoberta-enviar-escolha-unidade-2026-07-19.json`
+- Consolidação multi-unidade (`ECNH_USER_17`): `003d-consolidacao-escolha-unidade-2026-07-19.json`
+- JS do portal: `/GFR/js/app/sgu/choice.js` (`enviar()` → form pai → `login()`)

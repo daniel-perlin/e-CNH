@@ -298,4 +298,4 @@ A hipótese foi confirmada apenas para o sintoma de conexão, não para o objeti
 
 ## Resultado
 
-A implementação preserva Axios, CookieJar, agentes e socket durante as três etapas. Em 19/07/2026, a validação reproduzível aprovou cinco autenticações distintas com evidência sanitizada; a Fase 003A está `Validada`. Consulte [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md).
+A implementação preserva Axios, CookieJar, agentes e socket durante as três etapas. Em 19/07/2026, a validação reproduzível aprovou cinco autenticações distintas com evidência sanitizada; a Fase 003A está `Validada`. Consulte [VALIDACAO_REPRODUZIVEL_003A.md](../../VALIDACAO_REPRODUZIVEL_003A.md).

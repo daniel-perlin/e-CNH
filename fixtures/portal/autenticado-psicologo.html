@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <title>eCNHsp - DETRAN - São Paulo</title>
+  </head>
+  <body>
+    <h1>Imprimir Agenda Diária do Psicólogo</h1>
+    <form
+      name="DivisaoEquitativaForm"
+      method="POST"
+      action="/gefor/GFR/divisao/divisaoEquitativa.do"
+    >
+      <input type="hidden" name="method" value="consultarAgendaPsicologo" />
+      <select id="agendamentos" name="data">
+        <option value="20/07/2026">20/07/2026</option>
+      </select>
+    </form>
+  </body>
+</html>

@@ -19,7 +19,7 @@ function loginAgenda() {
 
 A busca global encontrou apenas a definição da função e a atribuição do valor. Essa evidência de código, isoladamente, não comprovava execução.
 
-**Evidência posterior decisiva:** o HAR completo registra `POST /gefor/SGU/login.do` com `method=iniciarLoginAgenda` como etapa 2, entre `GET method=iniciarLogin` e `POST method=autenticar`. A execução no Network prevalece sobre a ausência de chamador identificado no arquivo. Consulte [EVIDENCIA_HAR_AUTENTICACAO.md](EVIDENCIA_HAR_AUTENTICACAO.md).
+**Evidência posterior decisiva:** o HAR completo registra `POST /gefor/SGU/login.do` com `method=iniciarLoginAgenda` como etapa 2, entre `GET method=iniciarLogin` e `POST method=autenticar`. A execução no Network prevalece sobre a ausência de chamador identificado no arquivo. Consulte [EVIDENCIA_HAR_AUTENTICACAO.md](../../EVIDENCIA_HAR_AUTENTICACAO.md).
 
 ## 1. Payload enviado pelo cliente
 

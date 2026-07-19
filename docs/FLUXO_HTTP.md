@@ -17,17 +17,17 @@ HTML do formulário de credenciais
   │ POST /gefor/SGU/login.do
   │ method=autenticar
   ▼
-Portal e-CNH
-  │ HTML completo SSR
-  ▼
-CookieJar preservado
+  ├─ (opcional B011 / multi-unidade)
+  │    openDialogChoice detectado
+  │    GET method=openChoice
+  │    POST method=autenticar + idUnidTransito (config UNIDADE)
   │
   ▼
-HTML "Imprimir Agenda Diária do Psicólogo"
+HTML autenticado (marcador Psicólogo ou Médico)
   │  formulário DivisaoEquitativaForm
   │
   │ POST /gefor/GFR/divisao/divisaoEquitativa.do
-  │ method=consultarAgendaPsicologo
+  │ method=consultarAgendaPsicologo | consultarAgendaMedico
   │ + unidade, usuário, dataReferencia, data
   ▼
 HTML com legend "Resultado" e tabela de agenda
@@ -39,7 +39,7 @@ HTML de login (sessão encerrada no portal)
 
 O fluxo principal de login e consulta devolve HTML SSR. Foram observados também endpoints JSON auxiliares para refresh de profissionais e datas (`refreshMedicosByUnidadeTransito`, `refreshAgendaMedicaByMedico`), usados pela UI ao alterar unidade ou data de referência. O HTML da consulta é a fonte do parser da Fase 004 (`table#agenda`).
 
-**Evidência confirmada (homologação):** dois desvios do fluxo feliz ainda **sem automação** — (1) popup de sessão já existente; (2) tela "Escolha de Perfil e/ou Visão" para múltiplas unidades. Ver [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) e backlog `B010` / `B011` (**reavaliar; B012 concluída**).
+**Desvios do fluxo feliz:** (1) popup de sessão já existente — **ainda sem automação** (`B010`); (2) tela "Escolha de Perfil e/ou Visão" — **automatizada** (`B011` / Fase 003D). Ver [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md).
 
 ## Estado da sessão antes do POST
 
@@ -101,36 +101,16 @@ O cliente reproduz esses doze controles e sua ordem. Valores de CPF, senha e coo
 
 ## Validação do cliente HTTP em ambiente real
 
-Em 18/07/2026, o fluxo completo confirmado no HAR foi executado com configuração local autorizada.
+A autenticação HTTP (Fase 003A) foi validada de forma reproduzível em 19/07/2026 (`npm run validate:login`; consolidação em `docs/evidencias/003a-consolidacao-validacao-2026-07-19.json`). Detalhes: [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md).
 
-**Evidências confirmadas:**
-
-```text
-GET /gefor/SGU/login.do?method=iniciarLogin
-  ↓
-HTTP 200
-  ↓
-POST /gefor/SGU/login.do • method=iniciarLoginAgenda
-  ↓
-HTTP 200
-  ↓
-POST /gefor/SGU/login.do • method=autenticar
-  ↓
-ECONNRESET
-```
-
-Uma execução instrumentada posterior recebeu HTTP 200 nas três etapas e retornou `status=sucesso`, mas não preservou a resposta. O resultado não foi reproduzido e não sustenta validação independente.
-
-**Pendência:** esclarecer ou estabilizar o encerramento intermitente do socket antes de concluir a fase. Consulte a [auditoria HTTP/TLS](AUDITORIA_HTTP_TLS_AUTENTICACAO.md).
-
-As diferenças conhecidas e pendentes estão organizadas na [matriz de divergências da autenticação HTTP](MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md).
+Tentativas anteriores com `ECONNRESET` e execuções sem artefato preservado são **histórico de investigação**, não o estado atual. Consulte o [arquivo da engenharia reversa 003A](archive/autenticacao-003a/).
 
 ## Navegação autenticada (Fase 003B)
 
 **Evidências confirmadas:**
 
 1. o HTML pós-login já traz `DivisaoEquitativaForm` e datas em `#agendamentos`;
-2. `PESQUISAR` submete `POST method=consultarAgendaPsicologo` para `/gefor/GFR/divisao/divisaoEquitativa.do`;
+2. `PESQUISAR` submete `POST` com o `method` do perfil (`consultarAgendaPsicologo` ou `consultarAgendaMedico`) para `/gefor/GFR/divisao/divisaoEquitativa.do`;
 3. a resposta inclui legend `Resultado`, `method=agendaMedico` e `table#agenda` com os cabeçalhos confirmados;
 4. refreshes JSON opcionais populam profissionais e datas quando a UI altera unidade/`dataReferencia`.
 

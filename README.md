@@ -2,33 +2,32 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto consulta as agendas dos profissionais e mantém na aba `Agenda` apenas os **pacientes com agendamento ativo** (hoje ou futuro).
 
-> **B012 / 003C:** Arquitetura de perfis profissionais do portal — `Concluída` (validada com Médico real). Ver [docs/BACKLOG.md](docs/BACKLOG.md).
->
-> **MVP:** concluído na Fase 007 (daemon `job:agenda` + lock + `sync:agenda`).
+> **B011 / 003D:** Escolha genérica de Perfil e/ou Visão — `Concluída`. **B012 / 003C:** perfis profissionais — `Concluída`. **MVP:** Fase 007 concluída.
 
 ## Estado do Projeto
 
 - **MVP concluído** (Fases 000–007)
 - **Sistema operacional** (sincronização sob demanda e agendada)
-- **Perfis do portal:** B012 concluída — Psicólogo e Médico suportados; registro extensível a perfis futuros
+- **Perfis do portal:** B012 concluída — Psicólogo e Médico; registro extensível
+- **Multi-unidade:** B011 concluída — escolha genérica via `UNIDADE` / `UNID_TRANSITO`
 - **Aba Agenda:** cadastro de pacientes ativos (CPF único; remove datas passadas automaticamente)
-- **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005 e B012 concluídos; B010/B011 pendentes de reavaliação
+- **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005, B011 e B012 concluídos; B010 pendente
 
 ## Leitura recomendada
 
 - [Visão do produto](docs/VISAO_DO_PRODUTO.md) — objetivo, usuários, fluxo operacional, MVP, escopo e evolução pós-MVP
 - [Arquitetura](docs/ARQUITETURA.md) — camadas técnicas, responsabilidades e limites de integração
+- [API / protocolo HTTP](docs/API.md) — contrato vivo do cliente com o portal
+- [Fluxo HTTP](docs/FLUXO_HTTP.md) — sequência de autenticação e agenda
 - [Roadmap](docs/ROADMAP.md) — construção do MVP (Fases 000–007) e evolução B012
-- [Backlog](docs/BACKLOG.md) — catálogo pós-MVP (B012 concluída; B010/B011 pendentes)
-- [Limitações conhecidas do portal (homologação)](docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) — sessão já autenticada e escolha de unidade (B010/B011)
-- [Diagnóstico da autenticação HTTP](docs/DIAGNOSTICO_AUTENTICACAO_HTTP.md) — hipóteses, evidências pendentes e plano para validar a Fase 003A
-- [Matriz de divergências da autenticação](docs/MATRIZ_DIVERGENCIAS_AUTENTICACAO_HTTP.md) — comparação detalhada entre navegador e `ECNHClient`
-- [Auditoria do POST `method=autenticar`](docs/AUDITORIA_POST_AUTENTICAR.md) — payload, headers, cookies, redirects e charset produzidos pelo cliente
+- [Backlog](docs/BACKLOG.md) — catálogo pós-MVP (B011 e B012 concluídos; B010 pendente)
+- [Limitações conhecidas do portal (homologação)](docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) — sessão já autenticada (B010) e demais limitações
 - [Evidência HAR da autenticação](docs/EVIDENCIA_HAR_AUTENTICACAO.md) — sequência completa, respostas, hashes e hidden fields
-- [Auditoria HTTP/TLS](docs/AUDITORIA_HTTP_TLS_AUTENTICACAO.md) — HTTP/2 versus HTTP/1.1, conexões, TLS e diagnóstico do reset
-- [Robustez da autenticação](docs/ROBUSTEZ_AUTENTICACAO_HTTP.md) — keep-alive, agentes, CookieJar, intermitência e plano mínimo
-- [Checkpoint da evidência](docs/CHECKPOINT_EVIDENCIA_AUTENTICACAO.md) — distinção entre sucesso reportado e artefatos preservados
 - [Validação reproduzível da Fase 003A](docs/VALIDACAO_REPRODUZIVEL_003A.md) — critério, comando e evidências aprovadas
+
+### Histórico da engenharia reversa (003A)
+
+A investigação forense da autenticação (diagnóstico, matriz de divergências, auditorias HTTP/TLS e checkpoint de evidência) está arquivada em [docs/archive/autenticacao-003a/](docs/archive/autenticacao-003a/). Não use esses documentos como SoT do comportamento atual.
 
 ## Problema resolvido
 

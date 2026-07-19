@@ -1,4 +1,5 @@
 import type { ECNHClient } from '../client/ecnh-client.js';
+import type { UnidadeDesejadaConfig } from '../client/escolha-unidade-portal.js';
 import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
 import type {
   ContextoExtracaoAgenda,
@@ -60,6 +61,10 @@ export interface EntradaSincronizacaoProfissional {
   perfilEsperado?: PerfilProfissionalId;
   /** Nome gravado na coluna Profissional da planilha. */
   profissional: string;
+  /**
+   * Unidade desejada opcional (B011); repassar via `ECNHClientOptions.unidadeDesejada`.
+   */
+  unidadeDesejada?: UnidadeDesejadaConfig;
 }
 
 /** Resultado da sincronização de uma data de consulta. */

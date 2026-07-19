@@ -60,7 +60,8 @@ export function criarAgendaSyncRuntime(
       new ECNHClient({
         baseUrl,
         logger,
-        perfilEsperado: entrada.perfilEsperado
+        perfilEsperado: entrada.perfilEsperado,
+        unidadeDesejada: entrada.unidadeDesejada
       }),
     logger,
     parseAgendaHtml

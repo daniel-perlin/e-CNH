@@ -36,7 +36,7 @@ Consulte também a [matriz de divergências](MATRIZ_DIVERGENCIAS_AUTENTICACAO_HT
 - o HAR não preservou cookies de request ou response;
 - o fluxo manual bem-sucedido chegou ao HTML "Imprimir Agenda Diária do Psicólogo".
 
-O contrato completo está em [EVIDENCIA_HAR_AUTENTICACAO.md](EVIDENCIA_HAR_AUTENTICACAO.md).
+O contrato completo está em [EVIDENCIA_HAR_AUTENTICACAO.md](../../EVIDENCIA_HAR_AUTENTICACAO.md).
 
 ## Hipóteses ordenadas por probabilidade
 

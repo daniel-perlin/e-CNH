@@ -19,14 +19,15 @@ GET  /gefor/SGU/login.do?method=iniciarLogin
 POST /gefor/SGU/login.do • method=iniciarLoginAgenda
 POST /gefor/SGU/login.do • method=autenticar
   -> três respostas HTTP 200 sem redirects
-  -> HTML "Imprimir Agenda Diária do Psicólogo" na resposta final
+  -> HTML autenticado com marcador de perfil (Psicólogo ou Médico)
+  -> opcional (multi-unidade): openDialogChoice → GET openChoice → segundo POST autenticar com idUnidTransito
 ```
 
 | Elemento                 | Fato observado                                                                                                                                                                                                                   |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Método e caminho         | sequência GET → POST → POST em `/gefor/SGU/login.do`                                                                                                                                                                             |
+| Método e caminho         | sequência GET → POST → POST em `/gefor/SGU/login.do`; ramo B011 quando o portal emite `openDialogChoice`                                                                                                                          |
 | Corpo                    | `application/x-www-form-urlencoded`                                                                                                                                                                                              |
-| Parâmetros observados    | `method=autenticar`, `novaSenha=`, `novaSenha1=`, `alteraSenha=false`, `idGrupoUsuario=-1`, `idCFC=`, `idUnidTransito=-1`, `msgPublicacao=`, `consultaAgenda=true`, `autenticadoCyberark=false`, `codigo=<cpf>`, `senha=<senha>` |
+| Parâmetros observados    | `method=autenticar`, `novaSenha=`, `novaSenha1=`, `alteraSenha=false`, `idGrupoUsuario=-1`, `idCFC=`, `idUnidTransito=-1` (ou value da unidade no segundo `autenticar`), `msgPublicacao=`, `consultaAgenda=true`, `autenticadoCyberark=false`, `codigo=<cpf>`, `senha=<senha>` |
 | Resposta                 | HTML completo, não JSON                                                                                                                                                                                                          |
 | Estilo de integração     | SSR e navegação por formulários HTML tradicionais                                                                                                                                                                                |
 | Página após autenticação | contém marcador do perfil (`... do Psicólogo` ou `... do Médico`)                                                                                              |
@@ -71,7 +72,9 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 | Início do login           | `GET`      | `/gefor/SGU/login.do?method=iniciarLogin`    | `method=iniciarLogin`                                                                   | HTML completo SSR                 | Fato observado |
 | Início do login da agenda | `POST`     | `/gefor/SGU/login.do`                        | `method=iniciarLoginAgenda` e formulário                                                | HTML completo SSR                 | Fato observado |
 | Autenticação              | `POST`     | `/gefor/SGU/login.do`                        | `method=autenticar`, CPF, senha e formulário                                            | HTML completo SSR                 | Fato observado |
-| Página protegida inicial  | —          | (resposta do `method=autenticar`)            | —                                                                                       | HTML com `DivisaoEquitativaForm`  | Fato observado |
+| Escolha de unidade (B011) | `GET`      | `/gefor/SGU/login.do?method=openChoice`      | `method=openChoice`, `autenticadoCyberark`                                              | HTML com `select#idUnidTransito`  | Fato observado |
+| Autenticação com unidade  | `POST`     | `/gefor/SGU/login.do`                        | `method=autenticar` + `idUnidTransito` (value da unidade)                               | HTML autenticado (marcador B012)  | Fato observado |
+| Página protegida inicial  | —          | (resposta do `method=autenticar` final)      | —                                                                                       | HTML com `DivisaoEquitativaForm`  | Fato observado |
 | Refresh de profissionais  | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=refreshMedicosByUnidadeTransito`, `idUnidadeTransitoConsulta`                   | JSON `[{ value, label }]`         | Fato observado |
 | Refresh de datas          | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=refreshAgendaMedicaByMedico`, `idUsuarioMedicoConsulta`, `dataReferencia`       | JSON `[{ value, label }]`         | Fato observado |
 | Consulta de agenda        | `POST`     | `/gefor/GFR/divisao/divisaoEquitativa.do`    | `method=consultarAgendaPsicologo` ou `consultarAgendaMedico`, unidade, usuário, datas | HTML com legend `Resultado`       | Fato observado |
@@ -97,22 +100,24 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 - alteração de HTML, texto, IDs ou estrutura de tabelas;
 - conteúdo pessoal em logs, erros, HARs ou fixtures.
 
-## Comportamentos observados na homologação (sem automação)
+## Comportamentos do portal após o primeiro `autenticar`
 
-**Limitações conhecidas** (evidência confirmada em homologação manual; ainda sem automação). Detalhes: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md). Também em [ARQUITETURA.md](ARQUITETURA.md).
+Detalhes operacionais: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md). Também em [ARQUITETURA.md](ARQUITETURA.md).
 
-| Caso | Comportamento | Estado no sistema | Backlog | Impacto observado |
-| ---- | ------------- | ----------------- | ------- | ----------------- |
-| Sessão já autenticada | Popup pedindo encerrar a sessão anterior antes de autenticar | Não tratado | B010 (reavaliar; B012 concluída) | Risco quando há sessão prévia |
-| Múltiplas unidades | Tela "Escolha de Perfil e/ou Visão" (Caio → CIR-SAO PAULO → ENVIAR) | Não tratado | B011 (reavaliar; B012 concluída) | Pode bloquear sync do Caio |
+| Caso | Comportamento | Estado no sistema | Backlog | Notas |
+| ---- | ------------- | ----------------- | ------- | ----- |
+| Sessão já autenticada | Popup pedindo encerrar a sessão anterior (`openDialogNewSession` / `forceLogout`) | Não tratado | B010 (pendente) | Mitigação: encerrar sessão no portal antes do sync |
+| Múltiplas unidades | `openDialogChoice` → `GET method=openChoice` → segundo `POST method=autenticar` com `idUnidTransito` | Tratado | B011 (`✅ Concluído`) | Config `ECNH_USER_<n>_UNIDADE` / `UNID_TRANSITO`; ADR-015 |
 
-Não inferir endpoints, payloads ou seletores destes fluxos até nova descoberta autorizada com evidência HTTP.
+**Evidência confirmada (B011):** no browser, `enviar()` (`choice.js`) copia `idUnidTransito` para o `LoginActionForm` pai e reenvia `method=autenticar` (não POSTA o formulário `openChoice`). Artefato: `docs/evidencias/003d-descoberta-enviar-escolha-unidade-2026-07-19.json`.
 
 ## Implementação da Fase 003A
 
 O `ECNHClient` implementa a sequência GET → POST → POST confirmada no HAR. Os dois POSTs usam `Content-Type` URL-encoded. `tough-cookie`, `HttpCookieAgent` e `HttpsCookieAgent` preservam o mesmo CookieJar e os mesmos agentes entre as três requisições.
 
 O login só é classificado como sucesso quando há cookie `JSESSIONID` e o marcador HTML de um perfil conhecido do registro (`Imprimir Agenda Diária do Psicólogo` ou `... do Médico`). Ausência desses sinais é retornada como `erro desconhecido`; senha inválida e usuário bloqueado continuam sem mapeamento porque seus sinais HTTP/HTML não foram confirmados.
+
+Quando o HTML pós-`autenticar` contém `openDialogChoice`, o protocolo executa o ramo B011 (`GET method=openChoice` → resolver unidade via config → segundo `POST method=autenticar` com `idUnidTransito`) **antes** de resolver o perfil profissional (B012). Ver ADR-015 e a Fase 003D.
 
 O CPF é normalizado para `DDD.DDD.DDD-DD` na fronteira de autenticação, conforme o HAR.
 
@@ -133,7 +138,7 @@ O logout envia `GET /gefor/SGU/login.do?method=finalizarLogin`, conforme o item 
 
 A Fase 003A está `Concluída`.
 
-Critério, comando e limitações estão em [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md). O histórico de tentativas anteriores permanece no [diagnóstico da autenticação](DIAGNOSTICO_AUTENTICACAO_HTTP.md) e na [auditoria do POST `method=autenticar`](AUDITORIA_POST_AUTENTICAR.md).
+Critério, comando e limitações estão em [VALIDACAO_REPRODUZIVEL_003A.md](VALIDACAO_REPRODUZIVEL_003A.md). O histórico de tentativas anteriores permanece no [arquivo da engenharia reversa 003A](archive/autenticacao-003a/) ([diagnóstico](archive/autenticacao-003a/DIAGNOSTICO_AUTENTICACAO_HTTP.md), [auditoria do POST `method=autenticar`](archive/autenticacao-003a/AUDITORIA_POST_AUTENTICAR.md)).
 
 ## Implementação da Fase 003B
 

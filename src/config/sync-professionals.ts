@@ -1,11 +1,11 @@
 import { ConfigurationError } from '../client/errors.js';
-import {
-  type PerfilProfissionalId,
-  parsePerfilProfissionalId
-} from '../client/perfil-profissional-portal.js';
+import type { UnidadeDesejadaConfig } from '../client/escolha-unidade-portal.js';
+import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
 import type { EntradaSincronizacaoProfissional } from '../services/agenda-sync-service.js';
 
 import { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
+import { resolveUnidadeDesejadaEnv } from './login-credentials.js';
+import { resolvePerfilEsperadoEnv } from './perfil-esperado-env.js';
 
 /**
  * Profissional habilitado para sincronização.
@@ -25,6 +25,8 @@ export interface ProfissionalParaSincronizacao {
   perfilEsperado?: PerfilProfissionalId;
   /** Senha usada apenas no login. */
   senha: string;
+  /** Unidade opcional para B011 (`UNIDADE` / `UNID_TRANSITO`). */
+  unidadeDesejada?: UnidadeDesejadaConfig;
 }
 
 export { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
@@ -33,7 +35,7 @@ export { listarIndicesUsuariosEnv } from './ecnh-user-env.js';
  * Lista profissionais com `ECNH_USER_<n>_ENABLED=true` e campos obrigatórios preenchidos.
  *
  * Variáveis por índice: `NAME`, `CPF`, `PASSWORD`, `ENABLED`.
- * Opcional: `PROFILE` (preferencial) ou `ROLE` (`psicologo`/`medico`).
+ * Opcional: `PROFILE`/`ROLE`, `UNIDADE`/`UNID_TRANSITO`.
  * Índices são descobertos automaticamente a partir das chaves do ambiente.
  */
 export function resolveEnabledSyncProfessionals(
@@ -61,16 +63,19 @@ export function resolveEnabledSyncProfessionals(
       );
     }
 
-    const perfilEsperado = resolvePerfilEsperadoEnv(env, index);
-
     const profissional: ProfissionalParaSincronizacao = {
       cpf: cpfNormalizado,
       identificadorSeguro: `ECNH_USER_${index}`,
       nome,
       senha
     };
+    const perfilEsperado = resolvePerfilEsperadoEnv(env, index);
     if (perfilEsperado !== undefined) {
       profissional.perfilEsperado = perfilEsperado;
+    }
+    const unidadeDesejada = resolveUnidadeDesejadaEnv(env, index);
+    if (unidadeDesejada !== undefined) {
+      profissional.unidadeDesejada = unidadeDesejada;
     }
     profissionais.push(profissional);
   }
@@ -97,6 +102,9 @@ export function paraEntradaSincronizacao(
   if (profissional.perfilEsperado !== undefined) {
     entrada.perfilEsperado = profissional.perfilEsperado;
   }
+  if (profissional.unidadeDesejada !== undefined) {
+    entrada.unidadeDesejada = profissional.unidadeDesejada;
+  }
   return entrada;
 }
 
@@ -105,24 +113,4 @@ export function resolveEntradasSincronizacao(
   env: NodeJS.ProcessEnv = process.env
 ): EntradaSincronizacaoProfissional[] {
   return resolveEnabledSyncProfessionals(env).map(paraEntradaSincronizacao);
-}
-
-function resolvePerfilEsperadoEnv(
-  env: NodeJS.ProcessEnv,
-  index: number
-): PerfilProfissionalId | undefined {
-  const profileRaw = env[`ECNH_USER_${index}_PROFILE`];
-  const roleRaw = env[`ECNH_USER_${index}_ROLE`];
-  const raw = profileRaw !== undefined && profileRaw.trim().length > 0 ? profileRaw : roleRaw;
-  if (raw === undefined || raw.trim().length === 0) {
-    return undefined;
-  }
-
-  const parsed = parsePerfilProfissionalId(raw);
-  if (parsed === undefined) {
-    throw new ConfigurationError(
-      `ECNH_USER_${index}_PROFILE/ROLE inválido: use psicologo ou medico.`
-    );
-  }
-  return parsed;
 }

@@ -25,7 +25,10 @@ AgendaSyncService ──> parseAgendaHtml (Cheerio) ──> AgendaRepository ─
 
 A **Fase 003A — Autenticação HTTP** trata exclusivamente login e sessão. A **Fase 003B — Navegação autenticada** adiciona navegação pós-login e entrega HTML de agenda. A **Fase 004 — Extração de dados da agenda** converte esse HTML em modelos tipados via Cheerio. A **Fase 005 — Integração Google Sheets** persiste os modelos via `AgendaRepository` / `GoogleSheetsAgendaRepository`. A **Fase 006 — Orquestração multi-profissionais** entrega `AgendaSyncService` e o script `npm run sync:agenda` (`Concluída`). A **Fase 007 — Agendamento automático (cron)** entrega daemon, `SyncLock` e `AgendaSyncJob` sobre o serviço existente (`Concluída`, ADR-013).
 
-**Pós-MVP:** a **Fase 003C / B012** (`Concluída`) entregou a arquitetura de **perfis profissionais do portal** (`PerfilProfissionalPortal`, ADR-014): o `ECNHClient` resolve o perfil pelo HTML (e opcionalmente por config), permitindo Médico e **perfis futuros** com mínimo impacto em parser, repositório, serviços e jobs. Validada com profissional Médico real (Italo).
+**Pós-MVP:**
+
+- a **Fase 003C / B012** (`Concluída`) entregou a arquitetura de **perfis profissionais do portal** (`PerfilProfissionalPortal`, ADR-014): o `ECNHClient` resolve o perfil pelo HTML (e opcionalmente por config), permitindo Médico e **perfis futuros** com mínimo impacto em parser, repositório, serviços e jobs. Validada com profissional Médico real (Italo).
+- a **Fase 003D / B011** (`Concluída`) entregou a escolha genérica de **unidade/visão** (`EscolhaUnidadePortal`, ADR-015): ramo opcional pós-`autenticar` (`openDialogChoice` → `openChoice` → segundo `autenticar` com `idUnidTransito` via `UNIDADE`/`UNID_TRANSITO`), isolado de B012. Validada com profissional multi-unidade real.
 
 Os contratos conceituais entre essas camadas estão em [MODELO_DOMINIO.md](MODELO_DOMINIO.md). Eles orientam a evolução sem antecipar tipos, campos obrigatórios ou respostas HTTP ainda não confirmadas.
 
@@ -62,9 +65,7 @@ Playwright não é tecnologia principal e não será usado no fluxo produtivo no
 
 ## Limitações conhecidas do portal (homologação)
 
-Dois comportamentos reais do portal ainda **não são automatizados** e podem impedir a sincronização de alguns profissionais. Com **B012 concluída**, ambos devem ser **reavaliados** — a arquitetura de perfis não os cobre por si só:
-
-1. **Sessão já autenticada** — popup pedindo encerrar a sessão anterior antes do login continuar. Backlog `B010`. (Na validação de 19/07/2026 o sync do Italo concluiu com sucesso quando a sessão estava disponível.)
-2. **Escolha de Perfil / Visão (unidade)** — tela pós-login para profissionais com múltiplas unidades (impacto observado: Caio → CIR-SAO PAULO → ENVIAR). Backlog `B011`. Conceito distinto do `PerfilProfissionalPortal` (Psicólogo/Médico) da B012.
+1. **Sessão já autenticada** — popup pedindo encerrar a sessão anterior antes do login continuar (`openDialogNewSession` / `forceLogout`). Ainda **não automatizado**. Backlog `B010`.
+2. **Escolha de Perfil / Visão (unidade)** — **automatizada (B011 / Fase 003D)**: `openDialogChoice` → `openChoice` → segundo `autenticar` com `idUnidTransito` via config `UNIDADE`/`UNID_TRANSITO`. Conceito distinto do `PerfilProfissionalPortal` (B012).
 
 Detalhes: [COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md](COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md). Fluxo feliz: [API.md](API.md) / [FLUXO_HTTP.md](FLUXO_HTTP.md). Catálogo: [BACKLOG.md](BACKLOG.md).

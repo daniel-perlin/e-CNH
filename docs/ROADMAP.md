@@ -30,13 +30,14 @@ O MVP do projeto foi concluído na Fase 007. As melhorias incrementais B001–B0
 
 | Item | Status | Entrega |
 | ---- | ------ | ------- |
-| Fase 003C / **B012** — Arquitetura de perfis profissionais do portal | `Concluída` | Strategy extensível (`PerfilProfissionalPortal`); validada com Médico real (Italo): login, perfil, consulta e sync completo |
+| Fase 003C / **B012** — Arquitetura de perfis profissionais do portal | `Concluída` | Strategy extensível (`PerfilProfissionalPortal`); validada com Médico real: login, perfil, consulta e sync completo |
+| Fase 003D / **B011** — Escolha de Perfil e/ou Visão (unidade) | `Concluída` | Suporte genérico a `openDialogChoice` / `openChoice` / segundo `autenticar`; validado com multi-unidade real (login, unidade, B012, agenda, sync) |
 
-O objetivo desta evolução **não** é apenas “suportar Médico além de Psicólogo”, e sim permitir **novos perfis do portal** com mínimo impacto nas camadas superiores.
+B012 e B011 são responsabilidades **isoladas**: perfil profissional versus escolha de unidade/visão.
 
-B010 e B011 permanecem no backlog para **reavaliação** (comportamentos de sessão/unidade distintos do perfil profissional).
+B010 (sessão já autenticada) permanece no backlog.
 
-Detalhes: [.fases/003c-perfis-profissionais-portal.md](../.fases/003c-perfis-profissionais-portal.md) · [BACKLOG.md](BACKLOG.md) · evidência [003c-consolidacao-perfil-medico-2026-07-19.json](evidencias/003c-consolidacao-perfil-medico-2026-07-19.json).
+Detalhes: [.fases/003c-perfis-profissionais-portal.md](../.fases/003c-perfis-profissionais-portal.md) · [.fases/003d-escolha-unidade-visao.md](../.fases/003d-escolha-unidade-visao.md) · [BACKLOG.md](BACKLOG.md).
 
 ## Convenção de status (MVP)
 

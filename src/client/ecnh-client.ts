@@ -15,6 +15,7 @@ import {
   type PerfilProfissionalId,
   type PerfilProfissionalPortal
 } from './perfil-profissional-portal.js';
+import type { UnidadeDesejadaConfig } from './escolha-unidade-portal.js';
 import { SessionManager } from './session-manager.js';
 
 export type { ConsultarAgendaParams, ConsultarAgendaPsicologoParams };
@@ -27,6 +28,11 @@ export interface ECNHClientOptions {
    * Se informado, deve coincidir com o marcador do HTML pós-login.
    */
   perfilEsperado?: PerfilProfissionalId;
+  /**
+   * Unidade desejada quando o portal emitir "Escolha de Perfil e/ou Visão" (B011).
+   * Ignorada se o diálogo não aparecer.
+   */
+  unidadeDesejada?: UnidadeDesejadaConfig;
 }
 
 /** Cliente do portal e-CNH responsável por autenticação, sessão e navegação HTTP. */
@@ -35,6 +41,7 @@ export class ECNHClient {
   private readonly authenticationProtocol = new ECNHAuthenticationProtocol();
   private readonly logger: StructuredLogger;
   private readonly perfilEsperado: PerfilProfissionalId | undefined;
+  private readonly unidadeDesejada: UnidadeDesejadaConfig | undefined;
   private readonly sessionManager = new SessionManager();
   private readonly transport: AuthTransport;
   private lastAuthenticatedHtml: string | undefined;
@@ -47,6 +54,7 @@ export class ECNHClient {
 
     this.logger = options.logger ?? createLogger();
     this.perfilEsperado = options.perfilEsperado;
+    this.unidadeDesejada = options.unidadeDesejada;
     this.transport = new AuthTransport(options.baseUrl, this.logger, this.sessionManager);
   }
 
@@ -55,7 +63,8 @@ export class ECNHClient {
     this.logger.info({ event: 'ecnh.login.started' }, 'Iniciando autenticação e-CNH');
 
     const result = await this.authenticationProtocol.login(credentials, this.transport, {
-      perfilEsperado: this.perfilEsperado
+      perfilEsperado: this.perfilEsperado,
+      unidadeDesejada: this.unidadeDesejada
     });
     if (result.status === 'sucesso') {
       this.lastAuthenticatedHtml = result.html;
