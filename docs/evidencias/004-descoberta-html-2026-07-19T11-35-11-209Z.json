@@ -1,0 +1,844 @@
+{
+  "approved": true,
+  "credentialsSource": "ECNH_USER_1",
+  "finishedAt": "2026-07-19T11:35:12.567Z",
+  "kind": "descoberta-html-agenda",
+  "loginStatus": "sucesso",
+  "nodeVersion": "v26.5.0",
+  "phase": "004",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T11:35:11.209Z",
+  "steps": {
+    "consultations": [
+      {
+        "bodyBytes": 79753,
+        "bodySha256": "9a9cf3fbff7abe11641cfdba6900aa8a7489ffc870b7256272c1dbf61d670cd8",
+        "dataKind": "date",
+        "inventory": {
+          "authenticatedMarkerPresent": true,
+          "fieldsetResultado": {
+            "childTableCount": 2,
+            "hasId": false,
+            "hasName": false,
+            "id": "",
+            "legendText": "Resultado",
+            "name": ""
+          },
+          "forms": [
+            {
+              "id": "",
+              "methodInputs": [
+                "agendaMedico"
+              ],
+              "name": "DivisaoEquitativaForm"
+            }
+          ],
+          "legendResultadoPresent": true,
+          "loginFormPresent": false,
+          "methodValues": [
+            "agendaMedico"
+          ],
+          "resultTable": {
+            "columns": [
+              {
+                "headerText": "Hora",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "CPF",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Nome",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Telefone",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "E-mail",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Tipo de Processo",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Categoria",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Status do Exame Médico",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Status do Exame Psicológico",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              }
+            ],
+            "dataRowCount": 8,
+            "emptyCellCountsByHeader": {
+              "Hora": 0,
+              "CPF": 0,
+              "Nome": 0,
+              "Telefone": 0,
+              "E-mail": 0,
+              "Tipo de Processo": 0,
+              "Categoria": 0,
+              "Status do Exame Médico": 0,
+              "Status do Exame Psicológico": 0
+            },
+            "headerMatchStrategy": "th-text",
+            "headerRowPresent": true,
+            "rowCellCounts": [
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9
+            ],
+            "selectorCandidates": [
+              {
+                "rationale": "Id direto na tabela de resultado.",
+                "robustness": "high",
+                "selector": "table#agenda"
+              },
+              {
+                "rationale": "Fieldset identificado pelo legend textual Resultado, depois a tabela filha.",
+                "robustness": "high",
+                "selector": "fieldset:has(> legend):contains-equivalent(Resultado) > table"
+              },
+              {
+                "rationale": "Tabela cujo primeiro tr contém th com textos de cabeçalho confirmados (Hora, CPF, Nome...).",
+                "robustness": "high",
+                "selector": "table:has(th) matched-by-header-texts"
+              }
+            ],
+            "valueKindsByHeader": {
+              "Hora": [
+                "time"
+              ],
+              "CPF": [
+                "cpf-shaped"
+              ],
+              "Nome": [
+                "short-text"
+              ],
+              "Telefone": [
+                "phone-shaped",
+                "cpf-shaped"
+              ],
+              "E-mail": [
+                "email-shaped"
+              ],
+              "Tipo de Processo": [
+                "short-text"
+              ],
+              "Categoria": [
+                "short-text"
+              ],
+              "Status do Exame Médico": [
+                "short-text"
+              ],
+              "Status do Exame Psicológico": [
+                "short-text"
+              ]
+            }
+          },
+          "tableSummaries": [
+            {
+              "captionText": "",
+              "classNames": [
+                "texto"
+              ],
+              "columnHeaderTexts": [],
+              "dataRowCount": 13,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 16
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 9,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "Resultado",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 11
+            },
+            {
+              "captionText": "",
+              "classNames": [
+                "table",
+                "table-striped",
+                "table-bordered",
+                "table-responsive"
+              ],
+              "columnHeaderTexts": [
+                "Hora",
+                "CPF",
+                "Nome",
+                "Telefone",
+                "E-mail",
+                "Tipo de Processo",
+                "Categoria",
+                "Status do Exame Médico",
+                "Status do Exame Psicológico"
+              ],
+              "dataRowCount": 8,
+              "hasId": true,
+              "hasName": false,
+              "id": "agenda",
+              "name": "",
+              "nestedInFieldsetLegend": "Resultado",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 9
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 1,
+              "hasId": true,
+              "hasName": false,
+              "id": "tableBotoes",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 1
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 1,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 1
+            }
+          ]
+        }
+      },
+      {
+        "bodyBytes": 78998,
+        "bodySha256": "5fd166127fc25d04f984dfb77a354b4470de1e7e61a376ae42fc79a72046ab87",
+        "dataKind": "date",
+        "inventory": {
+          "authenticatedMarkerPresent": true,
+          "fieldsetResultado": {
+            "childTableCount": 2,
+            "hasId": false,
+            "hasName": false,
+            "id": "",
+            "legendText": "Resultado",
+            "name": ""
+          },
+          "forms": [
+            {
+              "id": "",
+              "methodInputs": [
+                "agendaMedico"
+              ],
+              "name": "DivisaoEquitativaForm"
+            }
+          ],
+          "legendResultadoPresent": true,
+          "loginFormPresent": false,
+          "methodValues": [
+            "agendaMedico"
+          ],
+          "resultTable": {
+            "columns": [
+              {
+                "headerText": "Hora",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "CPF",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Nome",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Telefone",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "E-mail",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Tipo de Processo",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Categoria",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Status do Exame Médico",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Status do Exame Psicológico",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              }
+            ],
+            "dataRowCount": 7,
+            "emptyCellCountsByHeader": {
+              "Hora": 0,
+              "CPF": 0,
+              "Nome": 0,
+              "Telefone": 0,
+              "E-mail": 0,
+              "Tipo de Processo": 0,
+              "Categoria": 0,
+              "Status do Exame Médico": 0,
+              "Status do Exame Psicológico": 0
+            },
+            "headerMatchStrategy": "th-text",
+            "headerRowPresent": true,
+            "rowCellCounts": [
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9
+            ],
+            "selectorCandidates": [
+              {
+                "rationale": "Id direto na tabela de resultado.",
+                "robustness": "high",
+                "selector": "table#agenda"
+              },
+              {
+                "rationale": "Fieldset identificado pelo legend textual Resultado, depois a tabela filha.",
+                "robustness": "high",
+                "selector": "fieldset:has(> legend):contains-equivalent(Resultado) > table"
+              },
+              {
+                "rationale": "Tabela cujo primeiro tr contém th com textos de cabeçalho confirmados (Hora, CPF, Nome...).",
+                "robustness": "high",
+                "selector": "table:has(th) matched-by-header-texts"
+              }
+            ],
+            "valueKindsByHeader": {
+              "Hora": [
+                "time"
+              ],
+              "CPF": [
+                "cpf-shaped"
+              ],
+              "Nome": [
+                "short-text"
+              ],
+              "Telefone": [
+                "phone-shaped",
+                "cpf-shaped"
+              ],
+              "E-mail": [
+                "email-shaped"
+              ],
+              "Tipo de Processo": [
+                "short-text",
+                "long-text"
+              ],
+              "Categoria": [
+                "short-text"
+              ],
+              "Status do Exame Médico": [
+                "short-text"
+              ],
+              "Status do Exame Psicológico": [
+                "short-text"
+              ]
+            }
+          },
+          "tableSummaries": [
+            {
+              "captionText": "",
+              "classNames": [
+                "texto"
+              ],
+              "columnHeaderTexts": [],
+              "dataRowCount": 12,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 15
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 8,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "Resultado",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 10
+            },
+            {
+              "captionText": "",
+              "classNames": [
+                "table",
+                "table-striped",
+                "table-bordered",
+                "table-responsive"
+              ],
+              "columnHeaderTexts": [
+                "Hora",
+                "CPF",
+                "Nome",
+                "Telefone",
+                "E-mail",
+                "Tipo de Processo",
+                "Categoria",
+                "Status do Exame Médico",
+                "Status do Exame Psicológico"
+              ],
+              "dataRowCount": 7,
+              "hasId": true,
+              "hasName": false,
+              "id": "agenda",
+              "name": "",
+              "nestedInFieldsetLegend": "Resultado",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 8
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 1,
+              "hasId": true,
+              "hasName": false,
+              "id": "tableBotoes",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 1
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 1,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 1
+            }
+          ]
+        }
+      },
+      {
+        "bodyBytes": 77714,
+        "bodySha256": "a932abe9fef2e3f11b3f9273931bbb613c6d2b3d0f26fb595858786a348d9b2a",
+        "dataKind": "date",
+        "inventory": {
+          "authenticatedMarkerPresent": true,
+          "fieldsetResultado": {
+            "childTableCount": 2,
+            "hasId": false,
+            "hasName": false,
+            "id": "",
+            "legendText": "Resultado",
+            "name": ""
+          },
+          "forms": [
+            {
+              "id": "",
+              "methodInputs": [
+                "agendaMedico"
+              ],
+              "name": "DivisaoEquitativaForm"
+            }
+          ],
+          "legendResultadoPresent": true,
+          "loginFormPresent": false,
+          "methodValues": [
+            "agendaMedico"
+          ],
+          "resultTable": {
+            "columns": [
+              {
+                "headerText": "Hora",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "CPF",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Nome",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Telefone",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "E-mail",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Tipo de Processo",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Categoria",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Status do Exame Médico",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              },
+              {
+                "headerText": "Status do Exame Psicológico",
+                "thAttributes": {
+                  "classPresent": true,
+                  "idPresent": false,
+                  "namePresent": false,
+                  "otherAttributeNames": []
+                }
+              }
+            ],
+            "dataRowCount": 6,
+            "emptyCellCountsByHeader": {
+              "Hora": 0,
+              "CPF": 0,
+              "Nome": 0,
+              "Telefone": 0,
+              "E-mail": 0,
+              "Tipo de Processo": 0,
+              "Categoria": 0,
+              "Status do Exame Médico": 0,
+              "Status do Exame Psicológico": 0
+            },
+            "headerMatchStrategy": "th-text",
+            "headerRowPresent": true,
+            "rowCellCounts": [
+              9,
+              9,
+              9,
+              9,
+              9,
+              9
+            ],
+            "selectorCandidates": [
+              {
+                "rationale": "Id direto na tabela de resultado.",
+                "robustness": "high",
+                "selector": "table#agenda"
+              },
+              {
+                "rationale": "Fieldset identificado pelo legend textual Resultado, depois a tabela filha.",
+                "robustness": "high",
+                "selector": "fieldset:has(> legend):contains-equivalent(Resultado) > table"
+              },
+              {
+                "rationale": "Tabela cujo primeiro tr contém th com textos de cabeçalho confirmados (Hora, CPF, Nome...).",
+                "robustness": "high",
+                "selector": "table:has(th) matched-by-header-texts"
+              }
+            ],
+            "valueKindsByHeader": {
+              "Hora": [
+                "time"
+              ],
+              "CPF": [
+                "cpf-shaped"
+              ],
+              "Nome": [
+                "short-text"
+              ],
+              "Telefone": [
+                "cpf-shaped",
+                "phone-shaped"
+              ],
+              "E-mail": [
+                "email-shaped"
+              ],
+              "Tipo de Processo": [
+                "short-text"
+              ],
+              "Categoria": [
+                "short-text"
+              ],
+              "Status do Exame Médico": [
+                "short-text"
+              ],
+              "Status do Exame Psicológico": [
+                "short-text"
+              ]
+            }
+          },
+          "tableSummaries": [
+            {
+              "captionText": "",
+              "classNames": [
+                "texto"
+              ],
+              "columnHeaderTexts": [],
+              "dataRowCount": 11,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 14
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 7,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "Resultado",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 9
+            },
+            {
+              "captionText": "",
+              "classNames": [
+                "table",
+                "table-striped",
+                "table-bordered",
+                "table-responsive"
+              ],
+              "columnHeaderTexts": [
+                "Hora",
+                "CPF",
+                "Nome",
+                "Telefone",
+                "E-mail",
+                "Tipo de Processo",
+                "Categoria",
+                "Status do Exame Médico",
+                "Status do Exame Psicológico"
+              ],
+              "dataRowCount": 6,
+              "hasId": true,
+              "hasName": false,
+              "id": "agenda",
+              "name": "",
+              "nestedInFieldsetLegend": "Resultado",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 7
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 1,
+              "hasId": true,
+              "hasName": false,
+              "id": "tableBotoes",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 1
+            },
+            {
+              "captionText": "",
+              "classNames": [],
+              "columnHeaderTexts": [],
+              "dataRowCount": 1,
+              "hasId": false,
+              "hasName": false,
+              "id": "",
+              "name": "",
+              "nestedInFieldsetLegend": "",
+              "role": "",
+              "summaryAttr": "",
+              "totalRowCount": 1
+            }
+          ]
+        }
+      }
+    ],
+    "datesAvailableCount": 4,
+    "datesProbedCount": 3,
+    "logoutCompleted": true
+  },
+  "summary": {
+    "note": "HTML de resultado inventariado com tabela associada ao legend Resultado."
+  }
+}

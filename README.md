@@ -2,7 +2,7 @@
 
 Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto buscará as agendas futuras dos profissionais e manterá a aba `Agenda` atualizada de forma automatizada.
 
-> **Fase atual:** 003B — Navegação autenticada (`Concluída`). HTML bruto da agenda obtido via `POST method=consultarAgendaPsicologo`. Próxima: Fase 004 — Extração de dados da agenda (`Planejada`).
+> **Fase atual:** 004 — Extração de dados da agenda (`Concluída`). Parser Cheerio → modelos tipados a partir de `table#agenda`. Próxima: Fase 005 — Integração Google Sheets (`Planejada`).
 
 ## Leitura recomendada
 
@@ -34,7 +34,7 @@ O sistema integra o portal diretamente por HTTP: Axios preserva a sessão no Coo
 - Validador `npm run validate:login` com evidências sanitizadas em `docs/evidencias/`
 - Validador `npm run validate:agenda` e descoberta `npm run discover:agenda` da navegação autenticada
 - Descoberta de logout `npm run discover:logout`
-- Cheerio (parsing futuro de HTML SSR; na 003B usado só para montar/inspecionar formulários de navegação)
+- Cheerio (parsing de HTML SSR da agenda; descoberta/navegação também o utilizam para inventário de formulários)
 - Google APIs e dotenv
 - Pino para logs estruturados
 - Zod para validação futura de configuração e dados de fronteira
@@ -86,17 +86,26 @@ npm run validate:login
 
 O cliente envia exclusivamente o protocolo de login confirmado, mantém cookies com `tough-cookie` e confirma sucesso pela presença de `JSESSIONID` e do marcador HTML observado. O logout envia `GET /gefor/SGU/login.do?method=finalizarLogin` e descarta a sessão local.
 
-Após o login, `listarDatasAgendamento()` e `obterHtmlAgenda({ data, dataReferencia })` reproduzem a consulta `POST method=consultarAgendaPsicologo` e devolvem HTML bruto, sem parsing de pacientes.
+Após o login, `listarDatasAgendamento()` e `obterHtmlAgenda({ data, dataReferencia })` reproduzem a consulta `POST method=consultarAgendaPsicologo` e devolvem HTML bruto. `parseAgendaHtml(html, { dataConsulta })` transforma esse HTML em `Agenda` / `ItemAgenda` / `Paciente`.
+
+### Parser da agenda
+
+```bash
+npm run test:agenda-parser
+npm run validate:agenda-parser
+npm run discover:agenda-html
+```
 
 ### Estado da validação real
 
-Em 19/07/2026, a validação reproduzível aprovou autenticação, logout e navegação até o HTML de resultado da agenda, com evidências em `docs/evidencias/`. A Fase 003A está `Concluída`. A Fase 003B está `Concluída`.
+Em 19/07/2026, a validação reproduzível aprovou autenticação, logout, navegação até o HTML de resultado e extração tipada da agenda, com evidências em `docs/evidencias/`. As Fases 003A, 003B e 004 estão `Concluída`.
 
 Para reexecutar:
 
 ```bash
 npm run validate:login
 npm run validate:agenda
+npm run validate:agenda-parser
 ```
 
 Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md) e [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md).
@@ -126,13 +135,14 @@ Comandos de qualidade:
 ```bash
 npm run typecheck
 npm run lint
+npm run test:agenda-parser
 npm run format:check
 npm run build
 ```
 
 ## Roadmap e próximos passos
 
-Próximas fases: **004 — Extração de dados da agenda**, **005 — Integração Google Sheets**, **006 — Orquestração multi-profissionais** e **007 — Agendamento automático (cron)**. Veja o [roadmap detalhado](docs/ROADMAP.md).
+Próximas fases: **005 — Integração Google Sheets**, **006 — Orquestração multi-profissionais** e **007 — Agendamento automático (cron)**. Veja o [roadmap detalhado](docs/ROADMAP.md).
 
 ### Convenção de status
 

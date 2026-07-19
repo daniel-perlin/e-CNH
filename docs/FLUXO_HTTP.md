@@ -37,7 +37,7 @@ HTML com legend "Resultado" e tabela de agenda
 HTML de login (sessão encerrada no portal)
 ```
 
-O fluxo principal de login e consulta devolve HTML SSR. Foram observados também endpoints JSON auxiliares para refresh de profissionais e datas (`refreshMedicosByUnidadeTransito`, `refreshAgendaMedicaByMedico`), usados pela UI ao alterar unidade ou data de referência. O HTML da consulta é o artefato de navegação e será a fonte para parsers na Fase 004.
+O fluxo principal de login e consulta devolve HTML SSR. Foram observados também endpoints JSON auxiliares para refresh de profissionais e datas (`refreshMedicosByUnidadeTransito`, `refreshAgendaMedicaByMedico`), usados pela UI ao alterar unidade ou data de referência. O HTML da consulta é a fonte do parser da Fase 004 (`table#agenda`).
 
 ## Estado da sessão antes do POST
 
@@ -129,10 +129,19 @@ As diferenças conhecidas e pendentes estão organizadas na [matriz de divergên
 
 1. o HTML pós-login já traz `DivisaoEquitativaForm` e datas em `#agendamentos`;
 2. `PESQUISAR` submete `POST method=consultarAgendaPsicologo` para `/gefor/GFR/divisao/divisaoEquitativa.do`;
-3. a resposta inclui legend `Resultado`, `method=agendaMedico` e cabeçalhos da tabela de agenda;
+3. a resposta inclui legend `Resultado`, `method=agendaMedico` e `table#agenda` com os cabeçalhos confirmados;
 4. refreshes JSON opcionais populam profissionais e datas quando a UI altera unidade/`dataReferencia`.
+
+## Extração tipada (Fase 004)
+
+**Evidências confirmadas:**
+
+1. a tabela de resultado é `table#agenda`;
+2. as nove colunas são atributos de domínio (`Paciente` + `ItemAgenda`);
+3. classes Bootstrap/`list_titulo`/`style` são apresentação;
+4. `parseAgendaHtml` produz `ResultadoExtracaoAgenda` sem chamadas HTTP;
+5. `dataConsulta` vem do contexto do chamador.
 
 ## Descobertas pendentes
 
-- estrutura interna das linhas da tabela de resultado (Fase 004);
 - ciclo completo de expiração de sessão.

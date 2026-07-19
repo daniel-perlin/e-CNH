@@ -61,9 +61,9 @@
 - **Decisão:** `ECNHClient.logout()` envia esse GET com o CookieJar da sessão e, em seguida, sempre descarta a sessão local.
 - **Consequência:** o portal recebe o encerramento observado no menu. Falha de rede no GET não impede a limpeza local. Não confundir com o campo `forceLogout` da tela de login.
 
-## ADR-010 — Consulta de agenda via DivisaoEquitativaForm
+## ADR-011 — Extração de agenda por `table#agenda` e cabeçalhos textuais
 
 - **Status:** aceito
-- **Contexto:** a Fase 003B confirmou que o HTML pós-login já contém `DivisaoEquitativaForm` e que `pesquisar()` submete `POST method=consultarAgendaPsicologo` para `/gefor/GFR/divisao/divisaoEquitativa.do`.
-- **Decisão:** o `ECNHClient` preserva o HTML autenticado, lê datas do select `#agendamentos` e obtém HTML bruto por esse POST, exigindo `data` e `dataReferencia` nos formatos observados. Não há contrato público de domínio para a agenda nesta fase.
-- **Consequência:** a navegação autenticada fica encapsulada no cliente. Parser, modelos de paciente e Sheets permanecem nas fases seguintes. Refreshes JSON auxiliares foram evidenciados, mas não são obrigatórios quando o select já vem populado.
+- **Contexto:** a Fase 004 confirmou que o HTML de resultado contém `table#agenda` com nove colunas nomeadas em `th`, enquanto classes Bootstrap/`list_titulo`/`style` são só apresentação. A data consultada não permanece confiável no formulário após o POST.
+- **Decisão:** o parser localiza a tabela por `table#agenda` (fallback: fieldset `Resultado` + cabeçalhos), liga células pelo texto do `th` e recebe `dataConsulta` como contexto opcional do chamador. Modelos representam domínio (`Paciente`, `ItemAgenda`, `Agenda`), não o layout HTML.
+- **Consequência:** `ECNHClient` continua devolvendo HTML bruto; `parseAgendaHtml` é puro e testável. Integração com Sheets (Fase 005) consome os modelos sem conhecer seletores.

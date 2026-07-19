@@ -83,9 +83,9 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 
 **Fato observado (Fase 003B):** a consulta da agenda é um `POST` URL-encoded para `/gefor/GFR/divisao/divisaoEquitativa.do` com `method=consultarAgendaPsicologo`. O botão PESQUISAR chama `pesquisar()`, que valida os campos e submete o formulário. As datas disponíveis aparecem no select `#agendamentos` (`name="data"`, valores `DD/MM/YYYY`); também podem ser recarregadas via JSON `refreshAgendaMedicaByMedico`.
 
-**Fato observado:** a resposta da consulta mantém o marcador autenticado, troca o hidden `method` para `agendaMedico`, inclui a legend `Resultado` e uma tabela com cabeçalhos Hora, CPF, Nome, Telefone, E-mail, Tipo de Processo, Categoria, Status do Exame Médico e Status do Exame Psicológico.
+**Fato observado:** a resposta da consulta mantém o marcador autenticado, troca o hidden `method` para `agendaMedico`, inclui a legend `Resultado` e a tabela `table#agenda` com cabeçalhos Hora, CPF, Nome, Telefone, E-mail, Tipo de Processo, Categoria, Status do Exame Médico e Status do Exame Psicológico.
 
-A extração estruturada desses campos pertence à Fase 004.
+**Fato observado (Fase 004):** `parseAgendaHtml` localiza `table#agenda`, liga colunas pelo texto do `th` e devolve `ResultadoExtracaoAgenda` tipado. A data da consulta é contexto do chamador; não é lida de forma confiável do formulário pós-POST.
 
 ## Pontos de falha a tratar
 
@@ -140,3 +140,21 @@ Não há parser de pacientes nesta fase. Comandos: `npm run discover:agenda`, `n
 - artefatos sanitizados em `docs/evidencias/003b-descoberta-navegacao-*.json` e `docs/evidencias/003b-validacao-navegacao-*.json`.
 
 A Fase 003B está `Concluída`. Detalhes em [.fases/003b-navegacao-autenticada.md](../.fases/003b-navegacao-autenticada.md).
+
+## Implementação da Fase 004
+
+`parseAgendaHtml(html, contexto?)` em `src/parsers/agenda-parser.ts` converte o HTML bruto em `ResultadoExtracaoAgenda` (`src/models/agenda.ts`).
+
+Seletores: `table#agenda` (primário); fallback por legend `Resultado` + cabeçalhos. Colunas ligadas pelo texto do `th`.
+
+Comandos: `npm run discover:agenda-html`, `npm run test:agenda-parser`, `npm run validate:agenda-parser`.
+
+## Validação reproduzível da Fase 004 em 19/07/2026
+
+**Evidências confirmadas:**
+
+- descoberta HTML e domínio em `docs/evidencias/004-descoberta-*.json`;
+- seis testes unitários com fixtures em `fixtures/agenda/`;
+- `npm run validate:agenda-parser` extraiu 8 itens do HTML real com evidência sanitizada.
+
+A Fase 004 está `Concluída`. Detalhes em [.fases/004-extracao-agenda.md](../.fases/004-extracao-agenda.md).

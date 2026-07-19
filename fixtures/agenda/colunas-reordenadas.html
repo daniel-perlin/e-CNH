@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <body>
+    <h1>Imprimir Agenda Diária do Psicólogo</h1>
+    <form name="DivisaoEquitativaForm">
+      <input type="hidden" name="method" value="agendaMedico" />
+      <fieldset>
+        <legend>Resultado</legend>
+        <!--
+          Ordem de colunas deliberadamente diferente da ordem visual usual.
+          O parser deve ligar pelo texto do th, não por posição fixa.
+        -->
+        <table id="agenda">
+          <tr>
+            <th>Nome</th>
+            <th>Status do Exame Psicológico</th>
+            <th>Hora</th>
+            <th>Categoria</th>
+            <th>CPF</th>
+            <th>Tipo de Processo</th>
+            <th>E-mail</th>
+            <th>Telefone</th>
+            <th>Status do Exame Médico</th>
+          </tr>
+          <tr>
+            <td>PACIENTE ORDEM ALTERNATIVA</td>
+            <td>Apto</td>
+            <td>14:15</td>
+            <td>A</td>
+            <td>222.222.222-22</td>
+            <td>Mudança de Categoria</td>
+            <td>ordem@example.test</td>
+            <td>(11) 90000-0003</td>
+            <td>Pendente</td>
+          </tr>
+        </table>
+      </fieldset>
+    </form>
+  </body>
+</html>

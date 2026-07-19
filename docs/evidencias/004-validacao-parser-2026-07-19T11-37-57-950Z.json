@@ -1,0 +1,39 @@
+{
+  "approved": true,
+  "credentialsSource": "ECNH_USER_1",
+  "finishedAt": "2026-07-19T11:37:58.742Z",
+  "kind": "validacao-parser-agenda",
+  "loginStatus": "sucesso",
+  "nodeVersion": "v26.5.0",
+  "phase": "004",
+  "schemaVersion": 1,
+  "startedAt": "2026-07-19T11:37:57.950Z",
+  "steps": {
+    "consultation": {
+      "bodyBytes": 79752,
+      "bodySha256": "909a0d8b55fbead99bb66f282919cbc6726d7209ed7709fb76397b293b104bea",
+      "dataKind": "date"
+    },
+    "logoutCompleted": true,
+    "parse": {
+      "dataConsultaAttached": true,
+      "fieldPresence": {
+        "categoriaPresentCount": 8,
+        "cpfPresentCount": 8,
+        "emailPresentCount": 8,
+        "horarioPresentOnAllItems": true,
+        "nomePresentCount": 8,
+        "statusExameMedicoPresentCount": 8,
+        "statusExamePsicologicoPresentCount": 8,
+        "telefonePresentCount": 8,
+        "tipoProcessoPresentCount": 8
+      },
+      "itemCount": 8,
+      "motivoFalha": null,
+      "sucesso": true
+    }
+  },
+  "summary": {
+    "note": "Parser extraiu agenda tipada a partir do HTML real, sem registrar dados pessoais."
+  }
+}

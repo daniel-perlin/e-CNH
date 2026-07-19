@@ -17,3 +17,10 @@ Os arquivos podem conter somente metadados técnicos, hashes e sinais booleanos.
 - Documento da fase: [003b-navegacao-autenticada.md](../../.fases/003b-navegacao-autenticada.md)
 - Descoberta: `003b-descoberta-navegacao-*.json`
 - Validação: `003b-validacao-navegacao-*.json`
+
+## Validação oficial da Fase 004
+
+- Documento da fase: [004-extracao-agenda.md](../../.fases/004-extracao-agenda.md)
+- Descoberta HTML: `004-descoberta-html-*.json`
+- Descoberta domínio: `004-descoberta-dominio-*.json`
+- Validação do parser: `004-validacao-parser-*.json`

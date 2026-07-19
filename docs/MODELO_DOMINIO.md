@@ -2,11 +2,11 @@
 
 ## Propósito
 
-Este documento define os contratos conceituais compartilhados entre `ECNHClient`, parser HTML, serviços e integração com Google Sheets. Ele não é uma implementação TypeScript nem descreve um contrato HTTP; modelos concretos só serão criados nas fases que precisarem deles.
+Este documento define os contratos conceituais compartilhados entre `ECNHClient`, parser HTML, serviços e integração com Google Sheets. Modelos TypeScript concretos da agenda estão em `src/models/agenda.ts` (Fase 004).
 
 ## Princípios de dados
 
-- CPF, senha, telefone e e-mail são dados sensíveis e não podem ser registrados em logs, fixtures, mensagens de erro ou documentação com valores reais.
+- CPF, senha, telefone e e-mail são dados sensíveis e não podem ser registrados em logs, fixtures de evidência, mensagens de erro ou documentação com valores reais. Fixtures de teste unitário usam valores sintéticos.
 - A senha do profissional existe somente como dado de entrada para autenticação; não deve ser persistida no domínio nem propagada para parser, serviços ou Sheets.
 - Campos podem ser ausentes, incompletos ou indisponíveis no portal. A obrigatoriedade definitiva será definida por evidência e pela fase que implementar cada integração.
 
@@ -25,30 +25,40 @@ Representa um médico ou psicólogo credenciado que possui acesso individual ao 
 
 ## Paciente
 
-Representa uma pessoa retornada por uma agenda do portal.
+Representa a pessoa associada a uma linha da agenda (`table#agenda`).
 
-| Atributo conceitual | Descrição                                | Tratamento                             |
-| ------------------- | ---------------------------------------- | -------------------------------------- |
-| nome                | Nome do paciente.                        | Dado pessoal.                          |
-| cpf                 | Identificador do paciente, se informado. | Dado pessoal sensível.                 |
-| telefone            | Meio de contato, se informado.           | Dado pessoal sensível.                 |
-| email               | Meio de contato, se informado.           | Dado pessoal sensível.                 |
-| horário             | Horário associado ao atendimento.        | Formato e fuso pendentes de evidência. |
+| Atributo | Coluna HTML | Tratamento |
+| -------- | ----------- | ---------- |
+| nome | Nome | Dado pessoal. |
+| cpf | CPF | Dado pessoal sensível. |
+| telefone | Telefone | Dado pessoal sensível. |
+| email | E-mail | Dado pessoal sensível. |
 
-O parser só deverá preencher dados efetivamente presentes no HTML confirmado. Ausência de paciente em uma agenda não deve ser confundida com falha de consulta.
+**Evidência confirmada (Fase 004):** esses quatro campos correspondem a colunas de domínio na tabela de resultado. Ausência de valor na célula vira propriedade omitida no modelo tipado.
+
+## ItemAgenda
+
+Representa um atendimento/linha da agenda diária. Agrupa o paciente com metadados do processo e dos exames.
+
+| Atributo | Coluna HTML | Tratamento |
+| -------- | ----------- | ---------- |
+| horario | Hora | Horário do atendimento (`HH:MM` observado). |
+| paciente | — | Objeto `Paciente`. |
+| tipoProcesso | Tipo de Processo | Metadado do processo DETRAN. |
+| categoria | Categoria | Categoria associada ao atendimento. |
+| statusExameMedico | Status do Exame Médico | Estado do exame médico. |
+| statusExamePsicologico | Status do Exame Psicológico | Estado do exame psicológico. |
+
+Classes CSS, `style` e tabelas de layout **não** fazem parte do domínio.
 
 ## Agenda
 
-Representa uma agenda consultada para um profissional e período específicos.
+Representa a agenda diária extraída do HTML de resultado.
 
-| Atributo conceitual | Descrição                                              |
-| ------------------- | ------------------------------------------------------ |
-| data da consulta    | Data à qual a agenda se refere.                        |
-| data do agendamento | Data em que o registro foi agendado, quando fornecida. |
-| profissional        | Referência ao profissional proprietário da agenda.     |
-| lista de pacientes  | Coleção de pacientes retornados para a agenda.         |
-
-Os formatos de data observados na navegação (`DD/MM/YYYY` no select e `DD/MM/YYYY` ou `DDMMYYYY` em `dataReferencia`) foram confirmados na Fase 003B. A estrutura das linhas da tabela de resultado permanece pendente de extração na Fase 004.
+| Atributo | Origem | Descrição |
+| -------- | ------ | --------- |
+| dataConsulta | Contexto do chamador | Data `DD/MM/YYYY` da consulta. **Não** é lida da tabela: o HTML pós-POST não preserva o select de forma confiável. |
+| itens | Linhas de `table#agenda` | Coleção de `ItemAgenda`. Lista vazia é agenda válida sem pacientes. |
 
 ## ResultadoLogin
 
@@ -66,29 +76,28 @@ Representa o retorno lógico de uma tentativa de autenticação. É independente
 
 **Pendência de validação:** os sinais HTTP/HTML de senha inválida e usuário bloqueado ainda não foram observados e não devem ser presumidos. Na ausência dos sinais confirmados de sucesso, o MVP retorna `erro desconhecido`.
 
-## ResultadoConsultaAgenda
+## ResultadoExtracaoAgenda
 
-Representa o retorno lógico de uma consulta ao portal, a ser usado somente após a Fase 003B.
+Representa o retorno lógico do parser HTML → domínio (Fase 004). Independente de HTTP/sessão.
 
-| Elemento conceitual | Descrição                                                                      |
-| ------------------- | ------------------------------------------------------------------------------ |
-| sucesso             | Indica se a consulta foi concluída de acordo com evidência futura.             |
-| HTML retornado      | Conteúdo HTML bruto recebido do portal para processamento posterior.           |
-| agendas encontradas | Agendas identificadas conceitualmente; sua extração pertence à fase de parser. |
-| mensagens de erro   | Mensagens classificadas sem expor dados sensíveis.                             |
+| Elemento | Descrição |
+| -------- | --------- |
+| sucesso | Extração concluída com `table#agenda` e cabeçalhos obrigatórios. |
+| agenda | `Agenda` tipada quando `sucesso` é verdadeiro. |
+| motivoFalha | `html-sem-tabela-agenda`, `cabecalhos-obrigatorios-ausentes` ou `estrutura-invalida`. |
 
-**Pendência de validação:** critérios formais de sucesso/erro da consulta e o contrato tipado de retorno ainda não foram modelados como API pública de domínio; a Fase 003B devolve HTML bruto. A extração de agendas/pacientes pertence à Fase 004.
+O HTML bruto permanece responsabilidade do `ECNHClient` (`ResultadoConsultaAgenda` conceitual da navegação). O parser não realiza requests.
 
 ## Relação entre as camadas
 
 ```text
-ECNHClient -> ResultadoLogin / ResultadoConsultaAgenda
+ECNHClient -> HTML bruto / ResultadoLogin
                          │
                          ▼
-                  AgendaParser -> Agenda -> Paciente
+              parseAgendaHtml -> ResultadoExtracaoAgenda
                          │
                          ▼
                   Serviços -> Google Sheets
 ```
 
-`ECNHClient` entrega resultados de transporte e autenticação; o parser transforma HTML em modelos de domínio; serviços orquestram o fluxo; a integração com Google Sheets usa os modelos sem acessar o portal diretamente.
+`ECNHClient` entrega transporte e HTML; o parser transforma HTML em modelos de domínio; serviços orquestram o fluxo; a integração com Google Sheets usa os modelos sem acessar o portal diretamente.

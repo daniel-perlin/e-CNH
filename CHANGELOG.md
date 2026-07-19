@@ -2,14 +2,61 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Fase 003B — Navegação autenticada (`Concluída`)  
-> **Próxima fase:** Fase 004 — Extração de dados da agenda (`Planejada`)  
-> **Última atualização:** 2026-07-19 08:25 BRT  
-> **Última sessão executada:** 19/07/2026 • 08:25 — Navegação autenticada e HTML bruto da agenda
+> **Fase atual:** Fase 004 — Extração de dados da agenda (`Concluída`)  
+> **Próxima fase:** Fase 005 — Integração Google Sheets (`Planejada`)  
+> **Última atualização:** 2026-07-19 08:40 BRT  
+> **Última sessão executada:** 19/07/2026 • 08:40 — Extração tipada da agenda
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 08:40
+
+### 🎯 Objetivo
+
+Transformar o HTML bruto da agenda em modelos de domínio tipados (Fase 004).
+
+### ✅ O que mudou
+
+- Inventariada a estrutura do HTML de resultado: tabela `table#agenda` com nove cabeçalhos confirmados.
+- Classificado o domínio (`Paciente`, `ItemAgenda`, `Agenda`) versus apresentação (Bootstrap, `list_titulo`, `style`, layout).
+- Criados modelos em `src/models/agenda.ts` e parser `parseAgendaHtml` em `src/parsers/agenda-parser.ts`.
+- Seletores robustos: `table#agenda` + ligação por texto do `th`; `dataConsulta` via contexto do chamador.
+- Testes unitários (`npm run test:agenda-parser`) com fixtures sanitizadas em `fixtures/agenda/`.
+- Validação real (`npm run validate:agenda-parser`) aprovada com 8 itens e evidência sanitizada.
+- Fase 004 promovida a `Concluída`.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** id `agenda` é o seletor primário da tabela de resultado (ADR-011).
+- **Evidência confirmada:** as nove colunas são atributos de domínio; classes CSS não entram no modelo.
+- **Evidência confirmada:** a data consultada não permanece confiável no formulário pós-POST; o parser a recebe como contexto.
+- Sem Google Sheets, sync, multi-profissional ou cron nesta fase.
+
+### 📂 Arquivos impactados
+
+- `src/models/agenda.ts`
+- `src/parsers/agenda-parser.ts`
+- `src/parsers/agenda-parser.test.ts`
+- `src/scripts/discover-agenda-html.ts`
+- `src/scripts/validate-agenda-parser.ts`
+- `fixtures/agenda/`
+- `package.json`
+- `tsconfig.json`
+- `docs/evidencias/`
+- `docs/MODELO_DOMINIO.md`
+- `docs/API.md`
+- `docs/FLUXO_HTTP.md`
+- `docs/DECISOES.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `.fases/004-extracao-agenda.md`
+- `README.md`
+- `CHANGELOG.md`
 
 ---
 

@@ -1,0 +1,132 @@
+{
+  "approved": true,
+  "finishedAt": "2026-07-19T11:37:00.000Z",
+  "kind": "descoberta-dominio-agenda",
+  "phase": "004",
+  "schemaVersion": 1,
+  "sourceEvidence": "docs/evidencias/004-descoberta-html-2026-07-19T11-35-11-209Z.json",
+  "startedAt": "2026-07-19T11:36:00.000Z",
+  "summary": {
+    "note": "Colunas de table#agenda classificadas como atributos de domínio; classes Bootstrap/style e tabelas de layout ficam fora do modelo."
+  },
+  "classification": {
+    "htmlLocators": {
+      "primaryTableSelector": "table#agenda",
+      "fallbackStrategy": "fieldset com legend Resultado + th pelos textos de cabeçalho",
+      "columnBinding": "texto do th (não índice fixo)",
+      "rejectedSelectors": [
+        "nth-child",
+        "classes Bootstrap (table-striped, table-bordered, table-responsive)",
+        "class list_titulo nos th",
+        "atributo style nas td"
+      ]
+    },
+    "presentationOnly": [
+      {
+        "element": "classes da table#agenda",
+        "values": ["table", "table-striped", "table-bordered", "table-responsive"],
+        "reason": "estilo visual Bootstrap; sem significado de negócio"
+      },
+      {
+        "element": "class dos th",
+        "values": ["list_titulo"],
+        "reason": "estilo de título de lista"
+      },
+      {
+        "element": "atributo style das td",
+        "reason": "apresentação visual da célula"
+      },
+      {
+        "element": "table#tableBotoes",
+        "reason": "chrome de UI (botões), não agenda"
+      },
+      {
+        "element": "tabelas de layout sem th de agenda",
+        "reason": "estrutura de página/fieldset, não registro de paciente"
+      }
+    ],
+    "domainAttributes": [
+      {
+        "headerText": "Hora",
+        "domainEntity": "ItemAgenda",
+        "attribute": "horario",
+        "valueKindObserved": ["time"],
+        "rationale": "momento do atendimento na agenda diária"
+      },
+      {
+        "headerText": "CPF",
+        "domainEntity": "Paciente",
+        "attribute": "cpf",
+        "valueKindObserved": ["cpf-shaped"],
+        "rationale": "identificador do paciente; dado sensível"
+      },
+      {
+        "headerText": "Nome",
+        "domainEntity": "Paciente",
+        "attribute": "nome",
+        "valueKindObserved": ["short-text"],
+        "rationale": "nome do paciente agendado"
+      },
+      {
+        "headerText": "Telefone",
+        "domainEntity": "Paciente",
+        "attribute": "telefone",
+        "valueKindObserved": ["phone-shaped", "cpf-shaped"],
+        "rationale": "contato do paciente; classificação cpf-shaped em telefone é artefato heurístico de dígitos, não mudança de domínio"
+      },
+      {
+        "headerText": "E-mail",
+        "domainEntity": "Paciente",
+        "attribute": "email",
+        "valueKindObserved": ["email-shaped"],
+        "rationale": "contato do paciente"
+      },
+      {
+        "headerText": "Tipo de Processo",
+        "domainEntity": "ItemAgenda",
+        "attribute": "tipoProcesso",
+        "valueKindObserved": ["short-text", "long-text"],
+        "rationale": "metadado do processo DETRAN associado ao atendimento"
+      },
+      {
+        "headerText": "Categoria",
+        "domainEntity": "ItemAgenda",
+        "attribute": "categoria",
+        "valueKindObserved": ["short-text"],
+        "rationale": "categoria associada ao processo/atendimento (ex.: habilitação)"
+      },
+      {
+        "headerText": "Status do Exame Médico",
+        "domainEntity": "ItemAgenda",
+        "attribute": "statusExameMedico",
+        "valueKindObserved": ["short-text"],
+        "rationale": "estado do exame médico no portal"
+      },
+      {
+        "headerText": "Status do Exame Psicológico",
+        "domainEntity": "ItemAgenda",
+        "attribute": "statusExamePsicologico",
+        "valueKindObserved": ["short-text"],
+        "rationale": "estado do exame psicológico no portal"
+      }
+    ],
+    "agendaContext": {
+      "dataConsultaInResultHtml": false,
+      "evidence": "Após POST consultarAgendaPsicologo, select[name=data]/#agendamentos e dataReferencia não preservam valor selecionado de forma confiável.",
+      "decision": "Agenda.dataConsulta é contexto da consulta (informado ao parser pelo chamador), não extraído da tabela."
+    },
+    "entities": {
+      "Paciente": ["nome", "cpf", "telefone", "email"],
+      "ItemAgenda": [
+        "horario",
+        "paciente",
+        "tipoProcesso",
+        "categoria",
+        "statusExameMedico",
+        "statusExamePsicologico"
+      ],
+      "Agenda": ["dataConsulta?", "itens"],
+      "ResultadoExtracaoAgenda": ["sucesso", "agenda?", "motivoFalha?"]
+    }
+  }
+}

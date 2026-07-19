@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <title>eCNHsp - DETRAN - São Paulo</title>
+  </head>
+  <body>
+    <h1>Imprimir Agenda Diária do Psicólogo</h1>
+    <form name="DivisaoEquitativaForm" method="POST" action="/gefor/GFR/divisao/divisaoEquitativa.do">
+      <input type="hidden" name="method" value="agendaMedico" />
+      <fieldset>
+        <legend>Resultado</legend>
+        <table
+          id="agenda"
+          class="table table-striped table-bordered table-responsive"
+        >
+          <tr>
+            <th class="list_titulo">Hora</th>
+            <th class="list_titulo">CPF</th>
+            <th class="list_titulo">Nome</th>
+            <th class="list_titulo">Telefone</th>
+            <th class="list_titulo">E-mail</th>
+            <th class="list_titulo">Tipo de Processo</th>
+            <th class="list_titulo">Categoria</th>
+            <th class="list_titulo">Status do Exame Médico</th>
+            <th class="list_titulo">Status do Exame Psicológico</th>
+          </tr>
+        </table>
+      </fieldset>
+    </form>
+  </body>
+</html>
