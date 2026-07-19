@@ -2,7 +2,7 @@
 
 Documento de **limitações conhecidas** observadas na homologação pós-MVP. Estes fluxos **existem no portal** e **ainda não são tratados automaticamente** pelo `ECNHClient` / sincronização.
 
-Itens de evolução: [BACKLOG.md](BACKLOG.md) — `B010`, `B011` (reavaliar após validação completa de **B012**).
+Itens de evolução: [BACKLOG.md](BACKLOG.md) — `B010`, `B011` (reavaliar; **B012** já está `✅ Concluído`).
 
 ## Caso 1 — Sessão já autenticada
 
@@ -15,7 +15,7 @@ Durante o login, alguns profissionais podem possuir uma sessão já aberta. O po
 **Mitigação operacional:** encerrar a sessão anterior no portal antes de nova tentativa de sync.
 
 **Backlog:** [B010](BACKLOG.md) — Tratar sessão já autenticada no portal.  
-**Reavaliação:** após validação completa da arquitetura de perfis profissionais (**B012**). A nova arquitetura poderá absorver parcial ou totalmente esta necessidade.
+**Reavaliação:** **B012** concluída. Reavaliar se este item permanece necessário como evolução distinta.
 
 ## Caso 2 — Escolha de Perfil / Visão
 
@@ -31,8 +31,8 @@ Alguns profissionais têm acesso a múltiplas unidades. Após o login, o portal 
 **Estado atual:** esse passo **não é automatizado**. Sem a seleção, a sincronização automática do profissional Caio fica impedida.
 
 **Backlog:** [B011](BACKLOG.md) — Automatizar seleção de Perfil / Visão (unidade no portal; conceito distinto de B012).  
-**Reavaliação:** após validação completa da arquitetura de perfis profissionais (**B012**). A nova arquitetura poderá absorver parcial ou totalmente esta necessidade.
+**Reavaliação:** **B012** concluída. Reavaliar se este item permanece necessário como evolução distinta.
 
 ## Escopo
 
-Não implementar automação destes fluxos até priorização explícita via backlog e **após** a validação de B012, salvo decisão contrária registrada.
+Não implementar automação destes fluxos até priorização explícita via backlog, salvo decisão contrária registrada.

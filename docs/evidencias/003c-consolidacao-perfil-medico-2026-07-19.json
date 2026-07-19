@@ -1,0 +1,46 @@
+{
+  "phase": "003C",
+  "backlogId": "B012",
+  "schemaVersion": 1,
+  "kind": "consolidacao-perfil-medico",
+  "confirmedAt": "2026-07-19T17:30:00.000Z",
+  "credentialsSource": "ECNH_USER_16",
+  "professionalLabel": "Italo",
+  "profileConfigured": "medico",
+  "validation": {
+    "login": {
+      "status": "sucesso",
+      "jsessionIdPresent": true,
+      "authenticatedMarker": "Imprimir Agenda Diária do Médico",
+      "resolvedProfileId": "medico",
+      "redirectedToAuthenticatedArea": true
+    },
+    "agendaQuery": {
+      "method": "consultarAgendaMedico",
+      "path": "/gefor/GFR/divisao/divisaoEquitativa.do",
+      "httpStatus": 200,
+      "datesAvailable": 4,
+      "sampleDateQueried": "16/07/2026",
+      "htmlBytes": 92458,
+      "containsResultado": true,
+      "containsAgendaMedico": true,
+      "containsLoginForm": false,
+      "containsDivisaoEquitativaForm": true
+    },
+    "fullSync": {
+      "executed": true,
+      "result": "sucesso",
+      "note": "Sincronização completa confirmada pelo operador para ECNH_USER_16 (Italo), incluindo persistência na planilha. Sem CPF, senha, cookies ou dados de pacientes neste artefato."
+    },
+    "logout": {
+      "executed": true,
+      "method": "finalizarLogin"
+    }
+  },
+  "notes": [
+    "Evidência confirmada: arquitetura B012/003C validada com profissional Médico real.",
+    "Evidência confirmada: login resolveu perfil medico pelo marcador HTML.",
+    "Evidência confirmada: consulta usou method=consultarAgendaMedico.",
+    "Evidência confirmada: sync completo funcionou para o mesmo profissional."
+  ]
+}

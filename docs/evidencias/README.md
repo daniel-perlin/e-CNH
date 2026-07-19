@@ -44,3 +44,9 @@ Os arquivos podem conter somente metadados técnicos, hashes e sinais booleanos.
 - Validação local (lock/job/scheduler): `007-validacao-agendamento-2026-07-19T14-14-42-781Z.json`
 - Validação consolidada: `007-validacao-agendamento-2026-07-19T14-16-00-000Z.json`
 - Comandos: `npm run validate:agenda-job`, `npm run job:agenda`, `npm run sync:agenda`
+
+## Validação oficial da Fase 003C / B012
+
+- Documento da fase: [003c-perfis-profissionais-portal.md](../../.fases/003c-perfis-profissionais-portal.md)
+- Consolidação Médico (Italo / `ECNH_USER_16`): `003c-consolidacao-perfil-medico-2026-07-19.json`
+- Escopo validado: login, resolução de perfil `medico`, consulta `consultarAgendaMedico`, sincronização completa

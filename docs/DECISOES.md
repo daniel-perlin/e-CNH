@@ -96,4 +96,5 @@
   - resolver o perfil no HTML pós-login; `ECNH_USER_<n>_PROFILE` (ou `ROLE`) opcional valida/override;
   - um único `ECNHClient` / `AgendaProtocol` parametrizado — sem subclasses nem `if/else` espalhados;
   - propagar `perfilId` em `ResultadoSincronizacaoProfissional` (sem PII).
-- **Consequência:** Psicólogo permanece compatível sem config; Médico autentica e consulta com `consultarAgendaMedico`. Novos perfis exigem evidência + entrada no registro. Evidência sanitizada durável de Médico ainda é pendência de validação.
+- **Consequência:** Psicólogo permanece compatível sem config; Médico autentica e consulta com `consultarAgendaMedico`. Novos perfis exigem evidência + entrada no registro.
+- **Validação (19/07/2026):** evidência confirmada com profissional Médico real (Italo / `ECNH_USER_16`) — login, resolução de perfil `medico`, consulta `consultarAgendaMedico` e sincronização completa. Artefato: `docs/evidencias/003c-consolidacao-perfil-medico-2026-07-19.json`. B012 / Fase 003C `Concluída`.

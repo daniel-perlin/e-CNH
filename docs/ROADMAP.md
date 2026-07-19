@@ -26,17 +26,17 @@ As Fases **000 a 007** constituem o **MVP do projeto**.
 
 O MVP do projeto foi concluído na Fase 007. As melhorias incrementais B001–B005 foram registradas e concluídas no [BACKLOG](BACKLOG.md).
 
-### Evolução arquitetural em curso (foco do projeto)
+### Evolução arquitetural pós-MVP
 
 | Item | Status | Entrega |
 | ---- | ------ | ------- |
-| Fase 003C / **B012** — Arquitetura de perfis profissionais do portal | `Implementada` | Strategy extensível (`PerfilProfissionalPortal`); Psicólogo e Médico como primeiros perfis; expansão futura prevista; validação real Médico pendente |
+| Fase 003C / **B012** — Arquitetura de perfis profissionais do portal | `Concluída` | Strategy extensível (`PerfilProfissionalPortal`); validada com Médico real (Italo): login, perfil, consulta e sync completo |
 
 O objetivo desta evolução **não** é apenas “suportar Médico além de Psicólogo”, e sim permitir **novos perfis do portal** com mínimo impacto nas camadas superiores.
 
-B010 e B011 permanecem no backlog, a **reavaliar após a validação completa de B012**.
+B010 e B011 permanecem no backlog para **reavaliação** (comportamentos de sessão/unidade distintos do perfil profissional).
 
-Detalhes: [.fases/003c-perfis-profissionais-portal.md](../.fases/003c-perfis-profissionais-portal.md) · [BACKLOG.md](BACKLOG.md).
+Detalhes: [.fases/003c-perfis-profissionais-portal.md](../.fases/003c-perfis-profissionais-portal.md) · [BACKLOG.md](BACKLOG.md) · evidência [003c-consolidacao-perfil-medico-2026-07-19.json](evidencias/003c-consolidacao-perfil-medico-2026-07-19.json).
 
 ## Convenção de status (MVP)
 

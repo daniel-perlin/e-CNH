@@ -2,14 +2,47 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** B012 — Arquitetura de perfis profissionais do portal (`Implementada`; validação pendente)  
-> **Próxima prioridade:** validar Médico e concluir B012; reavaliar B010/B011 depois  
-> **Última atualização:** 2026-07-19 14:30 BRT  
-> **Última sessão executada:** 19/07/2026 • 14:30 — Limpeza do backlog e foco em B012
+> **Fase atual:** B012 / 003C — Arquitetura de perfis profissionais do portal (`Concluída`)  
+> **Próxima prioridade:** reavaliar B010 e B011  
+> **Última atualização:** 2026-07-19 14:34 BRT  
+> **Última sessão executada:** 19/07/2026 • 14:34 — Conclusão B012 (validação Médico Italo)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 19/07/2026 • 14:34
+
+### 🎯 Objetivo
+
+Promover B012 / Fase 003C a concluídos após validação real com profissional Médico (Italo).
+
+### ✅ O que mudou
+
+- Validação isolada e sync completo confirmados para `ECNH_USER_16` (Italo): login `medico`, consulta `consultarAgendaMedico`, sync OK.
+- Evidência sanitizada em `docs/evidencias/003c-consolidacao-perfil-medico-2026-07-19.json`.
+- B012 e Fase 003C promovidos a `✅ Concluído` / `Concluída`.
+- BACKLOG, ROADMAP, README e docs correlatos atualizados.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** arquitetura de perfis validada com Médico real (login, perfil, agenda, sync).
+- B010/B011 seguem pendentes para reavaliação (não bloqueiam B012).
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/003c-consolidacao-perfil-medico-2026-07-19.json`
+- `.fases/003c-perfis-profissionais-portal.md`
+- `docs/BACKLOG.md`
+- `docs/ROADMAP.md`
+- `docs/ARQUITETURA.md`
+- `docs/VISAO_DO_PRODUTO.md`
+- `docs/evidencias/README.md`
+- `docs/DECISOES.md`
+- `README.md`
+- `CHANGELOG.md`
 
 ---
 

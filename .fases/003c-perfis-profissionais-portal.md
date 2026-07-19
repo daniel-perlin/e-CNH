@@ -1,12 +1,12 @@
 # Fase 003C — Arquitetura de perfis profissionais do portal
 
-**Status:** `Implementada`
+**Status:** `Concluída`
 
 ## Objetivo
 
 Desacoplar o fluxo hardcoded de Psicólogo do `ECNHClient`, permitindo autenticação e consulta de agenda para **múltiplos perfis do portal** (Psicólogo, Médico e **perfis futuros**), sem `if/else` espalhados e sem subclasses do cliente.
 
-Backlog: **B012** (foco atual do projeto).
+Backlog: **B012** (`✅ Concluído`).
 
 ## Escopo
 
@@ -46,8 +46,23 @@ AgendaSyncService (porta inalterada; perfilId no resultado)
 | Padrão | Strategy + registro (sem subclasses de client) |
 | Resolução | Híbrida: detectar no HTML; PROFILE/ROLE opcional |
 | Slot | Fase 003C (correção pós-MVP da fronteira `client`) |
-| Evidência Médico | Marcadores/methods da homologação; evidência sanitizada durável ainda a consolidar |
+| Evidência Médico | Validada com profissional real (Italo / `ECNH_USER_16`) |
 | Sync | Propagar `perfilId` em `ResultadoSincronizacaoProfissional` |
+
+## Evidências
+
+### Validação com profissional Médico em 19/07/2026
+
+**Evidências confirmadas:**
+
+- login de `ECNH_USER_16` (Italo) retornou `status=sucesso`;
+- marcador HTML: `Imprimir Agenda Diária do Médico`;
+- `PerfilProfissionalPortal` resolvido: `medico`;
+- consulta usou `POST method=consultarAgendaMedico`;
+- página de resultado autenticada (`Resultado`, `DivisaoEquitativaForm`, sem `LoginActionForm`);
+- sincronização completa do mesmo profissional concluída com sucesso (confirmada pelo operador).
+
+Consolidação sanitizada: [docs/evidencias/003c-consolidacao-perfil-medico-2026-07-19.json](../docs/evidencias/003c-consolidacao-perfil-medico-2026-07-19.json).
 
 ## Critérios de sucesso
 
@@ -56,7 +71,7 @@ AgendaSyncService (porta inalterada; perfilId no resultado)
 - [x] Sem PROFILE, Psicólogo permanece compatível com o MVP.
 - [x] PROFILE divergente do HTML falha de forma tipada/mensurada.
 - [x] `AgendaSyncService` expõe `perfilId` sem PII.
-- [ ] Validação real com ao menos um Médico e um Psicólogo e evidência sanitizada.
+- [x] Validação real com profissional Médico e evidência sanitizada.
 
 ## Progresso
 
@@ -68,13 +83,13 @@ AgendaSyncService (porta inalterada; perfilId no resultado)
 | 3 — Agenda por perfil | Feito |
 | 4 — Config PROFILE | Feito |
 | 5 — Scripts validate | Feito |
-| 6 — Docs + validação | Parcial (falta evidência real Médico) |
+| 6 — Docs + validação | Feito |
 
 ## Pendências
 
-- Consolidar evidência sanitizada de login/consulta Médico no portal real.
-- Confirmar se a tabela `#agenda` do Médico é idêntica à do Psicólogo (hipótese atual: sim).
+- Nenhuma pendência bloqueante no escopo da Fase 003C / B012.
+- B010 e B011 permanecem no backlog para reavaliação (comportamentos distintos de unidade/sessão).
 
 ## Resultado da fase
 
-Implementação concluída no código; status permanece `Implementada` até validação real com evidência sanitizada de perfil Médico.
+Arquitetura de perfis profissionais do portal entregue, validada com Médico real (Italo) — login, identificação de perfil, consulta de agenda e sincronização completa — e documentada. A Fase 003C e o item B012 estão `Concluída` / `✅ Concluído`.

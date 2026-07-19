@@ -6,4 +6,4 @@
 
 ## Motivo da descontinuação
 
-As ideias de abas `Controle` / `Execuções` e gatilho “Sincronizar Agora” (antigos B006–B008) **não fazem mais parte do produto**. O rastreamento ativo está em [docs/BACKLOG.md](../docs/BACKLOG.md), com foco atual em **B012**.
+As ideias de abas `Controle` / `Execuções` e gatilho “Sincronizar Agora” (antigos B006–B008) **não fazem mais parte do produto**. O rastreamento ativo está em [docs/BACKLOG.md](../docs/BACKLOG.md).

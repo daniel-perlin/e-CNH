@@ -103,8 +103,8 @@ Ainda devem ser confirmados domínio, `Path`, `Secure`, `HttpOnly`, `SameSite`, 
 
 | Caso | Comportamento | Estado no sistema | Backlog | Impacto observado |
 | ---- | ------------- | ----------------- | ------- | ----------------- |
-| Sessão já autenticada | Popup pedindo encerrar a sessão anterior antes de autenticar | Não tratado | B010 (reavaliar após B012) | Bloqueia sync do Italo |
-| Múltiplas unidades | Tela "Escolha de Perfil e/ou Visão" (Caio → CIR-SAO PAULO → ENVIAR) | Não tratado | B011 (reavaliar após B012) | Bloqueia sync do Caio |
+| Sessão já autenticada | Popup pedindo encerrar a sessão anterior antes de autenticar | Não tratado | B010 (reavaliar; B012 concluída) | Risco quando há sessão prévia |
+| Múltiplas unidades | Tela "Escolha de Perfil e/ou Visão" (Caio → CIR-SAO PAULO → ENVIAR) | Não tratado | B011 (reavaliar; B012 concluída) | Pode bloquear sync do Caio |
 
 Não inferir endpoints, payloads ou seletores destes fluxos até nova descoberta autorizada com evidência HTTP.
 

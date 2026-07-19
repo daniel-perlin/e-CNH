@@ -6,4 +6,4 @@
 
 ## Motivo da descontinuação
 
-A iniciativa de observabilidade avançada (antigo B009) **não faz mais parte do produto**. O rastreamento ativo está em [docs/BACKLOG.md](../docs/BACKLOG.md), com foco atual em **B012**.
+A iniciativa de observabilidade avançada (antigo B009) **não faz mais parte do produto**. O rastreamento ativo está em [docs/BACKLOG.md](../docs/BACKLOG.md).

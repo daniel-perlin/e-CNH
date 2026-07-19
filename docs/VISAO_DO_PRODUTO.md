@@ -99,9 +99,9 @@ O produto principal (MVP) já está concluído. Não existem mais fases obrigat�
 A evolução do produto ocorre em duas frentes documentadas no [BACKLOG.md](BACKLOG.md):
 
 1. **Melhorias incrementais (B001–B005)** — já concluídas; refinaram o produto operacional (normalização, cadastro ativo, etc.).
-2. **Evolução arquitetural (foco atual: B012)** — a fronteira do portal passa a admitir **múltiplos perfis profissionais** (Psicólogo, Médico e perfis futuros), com mínimo impacto nas demais camadas. O objetivo **não** é apenas cobrir Médico e Psicólogo, e sim permitir expansão com registro de perfis.
+2. **Evolução arquitetural (B012 / 003C)** — `✅ Concluída`: a fronteira do portal admite **múltiplos perfis profissionais** (Psicólogo, Médico e perfis futuros), com mínimo impacto nas demais camadas. Validada com profissional Médico real (Italo): login, perfil, agenda e sync completo.
 
-Limitações operacionais de homologação (**B010**, **B011**) permanecem no backlog e devem ser **reavaliadas após a validação completa de B012**.
+Limitações operacionais de homologação (**B010**, **B011**) permanecem no backlog e devem ser **reavaliadas** à luz da B012 já concluída.
 
 Itens antigos de Painel Operacional / Observabilidade foram **removidos do escopo do produto**.
 
