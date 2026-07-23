@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 
 import { LoginCredentials, LoginResult } from '../types/auth.js';
+import type { StructuredLogger } from '../types/logger.js';
 import { AuthTransport } from './auth-transport.js';
 import { classificarFalhaAutenticacaoHtml } from './classificar-falha-login.js';
 import {
@@ -31,6 +32,8 @@ export type AuthenticationLoginOutcome =
   | Exclude<LoginResult, { status: 'sucesso' }>;
 
 export interface AuthenticationLoginOptions {
+  /** Logger estruturado (observabilidade do fluxo; não altera a lógica). */
+  logger?: StructuredLogger;
   /** Perfil esperado (config); se definido, deve coincidir com o HTML. */
   perfilEsperado?: PerfilProfissionalId;
   /**
@@ -38,6 +41,17 @@ export interface AuthenticationLoginOptions {
    */
   unidadeDesejada?: UnidadeDesejadaConfig;
 }
+
+/** Nomes estáveis das etapas do login (logs). */
+export const LOGIN_STEPS = {
+  GET_INICIAR_LOGIN: 'GET_iniciarLogin',
+  POST_INICIAR_LOGIN_AGENDA: 'POST_iniciarLoginAgenda',
+  POST_AUTENTICAR: 'POST_autenticar',
+  POST_AUTENTICAR_FORCE_LOGOUT: 'POST_autenticar_forceLogout',
+  GET_OPEN_CHOICE: 'GET_openChoice',
+  POST_AUTENTICAR_COM_UNIDADE: 'POST_autenticar_com_unidade',
+  LOGIN_CONFIRMATION: 'login_confirmation'
+} as const;
 
 /**
  * Protocolo confirmado no DevTools para a autenticação HTTP do e-CNH.
@@ -48,21 +62,59 @@ export class ECNHAuthenticationProtocol {
     transport: AuthTransport,
     options: AuthenticationLoginOptions = {}
   ): Promise<AuthenticationLoginOutcome> {
+    const logger = options.logger;
+    let lastSuccessfulLoginStep: string | undefined;
+    let currentLoginStep: string | undefined;
+
+    const markStepStart = (loginStep: string): void => {
+      currentLoginStep = loginStep;
+      logger?.warn(
+        {
+          event: 'ecnh.login.step.start',
+          loginStep,
+          lastSuccessfulLoginStep
+        },
+        'Etapa do login e-CNH iniciada'
+      );
+    };
+
+    const markStepCompleted = (loginStep: string): void => {
+      lastSuccessfulLoginStep = loginStep;
+      currentLoginStep = undefined;
+      logger?.warn(
+        {
+          event: 'ecnh.login.step.completed',
+          loginStep,
+          lastSuccessfulLoginStep
+        },
+        'Etapa do login e-CNH concluída'
+      );
+    };
+
     try {
       const loginUrl = transport.resolveUrl(LOGIN_PATH);
       const loginOrigin = new URL(loginUrl).origin;
       const initialLoginPath = `${LOGIN_PATH}?method=iniciarLogin`;
 
+      logger?.warn(
+        { event: 'ecnh.login.flow.start' },
+        'Fluxo de autenticação e-CNH iniciado'
+      );
+
+      markStepStart(LOGIN_STEPS.GET_INICIAR_LOGIN);
       await transport.request<string>({
         headers: {
           Origin: undefined,
           Referer: transport.resolveUrl('/')
         },
+        loginStep: LOGIN_STEPS.GET_INICIAR_LOGIN,
         method: 'GET',
         responseEncoding: 'latin1',
         url: initialLoginPath
       });
+      markStepCompleted(LOGIN_STEPS.GET_INICIAR_LOGIN);
 
+      markStepStart(LOGIN_STEPS.POST_INICIAR_LOGIN_AGENDA);
       await transport.request<string>({
         data: new URLSearchParams([
           ['method', 'iniciarLoginAgenda'],
@@ -86,11 +138,14 @@ export class ECNHAuthenticationProtocol {
           Origin: loginOrigin,
           Referer: transport.resolveUrl(initialLoginPath)
         },
+        loginStep: LOGIN_STEPS.POST_INICIAR_LOGIN_AGENDA,
         method: 'POST',
         responseEncoding: 'latin1',
         url: LOGIN_PATH
       });
+      markStepCompleted(LOGIN_STEPS.POST_INICIAR_LOGIN_AGENDA);
 
+      markStepStart(LOGIN_STEPS.POST_AUTENTICAR);
       const firstAuth = await transport.request<string>({
         data: this.buildAutenticarBody(credentials, '-1', 'false'),
         headers: {
@@ -98,10 +153,12 @@ export class ECNHAuthenticationProtocol {
           Origin: loginOrigin,
           Referer: loginUrl
         },
+        loginStep: LOGIN_STEPS.POST_AUTENTICAR,
         method: 'POST',
         responseEncoding: 'latin1',
         url: LOGIN_PATH
       });
+      markStepCompleted(LOGIN_STEPS.POST_AUTENTICAR);
 
       let htmlAutenticado = firstAuth.data;
 
@@ -115,9 +172,20 @@ export class ECNHAuthenticationProtocol {
           transport,
           htmlAutenticado,
           loginOrigin,
-          loginUrl
+          loginUrl,
+          { logger, markStepStart, markStepCompleted }
         );
         if (sessao.status !== 'ok') {
+          logger?.warn(
+            {
+              event: 'ecnh.login.flow.failed',
+              reason: 'b010_incomplete',
+              lastSuccessfulLoginStep,
+              currentLoginStep,
+              outcomeStatus: sessao.status
+            },
+            'Fluxo de autenticação e-CNH interrompido no ramo B010'
+          );
           return sessao;
         }
         htmlAutenticado = sessao.html;
@@ -131,20 +199,79 @@ export class ECNHAuthenticationProtocol {
           htmlAutenticado,
           loginOrigin,
           loginUrl,
-          options.unidadeDesejada
+          options.unidadeDesejada,
+          { logger, markStepStart, markStepCompleted }
         );
         if (escolha.status !== 'ok') {
+          logger?.warn(
+            {
+              event: 'ecnh.login.flow.failed',
+              reason: 'b011_incomplete',
+              lastSuccessfulLoginStep,
+              currentLoginStep,
+              outcomeStatus: escolha.status
+            },
+            'Fluxo de autenticação e-CNH interrompido no ramo B011'
+          );
           return escolha;
         }
         htmlAutenticado = escolha.html;
       }
 
-      return this.classificarSucessoAutenticacao(
+      markStepStart(LOGIN_STEPS.LOGIN_CONFIRMATION);
+      const hasSessionCookie = await transport.hasCookie(SESSION_COOKIE_NAME);
+      const outcome = this.classificarSucessoAutenticacao(
         htmlAutenticado,
-        await transport.hasCookie(SESSION_COOKIE_NAME),
+        hasSessionCookie,
         options.perfilEsperado
       );
+
+      if (outcome.status === 'sucesso') {
+        markStepCompleted(LOGIN_STEPS.LOGIN_CONFIRMATION);
+        logger?.warn(
+          {
+            event: 'ecnh.login.flow.completed',
+            lastSuccessfulLoginStep: LOGIN_STEPS.LOGIN_CONFIRMATION,
+            perfilId: outcome.perfil.id,
+            jsessionPresent: hasSessionCookie
+          },
+          'Fluxo de autenticação e-CNH confirmado'
+        );
+      } else {
+        logger?.warn(
+          {
+            event: 'ecnh.login.flow.failed',
+            reason: 'login_confirmation',
+            loginStep: LOGIN_STEPS.LOGIN_CONFIRMATION,
+            lastSuccessfulLoginStep,
+            outcomeStatus: outcome.status,
+            jsessionPresent: hasSessionCookie,
+            htmlBytes: Buffer.byteLength(htmlAutenticado, 'latin1')
+          },
+          'Confirmação final do login e-CNH não satisfeita'
+        );
+      }
+
+      return outcome;
     } catch (error) {
+      logger?.error(
+        {
+          event: 'ecnh.login.flow.failed',
+          reason: 'transport_error',
+          loginStep: currentLoginStep,
+          lastSuccessfulLoginStep,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                  code: (error as NodeJS.ErrnoException).code
+                }
+              : { message: String(error) }
+        },
+        'Fluxo de autenticação e-CNH falhou no transporte HTTP'
+      );
       return this.fromTransportError(error);
     }
   }
@@ -158,6 +285,7 @@ export class ECNHAuthenticationProtocol {
       headers: {
         Referer: transport.resolveUrl(LOGIN_PATH)
       },
+      loginStep: 'GET_finalizarLogin',
       method: 'GET',
       responseEncoding: 'latin1',
       url: LOGOUT_PATH
@@ -173,7 +301,8 @@ export class ECNHAuthenticationProtocol {
     transport: AuthTransport,
     htmlPosAutenticar: string,
     loginOrigin: string,
-    loginUrl: string
+    loginUrl: string,
+    stepHooks: LoginStepHooks
   ): Promise<
     | { html: string; status: 'ok' }
     | Exclude<LoginResult, { status: 'sucesso' }>
@@ -181,6 +310,7 @@ export class ECNHAuthenticationProtocol {
     const autenticadoCyberark =
       extrairAutenticadoCyberarkDeOpenDialogNewSession(htmlPosAutenticar);
 
+    stepHooks.markStepStart(LOGIN_STEPS.POST_AUTENTICAR_FORCE_LOGOUT);
     const forceLogoutAuth = await transport.request<string>({
       data: this.buildAutenticarBody(
         credentials,
@@ -193,10 +323,12 @@ export class ECNHAuthenticationProtocol {
         Origin: loginOrigin,
         Referer: loginUrl
       },
+      loginStep: LOGIN_STEPS.POST_AUTENTICAR_FORCE_LOGOUT,
       method: 'POST',
       responseEncoding: 'latin1',
       url: LOGIN_PATH
     });
+    stepHooks.markStepCompleted(LOGIN_STEPS.POST_AUTENTICAR_FORCE_LOGOUT);
 
     if (htmlRequerEncerramentoSessaoExistente(forceLogoutAuth.data)) {
       return {
@@ -219,7 +351,8 @@ export class ECNHAuthenticationProtocol {
     htmlPosAutenticar: string,
     loginOrigin: string,
     loginUrl: string,
-    unidadeDesejada: UnidadeDesejadaConfig | undefined
+    unidadeDesejada: UnidadeDesejadaConfig | undefined,
+    stepHooks: LoginStepHooks
   ): Promise<
     | { html: string; status: 'ok' }
     | Exclude<LoginResult, { status: 'sucesso' }>
@@ -227,14 +360,17 @@ export class ECNHAuthenticationProtocol {
     const autenticadoCyberark =
       extrairAutenticadoCyberarkDeOpenDialogChoice(htmlPosAutenticar);
 
+    stepHooks.markStepStart(LOGIN_STEPS.GET_OPEN_CHOICE);
     const openChoice = await transport.request<string>({
       headers: {
         Referer: loginUrl
       },
+      loginStep: LOGIN_STEPS.GET_OPEN_CHOICE,
       method: 'GET',
       responseEncoding: 'latin1',
       url: `${LOGIN_PATH}?method=openChoice&autenticadoCyberark=${encodeURIComponent(autenticadoCyberark)}`
     });
+    stepHooks.markStepCompleted(LOGIN_STEPS.GET_OPEN_CHOICE);
 
     if (!htmlContemFormularioEscolhaUnidade(openChoice.data)) {
       return {
@@ -253,6 +389,7 @@ export class ECNHAuthenticationProtocol {
       };
     }
 
+    stepHooks.markStepStart(LOGIN_STEPS.POST_AUTENTICAR_COM_UNIDADE);
     const secondAuth = await transport.request<string>({
       data: this.buildAutenticarBody(
         credentials,
@@ -264,10 +401,12 @@ export class ECNHAuthenticationProtocol {
         Origin: loginOrigin,
         Referer: loginUrl
       },
+      loginStep: LOGIN_STEPS.POST_AUTENTICAR_COM_UNIDADE,
       method: 'POST',
       responseEncoding: 'latin1',
       url: LOGIN_PATH
     });
+    stepHooks.markStepCompleted(LOGIN_STEPS.POST_AUTENTICAR_COM_UNIDADE);
 
     return { html: secondAuth.data, status: 'ok' };
   }
@@ -360,4 +499,10 @@ export class ECNHAuthenticationProtocol {
       status: 'erro_desconhecido'
     };
   }
+}
+
+interface LoginStepHooks {
+  logger?: StructuredLogger;
+  markStepCompleted: (loginStep: string) => void;
+  markStepStart: (loginStep: string) => void;
 }

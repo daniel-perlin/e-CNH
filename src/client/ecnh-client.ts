@@ -63,6 +63,7 @@ export class ECNHClient {
     this.logger.info({ event: 'ecnh.login.started' }, 'Iniciando autenticação e-CNH');
 
     const result = await this.authenticationProtocol.login(credentials, this.transport, {
+      logger: this.logger,
       perfilEsperado: this.perfilEsperado,
       unidadeDesejada: this.unidadeDesejada
     });

@@ -4,12 +4,38 @@
 >
 > **Fase atual:** Infraestrutura Railway (Cron efêmero 16:00 BRT)
 > **Próxima prioridade:** Rodar probe no Railway via `RUN_CONNECTIVITY_PROBE=true`
-> **Última atualização:** 2026-07-23 20:40 BRT
-> **Última sessão executada:** 23/07/2026 • 20:40 — Modo diagnóstico RUN_CONNECTIVITY_PROBE
+> **Última atualização:** 2026-07-23 20:50 BRT
+> **Última sessão executada:** 23/07/2026 • 20:50 — Instrumentação etapas do login e-CNH
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 20:50
+
+### 🎯 Objetivo
+
+Instrumentar o fluxo completo de autenticação e-CNH (etapas + redirects) com logs estruturados seguros — **sem** alterar regras de login, cookies, retries ou negócio.
+
+### ✅ O que mudou
+
+- `AuthTransport`: `loginStep`, contagens de cookies, Location, bodyBytes, responseUrl, evento `ecnh.http.redirect`.
+- `ECNHAuthenticationProtocol`: eventos `ecnh.login.step.*` / `ecnh.login.flow.*` com `lastSuccessfulLoginStep`.
+- `ECNHClient` repassa o logger ao protocolo.
+
+### 🧠 Decisões
+
+- **Decisão:** observabilidade apenas; classificação de erro e sequência HTTP inalteradas.
+- **Decisão:** nunca logar CPF, senha, Cookie ou Authorization.
+
+### 📂 Arquivos impactados
+
+- `src/client/auth-transport.ts`
+- `src/client/ecnh-auth-protocol.ts`
+- `src/client/ecnh-client.ts`
+- `CHANGELOG.md`
 
 ---
 

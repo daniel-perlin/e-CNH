@@ -12,6 +12,12 @@ const CHROME_USER_AGENT =
 
 const HEADERS_SENSIVEIS = new Set(['authorization', 'cookie', 'set-cookie', 'proxy-authorization']);
 
+/** Extensão opcional do Axios config — só metadados de diagnóstico (não vão ao wire). */
+export interface AuthRequestConfig extends AxiosRequestConfig {
+  /** Nome da etapa do fluxo de login (ex.: GET_iniciarLogin). */
+  loginStep?: string;
+}
+
 /** Transporte HTTP autenticável que preserva cookies no CookieJar da sessão. */
 export class AuthTransport {
   private readonly http: AxiosInstance;
@@ -47,18 +53,21 @@ export class AuthTransport {
     this.http = httpClient;
   }
 
-  public async request<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    const method = (config.method ?? 'GET').toUpperCase();
-    const relativeUrl = typeof config.url === 'string' ? config.url : '';
+  public async request<T>(config: AuthRequestConfig): Promise<AxiosResponse<T>> {
+    const { loginStep, ...axiosConfig } = config;
+    const method = (axiosConfig.method ?? 'GET').toUpperCase();
+    const relativeUrl = typeof axiosConfig.url === 'string' ? axiosConfig.url : '';
     const absoluteUrl = this.resolveUrl(relativeUrl);
     const parsedUrl = new URL(absoluteUrl);
     const startedAt = Date.now();
-    const headersDiagnostico = this.extrairHeadersRequisicao(config);
+    const headersDiagnostico = this.extrairHeadersRequisicao(axiosConfig);
+    const cookiesSentCount = await this.contarCookiesParaUrl(absoluteUrl);
 
     // warn: sync de produção usa logger level=warn; info ficaria invisível no Railway.
     this.logger.warn(
       {
         event: 'ecnh.http.request.start',
+        loginStep,
         method,
         absoluteUrl,
         protocol: parsedUrl.protocol.replace(':', ''),
@@ -71,24 +80,67 @@ export class AuthTransport {
         keepAlive: this.keepAlive,
         maxSockets: 1,
         maxRedirects: 5,
+        cookiesSentCount,
         headers: headersDiagnostico
       },
       'Enviando requisição HTTP ao e-CNH'
     );
 
     try {
-      const response = await this.http.request<T>(config);
+      const response = await this.http.request<T>({
+        ...axiosConfig,
+        beforeRedirect: (options, redirectDetails, requestDetails) => {
+          const locationHeader = redirectDetails.headers.location;
+          const location = Array.isArray(locationHeader)
+            ? locationHeader[0]
+            : locationHeader;
+          this.logger.warn(
+            {
+              event: 'ecnh.http.redirect',
+              loginStep,
+              method,
+              fromUrl: absoluteUrl,
+              statusCode: redirectDetails.statusCode,
+              location: location !== undefined ? String(location) : undefined,
+              nextHostname: options.hostname,
+              nextPath: options.pathname,
+              setCookiePresent: redirectDetails.headers['set-cookie'] !== undefined,
+              setCookieCount: contarSetCookie(redirectDetails.headers['set-cookie'])
+            },
+            'Redirect HTTP observado no e-CNH'
+          );
+          if (typeof axiosConfig.beforeRedirect === 'function') {
+            axiosConfig.beforeRedirect(options, redirectDetails, requestDetails);
+          }
+        }
+      });
       const durationMs = Date.now() - startedAt;
+      const bodyBytes = medirBodyBytes(response.data);
+      const setCookieCount = contarSetCookie(response.headers['set-cookie']);
+      const location = lerHeaderUnico(response.headers, 'location');
+      const contentType = lerHeaderUnico(response.headers, 'content-type');
+      const responseUrl = extrairResponseUrl(response) ?? absoluteUrl;
+      const cookiesAfterCount = await this.contarCookiesParaUrl(responseUrl);
+
       this.logger.warn(
         {
           event: 'ecnh.http.request.completed',
+          loginStep,
           method,
           absoluteUrl,
+          responseUrl,
           hostname: parsedUrl.hostname,
           path: `${parsedUrl.pathname}${parsedUrl.search}`,
           status: response.status,
           statusText: response.statusText,
           durationMs,
+          cookiesSentCount,
+          cookiesReceivedCount: setCookieCount,
+          cookiesJarCountAfter: cookiesAfterCount,
+          setCookiePresent: setCookieCount > 0,
+          location,
+          bodyBytes,
+          contentType,
           responseHeaders: this.extrairHeadersResposta(response.headers)
         },
         'Resposta HTTP recebida do e-CNH'
@@ -100,6 +152,7 @@ export class AuthTransport {
       this.logger.error(
         {
           event: 'ecnh.http.request.failed',
+          loginStep,
           method,
           absoluteUrl,
           protocol: parsedUrl.protocol.replace(':', ''),
@@ -109,6 +162,7 @@ export class AuthTransport {
           timeoutMs: this.requestTimeoutMs,
           keepAlive: this.keepAlive,
           durationMs,
+          cookiesSentCount,
           headers: headersDiagnostico,
           connectionPhaseHint: inferirFaseConexao(errorDetails),
           error: errorDetails
@@ -132,6 +186,11 @@ export class AuthTransport {
     return present;
   }
 
+  private async contarCookiesParaUrl(url: string): Promise<number> {
+    const cookies = await this.session.cookieJar.getCookies(url);
+    return cookies.length;
+  }
+
   private extrairHeadersRequisicao(
     config: AxiosRequestConfig
   ): Record<string, string | undefined> {
@@ -147,7 +206,8 @@ export class AuthTransport {
     for (const [key, value] of Object.entries(merged)) {
       const lower = key.toLowerCase();
       if (HEADERS_SENSIVEIS.has(lower)) {
-        out[lower] = value === undefined || value === null || value === false ? undefined : '[redacted]';
+        out[lower] =
+          value === undefined || value === null || value === false ? undefined : '[redacted]';
         continue;
       }
       if (value === undefined || value === null || value === false) {
@@ -228,6 +288,52 @@ export class AuthTransport {
   }
 }
 
+function contarSetCookie(raw: unknown): number {
+  if (raw === undefined || raw === null) {
+    return 0;
+  }
+  if (Array.isArray(raw)) {
+    return raw.length;
+  }
+  return 1;
+}
+
+function lerHeaderUnico(
+  headers: AxiosResponse['headers'],
+  name: string
+): string | undefined {
+  const raw = headers[name];
+  if (raw === undefined) {
+    return undefined;
+  }
+  return Array.isArray(raw) ? raw[0] : String(raw);
+}
+
+function medirBodyBytes(data: unknown): number | undefined {
+  if (typeof data === 'string') {
+    return Buffer.byteLength(data, 'latin1');
+  }
+  if (Buffer.isBuffer(data)) {
+    return data.byteLength;
+  }
+  return undefined;
+}
+
+function extrairResponseUrl(response: AxiosResponse): string | undefined {
+  const fromRes = (
+    response.request as { res?: { responseUrl?: string } } | undefined
+  )?.res?.responseUrl;
+  if (typeof fromRes === 'string' && fromRes.length > 0) {
+    return fromRes;
+  }
+  const fromResponseUrl = (response.request as { responseUrl?: string } | undefined)
+    ?.responseUrl;
+  if (typeof fromResponseUrl === 'string' && fromResponseUrl.length > 0) {
+    return fromResponseUrl;
+  }
+  return undefined;
+}
+
 /**
  * Hipótese observacional da fase do ciclo HTTP (somente log — não altera tratamento).
  * Baseada em code/syscall/presença de request/response do Axios.
@@ -248,7 +354,11 @@ function inferirFaseConexao(errorDetails: Record<string, unknown>): string {
   if (code === 'ETIMEDOUT' || code === 'ECONNABORTED' || message.includes('timeout')) {
     return 'timeout_before_complete_response';
   }
-  if (code === 'CERT_HAS_EXPIRED' || code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' || message.includes('certificate')) {
+  if (
+    code === 'CERT_HAS_EXPIRED' ||
+    code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' ||
+    message.includes('certificate')
+  ) {
     return 'tls_certificate';
   }
   if (hasResponse) {
