@@ -1,10 +1,31 @@
+import 'dotenv/config';
+
+import { resolveEntrypointMode } from './diagnostics/entrypoint-mode.js';
+
 /**
- * Entrypoint de produção.
+ * Entrypoint de produção (`node dist/index.js` / `npm start`).
  *
- * Railway/Nixpacks frequentemente executam `node dist/index.js` (Start Command
- * detectado ou sobrescrito no painel). Este módulo delega ao mesmo fluxo one-shot
- * validado na E2E (`sync-agenda`), sem alterar regras de negócio.
+ * - Padrão: AgendaSync one-shot (ADR-020).
+ * - `RUN_CONNECTIVITY_PROBE=true`: apenas GET isolado ao portal (diagnóstico de rede).
  *
- * Equivalente: `npm start` / `node dist/scripts/sync-agenda.js` (ADR-020).
+ * O Start Command no Railway permanece sempre `node dist/index.js`.
  */
-import './scripts/sync-agenda.js';
+async function main(): Promise<void> {
+  const mode = resolveEntrypointMode(process.env);
+
+  if (mode === 'connectivity-probe') {
+    const { runEcnhConnectivityProbe } = await import(
+      './diagnostics/ecnh-connectivity-probe.js'
+    );
+    const resultado = await runEcnhConnectivityProbe();
+    process.exit(resultado.exitCode);
+  }
+
+  await import('./scripts/sync-agenda.js');
+}
+
+void main().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : 'erro desconhecido';
+  console.error(`Entrypoint falhou: ${message}`);
+  process.exit(1);
+});

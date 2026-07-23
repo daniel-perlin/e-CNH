@@ -28,6 +28,7 @@ Guia detalhado: [DEPLOY_RAILWAY.md](DEPLOY_RAILWAY.md) · ADR: [DECISOES.md](DEC
 - [ ] Build Command: `npm run build` (ou herdado do `railway.toml`)
 - [ ] Start Command: `node dist/index.js` (ou `npm start`; herdado do `railway.toml`)
 - [ ] Restart policy: **NEVER** (Cron não deve reiniciar em loop)
+- [ ] Confirmado: **sem** `RUN_CONNECTIVITY_PROBE` no regime diário (só diagnóstico pontual)
 
 ---
 
@@ -61,6 +62,19 @@ Para cada `n` com `ENABLED=true`:
 - [ ] Confirmado: **sem** `AGENDA_SYNC_CRON` (horário vem do Cron do Railway)
 - [ ] Confirmado: **sem** path local `GOOGLE_SHEETS_CREDENTIALS_PATH` (usar JSON inline)
 - [ ] Confirmado: Start **não** é `npm run job:agenda` (daemon 24/7)
+- [ ] Confirmado: **sem** `RUN_CONNECTIVITY_PROBE` no regime diário
+
+---
+
+## Diagnóstico de conectividade (Imperva / egress) — opcional
+
+Use quando o sync falhar no primeiro GET ao e-CNH e o local responder 200. **Não** troque o Start Command.
+
+- [ ] `RUN_CONNECTIVITY_PROBE=true` nas Variables
+- [ ] Redeploy / Run com Start Command ainda `node dist/index.js`
+- [ ] Log contém `ecnh.connectivity.probe.success` **ou** `ecnh.connectivity.probe.failed`
+- [ ] Comparado com `npm run test:ecnh-connectivity` local
+- [ ] Variável removida ou `=false` e redeploy (volta ao AgendaSync)
 
 ---
 

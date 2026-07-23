@@ -10,10 +10,26 @@ Checklist acionável: [DEPLOY_CHECKLIST.md](DEPLOY_CHECKLIST.md) · Decisão: AD
 ```text
 Railway Cron (UTC)  →  sobe o serviço
                     →  node dist/index.js  (= npm start)
-                    →  importa scripts/sync-agenda.js
+                    →  [padrão] scripts/sync-agenda.js
                     →  AgendaSyncJob + FileSyncLock
                     →  process.exit(0|1)  →  processo encerra
 ```
+
+### Modo diagnóstico de conectividade (permanente)
+
+Para isolar rede Railway ↔ portal (Imperva) **sem** trocar o Start Command:
+
+1. Defina `RUN_CONNECTIVITY_PROBE=true` nas Variables.
+2. Redeploy / Run uma vez (`node dist/index.js` inalterado).
+3. Leia nos logs `ecnh.connectivity.probe.success` ou `…failed`.
+4. Remova a variável (ou `=false`) e redeploy para voltar ao sync.
+
+| `RUN_CONNECTIVITY_PROBE` | Comportamento de `node dist/index.js` |
+| --- | --- |
+| ausente / `false` / `0` | AgendaSync (padrão, produção) |
+| `true` / `1` / `yes` / `on` | Só GET `iniciarLogin` via `AuthTransport`; encerra |
+
+CLI equivalente (local ou prod build): `npm run test:ecnh-connectivity` / `test:ecnh-connectivity:prod`.
 
 | Alternativa | Quando usar |
 | --- | --- |
@@ -118,6 +134,7 @@ Repita o bloco `ECNH_USER_<n>_…` para cada índice habilitado (1, 2, 3…).
 | `ECNH_USER_<n>_UNIDADE` / `UNID_TRANSITO` | Multi-unidade (B011) |
 | `LOG_LEVEL` | O script de sync usa logger em nível warn |
 | `AGENDA_SYNC_LOCK_PATH` | Default `.data/agenda-sync.lock` (auto-criado) |
+| `RUN_CONNECTIVITY_PROBE` | `true` só para diagnóstico de rede (não deixe ligado em produção diária) |
 
 ### Proibido / desnecessário neste serviço
 
@@ -127,6 +144,7 @@ Repita o bloco `ECNH_USER_<n>_…` para cada índice habilitado (1, 2, 3…).
 | `npm run job:agenda` como Start | Daemon 24/7 (Opção B), não Cron efêmero |
 | `GOOGLE_SHEETS_CREDENTIALS_PATH` | Preferir JSON inline |
 | Catálogo `secrets/credenciais-candidatas.json` | Só refresh/audit local |
+| `RUN_CONNECTIVITY_PROBE=true` em regime diário | Só diagnóstico pontual; depois remova |
 
 ---
 

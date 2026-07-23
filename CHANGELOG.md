@@ -3,13 +3,90 @@
 > ### 📌 Estado atual
 >
 > **Fase atual:** Infraestrutura Railway (Cron efêmero 16:00 BRT)
-> **Próxima prioridade:** Redeploy no Railway com entrypoint `dist/index.js` → sync
-> **Última atualização:** 2026-07-23 20:05 BRT
-> **Última sessão executada:** 23/07/2026 • 20:05 — Correção entrypoint produção Railway
+> **Próxima prioridade:** Rodar probe no Railway via `RUN_CONNECTIVITY_PROBE=true`
+> **Última atualização:** 2026-07-23 20:40 BRT
+> **Última sessão executada:** 23/07/2026 • 20:40 — Modo diagnóstico RUN_CONNECTIVITY_PROBE
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 20:40
+
+### 🎯 Objetivo
+
+Modo diagnóstico permanente via `RUN_CONNECTIVITY_PROBE`, sem trocar o Start Command do Railway e sem alterar regras de sync.
+
+### ✅ O que mudou
+
+- `resolveEntrypointMode` + `runEcnhConnectivityProbe` em `src/diagnostics/`.
+- `src/index.ts`: se probe ativo → só GET isolado; senão → `sync-agenda` (padrão).
+- Docs `DEPLOY_RAILWAY.md` / `DEPLOY_CHECKLIST.md` + `.env.example`.
+- Testes unitários do modo e do probe sem `ECNH_BASE_URL`.
+
+### 🧠 Decisões
+
+- **Decisão:** Start Command permanece `node dist/index.js`; diagnóstico só por Variable.
+- **Decisão:** valores truthy `true|1|yes|on`; default = AgendaSync.
+
+### 📂 Arquivos impactados
+
+- `src/index.ts`
+- `src/diagnostics/entrypoint-mode.ts` (+ testes)
+- `src/diagnostics/ecnh-connectivity-probe.ts` (+ testes)
+- `src/scripts/test-ecnh-connectivity.ts`
+- `docs/DEPLOY_RAILWAY.md` / `docs/DEPLOY_CHECKLIST.md`
+- `.env.example` / `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 20:35
+
+### 🎯 Objetivo
+
+Máxima observabilidade do transporte HTTP do portal (ECONNRESET no Railway) e script isolado de conectividade — **sem** alterar autenticação, retries, keepAlive ou timeout.
+
+### ✅ O que mudou
+
+- `AuthTransport`: logs com hostname/path/protocolo, statusText, headers sanitizados, fase hipotética (`connectionPhaseHint`), stack/cause.
+- Script `npm run test:ecnh-connectivity` — só GET `iniciarLogin` com o mesmo `AuthTransport`.
+
+### 🧠 Decisões
+
+- **Decisão:** nenhuma correção de transporte nesta etapa; só instrumentação + probe.
+- **Hipótese dominante (a confirmar com probe):** bloqueio/WAF/egress do datacenter no 1º GET (conexão nova).
+
+### 📂 Arquivos impactados
+
+- `src/client/auth-transport.ts`
+- `src/scripts/test-ecnh-connectivity.ts`
+- `package.json`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 20:30
+
+### 🎯 Objetivo
+
+Instrumentar o transporte HTTP do e-CNH com logs detalhados para diagnosticar `ECONNRESET` / `socket hang up` no primeiro `GET method=iniciarLogin` a partir do Railway — **sem** alterar a lógica de autenticação/sync.
+
+### ✅ O que mudou
+
+- `AuthTransport.request`: logs `warn`/`error` com URL absoluta, headers seguros, duração, keepAlive/timeout e stack completa do erro.
+- Nível `warn` para aparecer no sync de produção (logger em `warn`).
+
+### 🧠 Decisões
+
+- **Diagnóstico:** o GET ocorre em `ECNHAuthenticationProtocol.login` (1ª etapa); `ECONNRESET` no 1º profissional indica falha de conexão nova (não reuse de keep-alive).
+- **Decisão:** ainda sem retry/keepAlive=false — só observabilidade nesta etapa.
+
+### 📂 Arquivos impactados
+
+- `src/client/auth-transport.ts`
+- `CHANGELOG.md`
 
 ---
 

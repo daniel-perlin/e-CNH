@@ -17,6 +17,8 @@
     "format:check": "prettier --check .",
     "test": "tsx --test src/**/*.test.ts",
     "test:login": "tsx src/scripts/test-login.ts",
+    "test:ecnh-connectivity": "tsx src/scripts/test-ecnh-connectivity.ts",
+    "test:ecnh-connectivity:prod": "node dist/scripts/test-ecnh-connectivity.js",
     "test:agenda": "tsx src/scripts/test-agenda.ts",
     "test:agenda-parser": "tsx --test src/parsers/agenda-parser.test.ts",
     "test:agenda-sync": "tsx --test src/services/agenda-sync-service.test.ts",
