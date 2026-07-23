@@ -1,4 +1,7 @@
+import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
 import type { Agenda, ItemAgenda, Paciente } from '../models/agenda.js';
+import { formatPatientName } from '../utils/format-patient-name.js';
+import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
 import { normalizeEmail } from '../utils/email.js';
 import { normalizePhone } from '../utils/phone.js';
 
@@ -11,8 +14,17 @@ import {
 
 /** Contexto mínimo exigido pela persistência na planilha. */
 export interface ContextoLinhaAgenda {
-  /** Nome do profissional gravado na coluna PROFISSIONAL. */
+  /**
+   * Nome do profissional.
+   * Com `perfilId`: nome completo da config (será formatado na escrita).
+   * Sem `perfilId`: valor já projetado na planilha (regravação de linha existente).
+   */
   profissional: string;
+  /**
+   * Perfil de domínio para prefixar a coluna PROFISSIONAL.
+   * Omitido ao reprojetar linhas já persistidas.
+   */
+  perfilId?: PerfilProfissionalId;
   /**
    * Nome operacional da unidade (coluna UNIDADE).
    * Origem: profissional sincronizado, não o HTML da agenda.
@@ -54,7 +66,11 @@ export class AgendaSheetMapper {
    * Agenda vazia produz zero linhas. CPF e metadados de exame não são gravados.
    */
   public agendaParaLinhas(agenda: Agenda, contexto: ContextoLinhaAgenda): string[][] {
-    const profissional = contexto.profissional.trim();
+    const profissionalBruto = contexto.profissional.trim();
+    const profissional =
+      contexto.perfilId !== undefined
+        ? formatProfessionalDisplayName(profissionalBruto, contexto.perfilId)
+        : profissionalBruto;
     const unidadeOperacional = contexto.unidadeOperacional.trim();
     const dataConsulta = agenda.dataConsulta?.trim() ?? '';
     const dataInclusao = contexto.dataInclusao;
@@ -131,7 +147,7 @@ export class AgendaSheetMapper {
       unidadeOperacional,
       dataConsulta,
       item.horario ?? '',
-      item.paciente.nome ?? '',
+      formatPatientName(item.paciente.nome ?? ''),
       normalizePhone(item.paciente.telefone ?? ''),
       normalizeEmail(item.paciente.email ?? ''),
       profissional,

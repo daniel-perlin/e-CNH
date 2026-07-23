@@ -51,6 +51,12 @@ Os arquivos podem conter somente metadados técnicos, hashes e sinais booleanos.
 - Comandos: `npm run audit:credenciais`, `npm run sync:agenda`
 - Resultado: 16/16 sync OK; Alessandra excluída (bloqueio portal)
 
+## Validação E2E — formatação PACIENTE/PROFISSIONAL no Sheets (2026-07-23)
+
+- Relatório: [009-validacao-e2e-formatacao-sheets-2026-07-23.md](009-validacao-e2e-formatacao-sheets-2026-07-23.md)
+- Comando: `npm run sync:agenda`
+- Resultado: 16/16 sync OK; 233/233 linhas no padrão novo; pronto para commit
+
 ## Validação oficial da Fase 003C / B012
 
 - Documento da fase: [003c-perfis-profissionais-portal.md](../../.fases/003c-perfis-profissionais-portal.md)

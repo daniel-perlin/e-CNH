@@ -1,3 +1,4 @@
+import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
 import type { Agenda } from '../models/agenda.js';
 
 /**
@@ -5,8 +6,10 @@ import type { Agenda } from '../models/agenda.js';
  * Não faz parte do modelo HTML; identifica o profissional na planilha.
  */
 export interface ContextoPersistenciaAgenda {
-  /** Nome do profissional gravado na coluna PROFISSIONAL. */
+  /** Nome completo do profissional (config); formatado na escrita com `perfilId`. */
   profissional: string;
+  /** Perfil de domínio (Psicólogo / Médico) para a coluna PROFISSIONAL. */
+  perfilId: PerfilProfissionalId;
   /**
    * Nome operacional da unidade (coluna UNIDADE).
    * Derivado de `CLINIC` via `resolveNomeUnidadeOperacional` — não vem da agenda HTML.

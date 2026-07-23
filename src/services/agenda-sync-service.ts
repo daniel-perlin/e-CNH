@@ -54,13 +54,13 @@ export interface EntradaSincronizacaoProfissional {
   identificadorSeguro: string;
   /** Senha usada apenas no login. */
   password: string;
+  /** Nome completo do profissional (config); formatado na escrita com `perfilId`. */
+  profissional: string;
   /**
    * Perfil esperado opcional; quando a fábrica cria o client, deve ser repassado
    * via `ECNHClientOptions.perfilEsperado`. A detecção efetiva ocorre no HTML.
    */
   perfilEsperado?: PerfilProfissionalId;
-  /** Nome gravado na coluna Profissional da planilha. */
-  profissional: string;
   /**
    * Unidade desejada opcional (B011); repassar via `ECNHClientOptions.unidadeDesejada`.
    */
@@ -175,11 +175,29 @@ export class AgendaSyncService {
       resultado.perfilId =
         loginResult.session.perfilId ?? client.obterPerfilPortal?.() ?? undefined;
 
+      const perfilId = resultado.perfilId;
+      if (perfilId === undefined) {
+        this.logger?.warn(
+          {
+            event: 'agenda.sync.profissional.perfil_ausente',
+            identificadorSeguro: entrada.identificadorSeguro
+          },
+          'Login ok sem perfil resolvido; sincronização interrompida'
+        );
+        resultado.sucesso = false;
+        return resultado;
+      }
+
       const datasDisponiveis = client.listarDatasAgendamento();
       const datasParaSincronizar = selecionarDatas(datasDisponiveis, entrada.datas);
 
       for (const dataConsulta of datasParaSincronizar) {
-        const resultadoData = await this.sincronizarData(client, entrada, dataConsulta);
+        const resultadoData = await this.sincronizarData(
+          client,
+          entrada,
+          dataConsulta,
+          perfilId
+        );
         resultado.datas.push(resultadoData);
       }
 
@@ -251,7 +269,8 @@ export class AgendaSyncService {
   private async sincronizarData(
     client: AgendaSyncPortalClient,
     entrada: EntradaSincronizacaoProfissional,
-    dataConsulta: string
+    dataConsulta: string,
+    perfilId: PerfilProfissionalId
   ): Promise<ResultadoSincronizacaoData> {
     let html: string;
     try {
@@ -286,6 +305,7 @@ export class AgendaSyncService {
     try {
       persistencia = await this.agendaRepository.salvarAgenda(agenda, {
         profissional: entrada.profissional,
+        perfilId,
         unidadeOperacional: entrada.unidadeOperacional
       });
     } catch (error) {

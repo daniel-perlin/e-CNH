@@ -41,7 +41,8 @@ describe('AgendaSheetMapper', () => {
     };
 
     const linhas = mapper.agendaParaLinhas(agenda, {
-      profissional: 'Profissional Teste',
+      profissional: 'Gabriela Moura Gomes dos Santos',
+      perfilId: 'psicologo',
       unidadeOperacional: 'LIMÃO',
       dataInclusao: timestampFixo
     });
@@ -50,13 +51,41 @@ describe('AgendaSheetMapper', () => {
       'LIMÃO',
       '13/07/2026',
       '08:00',
-      'PACIENTE FIXTURE UM',
+      'Paciente',
       '(11) 900000001',
       'paciente1@example.test',
-      'Profissional Teste',
+      'Psicólogo: GABRIELA MOURA',
       timestampFixo
     ]);
     assert.equal(linhas[0]?.includes('000.000.000-00'), false);
+  });
+
+  it('formata médico na coluna PROFISSIONAL sem alterar a leitura pass-through', () => {
+    const agenda: Agenda = {
+      dataConsulta: '13/07/2026',
+      itens: [
+        {
+          horario: '09:00',
+          paciente: { nome: 'ANTÔNIO CARLOS SILVA' }
+        }
+      ]
+    };
+
+    const comPerfil = mapper.agendaParaLinhas(agenda, {
+      profissional: 'Italo Facella',
+      perfilId: 'medico',
+      unidadeOperacional: 'LIMÃO',
+      dataInclusao: timestampFixo
+    });
+    assert.equal(comPerfil[0]?.[3], 'Antônio');
+    assert.equal(comPerfil[0]?.[6], 'Médico: ITALO FACELLA');
+
+    const semPerfil = mapper.agendaParaLinhas(agenda, {
+      profissional: 'Médico: ITALO FACELLA',
+      unidadeOperacional: 'LIMÃO',
+      dataInclusao: timestampFixo
+    });
+    assert.equal(semPerfil[0]?.[6], 'Médico: ITALO FACELLA');
   });
 
   it('agenda vazia produz zero linhas', () => {

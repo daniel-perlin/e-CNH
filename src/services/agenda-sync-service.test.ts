@@ -173,6 +173,7 @@ describe('AgendaSyncService.sincronizarProfissional', () => {
     assert.equal(client.calls.logout, 1);
     assert.equal(repository.salvos.length, 2);
     assert.equal(repository.salvos[0]?.contexto.profissional, 'Profissional Teste');
+    assert.equal(repository.salvos[0]?.contexto.perfilId, 'psicologo');
     assert.equal(repository.salvos[0]?.contexto.unidadeOperacional, 'LIMÃO');
   });
 

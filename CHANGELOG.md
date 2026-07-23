@@ -4,12 +4,68 @@
 >
 > **Fase atual:** Layout oficial da aba Agenda (projeção Sheets simplificada)
 > **Próxima prioridade:** B014 (baixa) — separar projeção operacional de metadados técnicos; D3 fixtures se priorizado
-> **Última atualização:** 2026-07-23 18:30 BRT
-> **Última sessão executada:** 23/07/2026 • 18:30 — Evidência E2E credenciais + sync
+> **Última atualização:** 2026-07-23 18:55 BRT
+> **Última sessão executada:** 23/07/2026 • 18:55 — E2E formatação Sheets (PACIENTE/PROFISSIONAL)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 18:55
+
+### 🎯 Objetivo
+
+Validar E2E que a nova formatação de PACIENTE e PROFISSIONAL chega ao Google Sheets sem alterar regras de sincronização, autenticação ou parser.
+
+### ✅ O que mudou
+
+- Evidência `docs/evidencias/009-validacao-e2e-formatacao-sheets-2026-07-23.md`.
+- Índice atualizado em `docs/evidencias/README.md`.
+- Resultado: 16/16 profissionais OK; 233/233 linhas no padrão novo; 0 dupla formatação; pronto para commit.
+
+### 🧠 Decisões
+
+- **Evidência confirmada:** formatação aplicada ponta a ponta; `perfilId` do login alimenta o prefixo Psicólogo/Médico.
+- **Observação operacional:** `npm run sync:agenda` em rajada pode falhar pontualmente na API Sheets (`erro-infraestrutura`); retry resolve — não é regressão da formatação.
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/009-validacao-e2e-formatacao-sheets-2026-07-23.md`
+- `docs/evidencias/README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 18:45
+
+### 🎯 Objetivo
+
+Alterar apenas a formatação das colunas PACIENTE e PROFISSIONAL na persistência do Google Sheets, sem mudar regras de sincronização, autenticação ou parser.
+
+### ✅ O que mudou
+
+- PACIENTE: apenas o primeiro nome em Title Case (`JOSE EDSON…` → `Jose`).
+- PROFISSIONAL: `<tipo>: <PRIMEIRO> <SEGUNDO>` em caixa alta, com tipo do domínio (`Psicólogo` / `Médico`).
+- Utilitários `formatPatientName` e `formatProfessionalDisplayName` consumidos pelo mapper; linhas já persistidas não reformata o profissional na regravação.
+- `perfilId` do login passa a compor o contexto de persistência.
+
+### 🧠 Decisões
+
+- **Decisão:** formatadores isolados em `utils/`; a camada Sheets só consome.
+- **Decisão:** regravação de linhas ativas aplica Title Case no paciente, mas preserva o valor já projetado de PROFISSIONAL (evita reprocessar `"Psicólogo: …"`).
+
+### 📂 Arquivos impactados
+
+- `src/utils/format-patient-name.ts` (+ testes)
+- `src/utils/format-professional-display-name.ts` (+ testes)
+- `src/repositories/agenda-sheet-mapper.ts` (+ testes)
+- `src/repositories/agenda-repository.ts`
+- `src/repositories/google-sheets-agenda-repository.ts` (+ testes)
+- `src/services/agenda-sync-service.ts` (+ testes)
+- `src/scripts/validate-sheets.ts`
+- `CHANGELOG.md`
 
 ---
 

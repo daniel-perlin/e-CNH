@@ -3,6 +3,7 @@ import type { GoogleSheetsValuesPort } from '../client/google-sheets-client.js';
 import type { StructuredLogger } from '../types/logger.js';
 import { isDataAgendamentoAtiva } from '../utils/agenda-date.js';
 import { normalizeCpfKey } from '../utils/cpf.js';
+import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
 import { formatSyncTimestamp } from '../utils/sync-timestamp.js';
 
 import type {
@@ -84,6 +85,11 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       return { sucesso: false, motivoFalha: 'data-consulta-ausente' };
     }
 
+    const profissionalExibicao = formatProfessionalDisplayName(
+      profissional,
+      contexto.perfilId
+    );
+
     try {
       const referencia = this.agora ?? new Date();
       const matriz = await this.lerMatriz();
@@ -125,12 +131,16 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       const linhasAtivas: string[][] = [];
       for (const registro of ativos) {
         const unidadePreservada = registro.unidadeOperacional?.trim() ?? '';
+        const mesmoProfissional =
+          registro.profissional === profissional ||
+          registro.profissional === profissionalExibicao;
         const unidadeLinha =
           unidadePreservada.length > 0
             ? unidadePreservada
-            : registro.profissional === profissional
+            : mesmoProfissional
               ? unidadeOperacional
               : '';
+        // Regravação: não reformata PROFISSIONAL (valor já projetado na planilha).
         const linha = this.projetarLinhaComCpfTecnico(
           registro.item,
           registro.dataConsulta,
@@ -158,7 +168,8 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
             dataConsulta,
             profissional,
             unidadeOperacional,
-            dataInclusao
+            dataInclusao,
+            contexto.perfilId
           );
           if (linha === undefined) {
             continue;
@@ -209,7 +220,11 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       this.mapper.linhasParaRegistros(corpo, cabecalho),
       corpo
     );
-    const agenda = this.mapper.registrosParaAgenda(registros, data, profissional);
+    const profissionalExibicao = formatProfessionalDisplayName(
+      profissional,
+      contexto.perfilId
+    );
+    const agenda = this.mapper.registrosParaAgenda(registros, data, profissionalExibicao);
     if (agenda.itens.length === 0) {
       return null;
     }
@@ -218,17 +233,19 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
   /**
    * Projeção oficial (8 colunas) + CPF técnico na coluna seguinte (fora do contrato visual).
+   * Com `perfilId`, formata PROFISSIONAL na escrita de linhas novas.
    */
   private projetarLinhaComCpfTecnico(
     item: ItemAgenda,
     dataConsulta: string,
     profissional: string,
     unidadeOperacional: string,
-    dataInclusao: string
+    dataInclusao: string,
+    perfilId?: ContextoPersistenciaAgenda['perfilId']
   ): string[] | undefined {
     const linha = this.mapper.agendaParaLinhas(
       { dataConsulta, itens: [item] },
-      { profissional, unidadeOperacional, dataInclusao }
+      { profissional, unidadeOperacional, dataInclusao, perfilId }
     )[0];
     if (linha === undefined) {
       return undefined;

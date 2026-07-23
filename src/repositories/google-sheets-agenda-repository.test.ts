@@ -84,7 +84,7 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const resultado = await repository.salvarAgenda(
       { dataConsulta: '21/07/2026', itens: [] },
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
     assert.equal(resultado.sucesso, true);
@@ -108,7 +108,7 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const resultado = await repository.salvarAgenda(
       agendaFixture('20/07/2026', '08:00', 'PACIENTE HOJE', '111.111.111-11'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
     assert.equal(resultado.linhasGravadas, 1);
@@ -125,7 +125,7 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const resultado = await repository.salvarAgenda(
       agendaFixture('21/07/2026', '09:00', 'PACIENTE FUTURO', '222.222.222-22'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
     assert.equal(resultado.linhasGravadas, 1);
@@ -142,7 +142,7 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     await repositoryJulho.salvarAgenda(
       agendaFixture('20/07/2026', '08:00', 'PACIENTE RECORRENTE', '333.333.333-33'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     const matrizJulho = await sheets.getValues(RANGE_LEITURA);
     const dataInclusaoOriginal = matrizJulho[1]?.[COL.dataInclusao];
@@ -154,13 +154,13 @@ describe('GoogleSheetsAgendaRepository', () => {
     });
     const limpeza = await repositoryOutubro.salvarAgenda(
       { dataConsulta: '05/10/2026', itens: [] },
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     assert.equal(limpeza.linhasRemovidas, 1);
 
     const reinclusao = await repositoryOutubro.salvarAgenda(
       agendaFixture('05/10/2026', '10:00', 'PACIENTE RECORRENTE', '333.333.333-33'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     assert.equal(reinclusao.linhasGravadas, 1);
 
@@ -209,14 +209,14 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const segunda = await repository.salvarAgenda(
       agendaFixture('25/07/2026', '11:00', 'PACIENTE RENOMEADO', '00000000000'),
-      { profissional: 'Profissional Beta', unidadeOperacional: 'CAPÃO REDONDO' }
+      { profissional: 'Profissional Beta', unidadeOperacional: 'CAPÃO REDONDO', perfilId: 'psicologo' }
     );
 
     assert.equal(segunda.linhasGravadas, 0);
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 2);
     assert.equal(matriz[0]?.[COL.unidade], 'UNIDADE');
-    assert.equal(matriz[1]?.[COL.paciente], 'PACIENTE ORIGINAL');
+    assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
   });
 
@@ -225,24 +225,25 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     await repository.salvarAgenda(
       agendaFixture('20/07/2026', '08:00', 'PACIENTE ORIGINAL', '000.000.000-00'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     const matrizInicial = await sheets.getValues(RANGE_LEITURA);
     const dataInclusao = matrizInicial[1]?.[COL.dataInclusao];
     assert.equal(matrizInicial[0]?.length, 8);
-    assert.equal(matrizInicial[1]?.[COL.paciente], 'PACIENTE ORIGINAL');
+    assert.equal(matrizInicial[1]?.[COL.paciente], 'Paciente');
+    assert.equal(matrizInicial[1]?.[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
     // CPF técnico fora do contrato visual (coluna após as 8 oficiais)
     assert.equal(matrizInicial[1]?.[8], '000.000.000-00');
 
     const segunda = await repository.salvarAgenda(
       agendaFixture('25/07/2026', '11:00', 'PACIENTE RENOMEADO', '00000000000'),
-      { profissional: 'Profissional Beta', unidadeOperacional: 'CAPÃO REDONDO' }
+      { profissional: 'Profissional Beta', unidadeOperacional: 'CAPÃO REDONDO', perfilId: 'psicologo' }
     );
 
     assert.equal(segunda.linhasGravadas, 0);
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 2);
-    assert.equal(matriz[1]?.[COL.paciente], 'PACIENTE ORIGINAL');
+    assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
     assert.equal(matriz[1]?.[COL.dataInclusao], dataInclusao);
   });
@@ -283,7 +284,7 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const resultado = await repository.salvarAgenda(
       agendaFixture('25/07/2026', '09:00', 'PACIENTE LEGADO', '000.000.000-00'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
     assert.equal(resultado.sucesso, true);
@@ -291,7 +292,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz[0]?.[COL.unidade], 'UNIDADE');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
-    assert.equal(matriz[1]?.[COL.paciente], 'PACIENTE LEGADO');
+    assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
   });
 
   it('pacientes diferentes continuam sendo inseridos normalmente', async () => {
@@ -299,11 +300,11 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     await repository.salvarAgenda(
       agendaFixture('20/07/2026', '08:00', 'PACIENTE A', '000.000.000-00'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     const segundo = await repository.salvarAgenda(
       agendaFixture('21/07/2026', '09:00', 'PACIENTE B', '111.111.111-11'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
     assert.equal(segundo.linhasGravadas, 1);
@@ -316,7 +317,7 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const resultado = await repository.salvarAgenda(
       agendaFixture('19/07/2026', '08:00', 'PACIENTE PASSADO', '000.000.000-00'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
     assert.equal(resultado.linhasGravadas, 0);
@@ -329,21 +330,21 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const semProfissional = await repository.salvarAgenda(
       agendaFixture('20/07/2026', '08:00', 'PACIENTE A', '000.000.000-00'),
-      { profissional: '   ', unidadeOperacional: 'LIMÃO' }
+      { profissional: '   ', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     assert.equal(semProfissional.sucesso, false);
     assert.equal(semProfissional.motivoFalha, 'contexto-incompleto');
 
     const semUnidade = await repository.salvarAgenda(
       agendaFixture('20/07/2026', '08:00', 'PACIENTE A', '000.000.000-00'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: '   ' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: '   ', perfilId: 'psicologo' }
     );
     assert.equal(semUnidade.sucesso, false);
     assert.equal(semUnidade.motivoFalha, 'contexto-incompleto');
 
     const semData = await repository.salvarAgenda(
       { itens: [{ paciente: { nome: 'X' } }] },
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     assert.equal(semData.sucesso, false);
     assert.equal(semData.motivoFalha, 'data-consulta-ausente');
@@ -367,7 +368,7 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const resultado = await repository.salvarAgenda(
       agendaFixture('21/07/2026', '08:00', 'PACIENTE WRAP', '444.444.444-44'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
     assert.equal(resultado.sucesso, true);
@@ -408,7 +409,7 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     const resultado = await repository.salvarAgenda(
       agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
-      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
     assert.equal(resultado.sucesso, false);
