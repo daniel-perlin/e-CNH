@@ -4,12 +4,134 @@
 >
 > **Fase atual:** Layout oficial da aba Agenda (projeção Sheets simplificada)
 > **Próxima prioridade:** B014 (baixa) — separar projeção operacional de metadados técnicos; D3 fixtures se priorizado
-> **Última atualização:** 2026-07-23 17:17 BRT
-> **Última sessão executada:** 23/07/2026 • 13:38 — Cabeçalho Sheets tolerante a whitespace
+> **Última atualização:** 2026-07-23 17:55 BRT
+> **Última sessão executada:** 23/07/2026 • 17:55 — ROADMAP premium
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 17:55
+
+### 🎯 Objetivo
+
+Transformar `docs/ROADMAP.md` em documento premium (histórico + planejamento), no mesmo nível visual do README, sem alterar código.
+
+### ✅ O que mudou
+
+- Hero, visão de status, timeline ASCII + Mermaid, cards por fase, pós-MVP, estado atual, próximos passos (só BACKLOG), visão futura ilustrativa, estatísticas verificáveis e navegação.
+- Preservadas todas as tabelas/notas oficiais do MVP e das evoluções 003C–003E; registradas fases 008/009 como descontinuadas.
+
+### 🧠 Decisões
+
+- **Decisão:** próximos passos = apenas itens do BACKLOG (B014 / D3) + screenshots docs; sem reintroduzir 008/009.
+- **Decisão:** estatísticas apenas com contagens de arquivos/entradas do repositório.
+
+### 📂 Arquivos impactados
+
+- `docs/ROADMAP.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 17:50
+
+### 🎯 Objetivo
+
+Refinamento visual final do README como landing page GitHub, sem alterar ordem das seções, arquitetura ou conteúdo técnico.
+
+### ✅ O que mudou
+
+- Hero com `banner-ecnh-ai.png`, logo, título sem emoji, subtítulo reforçado e badges hierarquizados.
+- Mermaid em fluxo horizontal (`flowchart LR`) com espaçamento maior; âncoras HTML para navegação.
+- Screenshots com aviso explícito de placeholders; Stack com badges + tabela; rodapé enxuto sem banner duplicado.
+
+### 🧠 Decisões
+
+- **Decisão:** apenas apresentação — nenhuma remoção de informação técnica nem mudança de ordem de seções.
+
+### 📂 Arquivos impactados
+
+- `README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 17:45
+
+### 🎯 Objetivo
+
+Elevar o `README.md` ao padrão de landing page de projetos open source premium (Vercel / Railway / Supabase), sem alterar código.
+
+### ✅ O que mudou
+
+- Hero com logo, badges (Node, TS, Axios, Cheerio, Sheets, MVP, License Private) e navegação rápida.
+- Seções: Visão, Fluxo Mermaid, Funcionalidades, Screenshots (placeholders), Stack, Estrutura, Execução, Estado, Roadmap, Docs, Segurança.
+- Pasta `docs/assets/screenshots/` preparada para capturas futuras.
+- Banner vetorial no rodapé; documentação técnica permanece indexada em `docs/` / `.fases/` / ADRs.
+
+### 🧠 Decisões
+
+- **Decisão:** manter stack real (Axios/Cheerio) nos badges — não Playwright.
+- **Decisão:** screenshots como placeholders explícitos, sem inventar imagens.
+
+### 📂 Arquivos impactados
+
+- `README.md`
+- `docs/assets/screenshots/README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 17:42
+
+### 🎯 Objetivo
+
+Criar banner oficial 1600×400 para o README, com identidade própria de software de automação (não a do portal e-CNH SP).
+
+### ✅ O que mudou
+
+- Banner vetorial (`banner-ecnh.svg`) e PNG renderizado (`banner-ecnh.png`) em `docs/assets/`.
+- Variante gerada por IA (`banner-ecnh-ai.png`) como alternativa visual.
+- Paleta azul/cinza, pipeline Portal → Automação → Parser → Google Sheets.
+
+### 🧠 Decisões
+
+- **Decisão:** versão oficial = SVG + PNG vetorial (tipografia nítida, proporção exata); IA fica como alternativa.
+- **Nota:** o banner lista Playwright conforme brief criativo; o caminho produtivo do código permanece HTTP/Axios.
+
+### 📂 Arquivos impactados
+
+- `docs/assets/banner-ecnh.svg`
+- `docs/assets/banner-ecnh.png`
+- `docs/assets/banner-ecnh-ai.png`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 17:40
+
+### 🎯 Objetivo
+
+Transformar o `README.md` em landing page visual para o GitHub, sem alterar código nem mover documentação técnica de `docs/`, `.fases/` e ADRs.
+
+### ✅ O que mudou
+
+- README reorganizado: hero com logo, badges, visão geral, funcionalidades, Mermaid, stack, estrutura, execução, estado, roadmap e índice de docs.
+- Detalhes técnicos profundos (validadores, protocolo, convenções de fase) apontam para a documentação existente em vez de ocupar a página principal.
+- Stack e diagrama alinhados ao caminho real de produção (HTTP/Axios/Cheerio), não Playwright.
+
+### 🧠 Decisões
+
+- **Decisão:** manter Playwright fora de badges/arquitetura de produção; refletir a arquitetura documentada.
+- **Decisão:** documentação técnica permanece em `docs/` / `.fases/` / `DECISOES.md` — README só indexa.
+
+### 📂 Arquivos impactados
+
+- `README.md`
+- `CHANGELOG.md`
 
 ---
 

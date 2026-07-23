@@ -1,243 +1,362 @@
-# e-CNH
+<p align="center">
+  <img src="docs/assets/banner-ecnh-ai.png" alt="e-CNH — Automação inteligente das agendas" width="100%" />
+</p>
 
-Base do sincronizador entre o portal e-CNH SP e uma planilha Google Sheets. O produto consulta as agendas dos profissionais e mantém na aba `Agenda` apenas os **pacientes com agendamento ativo** (hoje ou futuro).
+<p align="center">
+  <img src="docs/assets/logo-ecnh.jpg" alt="Logo e-CNH" width="120" />
+</p>
 
-> **B011 / 003D:** Escolha genérica de Perfil e/ou Visão — `Concluída`. **B012 / 003C:** perfis profissionais — `Concluída`. **MVP:** Fase 007 concluída.
+<h1 align="center">e-CNH</h1>
 
-## Estado do Projeto
+<p align="center">
+  <strong>
+    Automatiza a sincronização das agendas do portal e-CNH SP para o Google Sheets,<br />
+    eliminando processos manuais e mantendo uma visão consolidada dos pacientes.
+  </strong>
+</p>
 
-- **MVP concluído** (Fases 000–007)
-- **Sistema operacional** (sincronização sob demanda e agendada)
-- **Perfis do portal:** B012 concluída — Psicólogo e Médico; registro extensível
-- **Multi-unidade:** B011 concluída — escolha genérica via `UNIDADE` / `UNID_TRANSITO`
-- **Aba Agenda:** layout operacional simplificado (UNIDADE, AGENDAMENTO DO DETRAN, HORÁRIO, PACIENTE, TELEFONE, EMAIL, PROFISSIONAL, DATA DE INCLUSÃO); pacientes ativos (remove datas passadas); unidade a partir de `CLINIC`
-- **Evoluções:** [docs/BACKLOG.md](docs/BACKLOG.md) — B001–B005, B010–B013 concluídos
+<p align="center">
+  Consulta agendas automaticamente, aplica regras de negócio e sincroniza<br />
+  <strong>pacientes ativos</strong> para o <strong>Google Sheets</strong>.
+</p>
 
-## Leitura recomendada
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Google%20Sheets-API%20v4-0F9D58?style=for-the-badge&logo=googlesheets&logoColor=white" alt="Google Sheets API" />
+</p>
 
-- [Visão do produto](docs/VISAO_DO_PRODUTO.md) — objetivo, usuários, fluxo operacional, MVP, escopo e evolução pós-MVP
-- [Arquitetura](docs/ARQUITETURA.md) — camadas técnicas, responsabilidades e limites de integração
-- [API / protocolo HTTP](docs/API.md) — contrato vivo do cliente com o portal
-- [Fluxo HTTP](docs/FLUXO_HTTP.md) — sequência de autenticação e agenda
-- [Roadmap](docs/ROADMAP.md) — construção do MVP (Fases 000–007) e evolução B012
-- [Backlog](docs/BACKLOG.md) — catálogo pós-MVP (B010–B013 concluídos)
-- [Limitações conhecidas do portal (homologação)](docs/COMPORTAMENTOS_PORTAL_HOMOLOGACAO.md) — comportamentos históricos do portal (B010–B012 automatizados)
-- [Evidência HAR da autenticação](docs/EVIDENCIA_HAR_AUTENTICACAO.md) — sequência completa, respostas, hashes e hidden fields
-- [Validação reproduzível da Fase 003A](docs/VALIDACAO_REPRODUZIVEL_003A.md) — critério, comando e evidências aprovadas
+<p align="center">
+  <img src="https://img.shields.io/badge/Axios-1.x-5A29E4?style=flat-square&logo=axios&logoColor=white" alt="Axios" />
+  <img src="https://img.shields.io/badge/Cheerio-HTML%20SSR-E39E54?style=flat-square" alt="Cheerio" />
+  <img src="https://img.shields.io/badge/MVP-Concluído-22C55E?style=flat-square" alt="MVP" />
+  <img src="https://img.shields.io/badge/License-Private-6B7280?style=flat-square" alt="Private" />
+</p>
 
-### Histórico da engenharia reversa (003A)
+<p align="center">
+  <a href="#visao-geral">Visão</a>
+  &nbsp;·&nbsp;
+  <a href="#como-funciona">Fluxo</a>
+  &nbsp;·&nbsp;
+  <a href="#funcionalidades">Funcionalidades</a>
+  &nbsp;·&nbsp;
+  <a href="#stack">Stack</a>
+  &nbsp;·&nbsp;
+  <a href="#como-executar">Executar</a>
+  &nbsp;·&nbsp;
+  <a href="#documentacao">Docs</a>
+</p>
 
-A investigação forense da autenticação (diagnóstico, matriz de divergências, auditorias HTTP/TLS e checkpoint de evidência) está arquivada em [docs/archive/autenticacao-003a/](docs/archive/autenticacao-003a/). Não use esses documentos como SoT do comportamento atual.
+---
 
-## Problema resolvido
+<br />
 
-Consolidar agendas de diversos profissionais em uma única planilha reduz consulta manual, dados desatualizados e trabalho repetitivo. A solução será construída incrementalmente, com cada marco isolando uma responsabilidade.
+<a id="visao-geral"></a>
 
-## Arquitetura
+## ✨ Visão Geral
 
-O sistema integra o portal diretamente por HTTP: Axios preserva a sessão no CookieJar, `ECNHClient` encapsula o protocolo, Cheerio transforma HTML SSR em objetos tipados e `AgendaSyncService` (Fase 006) orquestra a sincronização. Consulte [a arquitetura](docs/ARQUITETURA.md) e o [fluxo HTTP](docs/FLUXO_HTTP.md) para detalhes.
+O **e-CNH** é um sincronizador backend que elimina o trabalho manual de abrir o portal, autenticar profissionais e copiar agendas para planilha.
 
-## Tecnologias
+| | |
+| --- | --- |
+| **Problema** | Consultar o portal por profissional, extrair pacientes e manter a planilha atualizada é lento e propenso a erro. |
+| **Como funciona** | Autentica via HTTP, consulta agendas futuras, parseia HTML SSR, aplica regras (ativos, CPF, unidade) e grava na aba `Agenda`. |
+| **Benefício** | Uma visão consolidada, previsível e auditável — sob demanda ou em horário agendado. |
 
-- Node.js 20+ e TypeScript
-- npm
-- Axios, tough-cookie e http-cookie-agent (integração HTTP, sessão e agentes persistentes)
-- Validador `npm run validate:login` com evidências sanitizadas em `docs/evidencias/`
-- Validador `npm run validate:agenda` e descoberta `npm run discover:agenda` da navegação autenticada
-- Descoberta de logout `npm run discover:logout`
-- Cheerio (parsing de HTML SSR da agenda; descoberta/navegação também o utilizam para inventário de formulários)
-- Google APIs e dotenv
-- Pino para logs estruturados
-- node-cron e proper-lockfile (agendamento e lock de arquivo)
-- Zod disponível para validação de fronteira quando aplicável
+> Não é um app web para usuários finais. É integração operacional que alimenta o Google Sheets.
 
-## Estrutura
+<br />
 
-```text
-src/
-  client/         Clientes HTTP e APIs externas
-  composition/    Wiring compartilhado dos pontos de entrada
-  config/         Configuração e ambiente
-  jobs/           Disparo agendado, SyncLock e AgendaSyncJob
-  models/         Entidades e contratos de domínio
-  parsers/        Transformação de HTML em dados tipados
-  repositories/   Persistência (Google Sheets)
-  scripts/        CLIs e validadores
-  services/       Casos de uso (AgendaSyncService)
-  types/          Tipos compartilhados
-  utils/          Utilitários pequenos e puros
-docs/             Documentação de arquitetura e evolução
+---
+
+<br />
+
+<a id="como-funciona"></a>
+
+## 🔄 Como Funciona
+
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 36, "rankSpacing": 48, "padding": 12, "curve": "basis"}, "themeVariables": {"fontSize": "16px"}} }%%
+flowchart LR
+  A([Portal e-CNH SP]) --> B[Autenticação HTTP]
+  B --> C[Consulta da agenda]
+  C --> D[Extração HTML SSR]
+  D --> E[Parser tipado]
+  E --> F[Regras de negócio]
+  F --> G[Google Sheets API]
+  G --> H([Aba Agenda atualizada])
+
+  style A fill:#E3F2FD,stroke:#1976D2,color:#0A2540
+  style B fill:#FFFFFF,stroke:#90CAF9,color:#0A2540
+  style C fill:#FFFFFF,stroke:#90CAF9,color:#0A2540
+  style D fill:#FFFFFF,stroke:#90CAF9,color:#0A2540
+  style E fill:#FFFFFF,stroke:#90CAF9,color:#0A2540
+  style F fill:#FFF8E1,stroke:#F9A825,color:#0A2540
+  style G fill:#FFFFFF,stroke:#90CAF9,color:#0A2540
+  style H fill:#E8F5E9,stroke:#0F9D58,color:#0A2540
 ```
 
-## Instalação
+| Etapa | O que acontece |
+| --- | --- |
+| Autenticação | Sessão HTTP com CookieJar (Axios) |
+| Consulta | Datas futuras e HTML da agenda por profissional |
+| Parser | Cheerio → modelos tipados (`Agenda` / paciente) |
+| Regras | Ativos (hoje+), deduplicação por CPF, unidade operacional |
+| Persistência | Reescrita controlada da aba `Agenda` |
+
+Detalhes técnicos: [Arquitetura](docs/ARQUITETURA.md) · [Fluxo HTTP](docs/FLUXO_HTTP.md)
+
+<br />
+
+---
+
+<br />
+
+<a id="funcionalidades"></a>
+
+## 🚀 Funcionalidades
+
+| | Capacidade | Descrição |
+| :---: | --- | --- |
+| 🔐 | **Login automatizado** | Autenticação HTTP com cookies e logout seguro |
+| 👨‍⚕️ | **Multi-profissional** | Vários usuários `ECNH_USER_*` em uma execução |
+| 🏥 | **Multi-unidade** | Escolha de Perfil / Visão por configuração |
+| 📅 | **Consulta automática** | Agendas por data sem interação manual |
+| 📄 | **Parser HTML** | HTML SSR → domínio tipado |
+| 📊 | **Google Sheets** | Persistência na aba `Agenda` |
+| 🆔 | **Deduplicação por CPF** | Evita duplicatas no ciclo ativo |
+| 🔄 | **Atualização incremental** | Insere novos, preserva ativos, remove datas passadas |
+| ⏰ | **Scheduler** | Daemon com `node-cron` |
+| 🔒 | **Lock** | Impede execuções concorrentes |
+
+<br />
+
+---
+
+<br />
+
+## 🖼 Screenshots
+
+<p align="center">
+  <em>Capturas reais poderão ser adicionadas futuramente.</em><br />
+  <sub>Os blocos abaixo são <strong>placeholders</strong> — substitua pelos arquivos em <code>docs/assets/screenshots/</code> quando disponíveis.</sub>
+</p>
+
+| Portal | Google Sheets |
+| :---: | :---: |
+| <!-- screenshot: portal --> | <!-- screenshot: sheets --> |
+| 📷 *placeholder* | 📷 *placeholder* |
+| *Portal e-CNH (autenticado)* | *Aba Agenda sincronizada* |
+| `docs/assets/screenshots/portal.png` | `docs/assets/screenshots/sheets.png` |
+
+| Scheduler | Fluxo |
+| :---: | :---: |
+| <!-- screenshot: scheduler --> | <!-- screenshot: fluxo --> |
+| 📷 *placeholder* | 📷 *placeholder* |
+| *Daemon / logs do job* | *Pipeline de sincronização* |
+| `docs/assets/screenshots/scheduler.png` | `docs/assets/screenshots/fluxo.png` |
+
+Banner do projeto: [`docs/assets/banner-ecnh-ai.png`](docs/assets/banner-ecnh-ai.png) · variante vetorial: [`docs/assets/banner-ecnh.png`](docs/assets/banner-ecnh.png)
+
+<br />
+
+---
+
+<br />
+
+<a id="stack"></a>
+
+## ⚙️ Stack
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Axios-HTTP-5A29E4?logo=axios&logoColor=white" alt="Axios" />
+  <img src="https://img.shields.io/badge/CookieJar-tough--cookie-0D47A1" alt="CookieJar" />
+  <img src="https://img.shields.io/badge/Cheerio-Parsing-E39E54" alt="Cheerio" />
+  <img src="https://img.shields.io/badge/Google%20Sheets-API%20v4-0F9D58?logo=googlesheets&logoColor=white" alt="Google Sheets" />
+  <img src="https://img.shields.io/badge/Pino-Logs-FF3B00" alt="Pino" />
+  <img src="https://img.shields.io/badge/node--cron-Scheduler-1B1F23" alt="node-cron" />
+</p>
+
+| Camada | Tecnologias |
+| --- | --- |
+| **Runtime** | Node.js 20+ · TypeScript |
+| **HTTP / sessão** | Axios · tough-cookie · http-cookie-agent (CookieJar) |
+| **Parsing** | Cheerio |
+| **Persistência** | Google Sheets API v4 (`googleapis`) |
+| **Observabilidade** | Pino |
+| **Agendamento** | node-cron · proper-lockfile |
+| **Validação** | Zod (fronteiras, quando aplicável) |
+
+<br />
+
+---
+
+<br />
+
+## 📁 Estrutura
+
+```text
+e-CNH/
+├── src/
+│   ├── client/          # Portal HTTP + Google Sheets
+│   ├── composition/     # Wiring dos entrypoints
+│   ├── config/          # Ambiente e profissionais
+│   ├── jobs/            # Daemon, cron, SyncLock
+│   ├── models/          # Domínio
+│   ├── parsers/         # HTML → tipado
+│   ├── repositories/    # Persistência Agenda
+│   ├── scripts/         # CLIs e validadores
+│   ├── services/        # Casos de uso
+│   └── utils/
+├── docs/                # Arquitetura, ADRs, backlog, evidências
+├── .fases/              # Histórico das fases do MVP
+├── fixtures/            # Fixtures de parser
+└── AGENTS.md            # Regras do repositório
+```
+
+<br />
+
+---
+
+<br />
+
+<a id="como-executar"></a>
+
+## ▶️ Como Executar
+
+### 1. Instalação
 
 ```bash
 npm install
 cp .env.example .env
 ```
 
-Preencha `.env` somente quando as fases correspondentes forem implementadas. Nunca versione credenciais.
+Preencha portal (`ECNH_*`), profissionais (`ECNH_USER_*`) e Google Sheets.
+Para o daemon, defina `AGENDA_SYNC_CRON` (ex.: `0 17 * * *` com `AGENDA_SYNC_TZ=America/Sao_Paulo`).
 
-## Execução
+### 2. Sincronização
 
-```bash
-npm run dev
-```
-
-### Teste de autenticação
-
-Configure `ECNH_BASE_URL` e ao menos um usuário habilitado (`ECNH_USER_<n>_CPF`, `ECNH_USER_<n>_PASSWORD`, `ECNH_USER_<n>_ENABLED=true`) no `.env` e execute:
+| Modo | Comando | Comportamento |
+| --- | --- | --- |
+| **Manual** | `npm run sync:agenda` | Uma execução sob demanda e encerra |
+| **Daemon** | `npm run job:agenda` | Processo longo; dispara no cron configurado |
 
 ```bash
-npm run test:login
-```
-
-Para a série reproduzível com evidências sanitizadas:
-
-```bash
-npm run validate:login
-```
-
-O cliente envia exclusivamente o protocolo de login confirmado, mantém cookies com `tough-cookie` e confirma sucesso pela presença de `JSESSIONID` e do marcador HTML observado. O logout envia `GET /gefor/SGU/login.do?method=finalizarLogin` e descarta a sessão local.
-
-Após o login, `listarDatasAgendamento()` e `obterHtmlAgenda({ data, dataReferencia })` reproduzem a consulta `POST method=consultarAgendaPsicologo` e devolvem HTML bruto. `parseAgendaHtml(html, { dataConsulta })` transforma esse HTML em `Agenda` / `ItemAgenda` / `Paciente`.
-
-### Parser da agenda
-
-```bash
-npm run test:agenda-parser
-npm run validate:agenda-parser
-npm run discover:agenda-html
-```
-
-### Persistência Google Sheets
-
-```bash
-npm run test:sheets
-npm run discover:sheets
-npm run validate:sheets
-```
-
-Configure `GOOGLE_SHEETS_SPREADSHEET_ID`, o caminho do JSON da Service Account e compartilhe a planilha com o e-mail da conta (Editor). A aba `Agenda` deve existir.
-
-Em cada sincronização, a persistência:
-
-- reescreve a aba no **layout oficial** (8 colunas operacionais: UNIDADE → DATA DE INCLUSÃO);
-- insere pacientes novos (CPF ainda não presente entre os ativos);
-- preserva pacientes ativos com o mesmo CPF (sem duplicar) — B004/B005 inalterados;
-- remove automaticamente linhas cujo **AGENDAMENTO DO DETRAN** é anterior a hoje (`America/Sao_Paulo`);
-- grava **DATA DE INCLUSÃO** na primeira entrada do paciente no ciclo ativo atual;
-- grava **UNIDADE** com o nome operacional derivado de `ECNH_USER_<n>_CLINIC` (ex.: LIMÃO, CAPÃO REDONDO, VILA CARRÃO).
-
-O CPF permanece a chave de negócio no domínio e na deduplicação; não faz parte das colunas operacionais exibidas à clínica.
-
-### Sincronização sob demanda (Fase 006)
-
-Com portal, profissionais (`ECNH_USER_<n>_ENABLED/NAME/CPF/PASSWORD/CLINIC`) e Sheets configurados:
-
-```bash
+# Sob demanda
 npm run sync:agenda
-```
 
-O script compõe `criarAgendaSyncRuntime` + `AgendaSyncJob` (com lock global) e executa `sincronizarProfissionais`.
-
-### Agendamento automático (Fase 007)
-
-Defina `AGENDA_SYNC_CRON` (obrigatória) e, opcionalmente, `AGENDA_SYNC_TZ` / `AGENDA_SYNC_LOCK_PATH`.
-
-Padrão recomendado do projeto: uma sincronização diária às 17:00 no fuso `America/Sao_Paulo`:
-
-```bash
-# .env
-AGENDA_SYNC_CRON=0 17 * * *
-AGENDA_SYNC_TZ=America/Sao_Paulo
-```
-
-```bash
+# Agendado (processo precisa permanecer vivo)
 npm run job:agenda
 ```
 
-O daemon mantém o processo vivo e dispara o mesmo job nesse horário. Validação local: `npm run validate:agenda-job`.
+> Sem `sync:agenda` e sem `job:agenda` em execução, a planilha **não** atualiza sozinha.
 
-### Estado da validação real
-
-Em 19/07/2026, a validação reproduzível aprovou autenticação, logout, navegação, extração tipada, persistência Sheets, orquestração multi-profissional (`npm run sync:agenda`) e agendamento automático (`job:agenda` + lock), com evidências em `docs/evidencias/`. As Fases 003A, 003B, 004, 005, 006 e 007 estão `Concluída`.
-
-Para reexecutar:
+### 3. Qualidade
 
 ```bash
-npm run validate:login
-npm run validate:agenda
-npm run validate:agenda-parser
-npm run validate:sheets
-npm run sync:agenda
-npm run validate:agenda-job
+npm run typecheck && npm run lint && npm test && npm run build
 ```
 
-Consulte [o mapa do protocolo](docs/API.md), a [validação do login](docs/VALIDACAO_REPRODUZIVEL_003A.md), [.fases/003b-navegacao-autenticada.md](.fases/003b-navegacao-autenticada.md), [.fases/004-extracao-agenda.md](.fases/004-extracao-agenda.md), [.fases/005-integracao-google-sheets.md](.fases/005-integracao-google-sheets.md), [.fases/006-orquestracao-sincronizacao.md](.fases/006-orquestracao-sincronizacao.md) e [.fases/007-agendamento-automatico.md](.fases/007-agendamento-automatico.md).
+Validadores (`validate:*`, `discover:*`) → [docs/](docs/) e [.fases/](.fases/).
 
-## Arquitetura definitiva
+<br />
 
-```text
-Autenticação HTTP
-  ↓
-Sessão (cookies)
-  ↓
-Consulta da agenda
-  ↓
-Download do HTML
-  ↓
-Parser HTML
-  ↓
-Objetos TypeScript
-  ↓
-Google Sheets
-```
+---
 
-O portal e-CNH é orientado a HTML renderizado no servidor (SSR), e não a uma API REST observada. A estratégia principal será HTTP direto com Axios e CookieJar. Playwright não será utilizado na produção: fica restrito à depuração, investigação de fluxos novos e casos futuros que comprovadamente exijam JavaScript no navegador.
+<br />
 
-Comandos de qualidade:
+## ✅ Estado do Projeto
 
-```bash
-npm run typecheck
-npm run lint
-npm run test:agenda-parser
-npm run format:check
-npm run build
-```
+| | Status |
+| --- | :---: |
+| MVP (Fases 000–007) | ✔ Concluído |
+| Sistema operacional | ✔ |
+| Multi-profissional | ✔ |
+| Multi-unidade | ✔ |
+| Google Sheets | ✔ |
+| Scheduler + lock | ✔ |
 
-## Roadmap e próximos passos
+<p align="center">
 
-MVP do produto **concluído** na Fase **007 — Agendamento automático (cron)** (`Concluída`, [documento](.fases/007-agendamento-automatico.md)).
+| ✔ MVP concluído | ✔ Sincronização manual | ✔ Scheduler automático | 🔄 Melhorias contínuas |
+| :---: | :---: | :---: | :---: |
 
-- [Roadmap](docs/ROADMAP.md): histórico da construção do MVP (Fases 000–007).
-- [Backlog](docs/BACKLOG.md): única fonte de evoluções futuras.
+</p>
 
-### Convenção de status (MVP)
+<br />
 
-Toda fase da 003A à 007 possui exatamente um status e avançou nesta ordem:
+---
 
-`Planejada` → `Implementada` → `Validada` → `Concluída`
+<br />
 
-- **Planejada:** escopo documentado, ainda sem implementação finalizada.
-- **Implementada:** escopo desenvolvido, com validação pendente.
-- **Validada:** critérios executados e sustentados por evidências registradas.
-- **Concluída:** validação aprovada, sem pendências bloqueantes no escopo e com documentação atualizada.
+## 🗺 Roadmap
 
-O [roadmap](docs/ROADMAP.md) é a fonte de verdade dos estados do MVP. Evoluções pós-MVP seguem o [backlog](docs/BACKLOG.md).
+| Status | Item |
+| :---: | --- |
+| ✅ | MVP |
+| ✅ | Parser |
+| ✅ | Google Sheets |
+| ✅ | Scheduler |
+| 🔄 | Deploy Railway |
+| 🔄 | Execução 24/7 |
+| 🔄 | Dashboard |
+| 🔄 | Histórico de sincronizações |
+| 🔄 | Logs centralizados |
+| 🔄 | Monitoramento |
 
-## Convenções
+Fontes oficiais: [BACKLOG.md](docs/BACKLOG.md) · [ROADMAP.md](docs/ROADMAP.md)
 
-- TypeScript estrito; não usar `any`.
-- Uma responsabilidade clara por módulo.
-- Dependências externas ficam atrás de clientes ou repositórios.
-- Dados de fronteira são validados antes de entrar no domínio.
-- Logs são estruturados e erros preservam causa e contexto.
-- Alterações arquiteturais relevantes atualizam `docs/DECISOES.md`.
-- Valores de CPF, senha, cookies e tokens nunca são registrados em logs.
+<br />
 
-## Filosofia de desenvolvimento
+---
 
-Simplicidade antes de complexidade; automação antes de trabalho manual; código legível antes de código esperto. O projeto evolui por entregas pequenas, documentadas e testáveis, priorizando manutenção em vez de otimização prematura.
+<br />
 
-As regras permanentes para contribuições humanas e de IA estão em [AGENTS.md](AGENTS.md).
+<a id="documentacao"></a>
+
+## 📚 Documentação
+
+| Recurso | Conteúdo |
+| --- | --- |
+| [docs/](docs/) | Documentação técnica completa |
+| [Visão do produto](docs/VISAO_DO_PRODUTO.md) | Objetivo, usuários, escopo |
+| [Arquitetura](docs/ARQUITETURA.md) | Camadas e limites de integração |
+| [ADRs / Decisões](docs/DECISOES.md) | Decisões arquiteturais |
+| [API / protocolo](docs/API.md) | Contrato HTTP com o portal |
+| [Fluxo HTTP](docs/FLUXO_HTTP.md) | Sequência login → agenda |
+| [.fases/](.fases/) | Documentos por fase do MVP |
+| [CHANGELOG.md](CHANGELOG.md) | Diário de evolução |
+| [AGENTS.md](AGENTS.md) | Regras para contribuidores e agentes |
+| [Backlog](docs/BACKLOG.md) | Evoluções pós-MVP |
+
+Arquivo forense 003A: [docs/archive/autenticacao-003a/](docs/archive/autenticacao-003a/) — histórico, não SoT do comportamento atual.
+
+<br />
+
+---
+
+<br />
+
+## 🔒 Segurança
+
+Credenciais e secrets permanecem **locais** (`.env` e JSON da Service Account) e **não** fazem parte do repositório.
+
+| Prática | Detalhe |
+| --- | --- |
+| Credenciais | Nunca versionadas (código, logs, fixtures ou commits) |
+| Secrets | Apenas variáveis de ambiente (`.env` local, fora do Git) |
+| Google Sheets | Autenticação via **Service Account** (JSON fora do repositório) |
+| Dados sensíveis | CPF, senha, cookies e tokens não aparecem em logs |
+
+<br />
+
+---
+
+<br />
+
+<p align="center">
+  <strong>e-CNH</strong><br />
+  <sub>Simplicidade antes de complexidade · automação antes de trabalho manual · entregas pequenas e documentadas</sub>
+</p>
