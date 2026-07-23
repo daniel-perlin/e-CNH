@@ -3,8 +3,8 @@ import { normalizeEmail } from '../utils/email.js';
 import { normalizePhone } from '../utils/phone.js';
 
 import {
-  ALIASES_CABECALHO_ABA_AGENDA,
   CABECALHOS_ABA_AGENDA,
+  resolverAliasCabecalho,
   type CabecalhoAbaAgenda,
   type ColunaAgendaLeitura
 } from './agenda-sheet-headers.js';
@@ -177,11 +177,11 @@ export class AgendaSheetMapper {
   ): ReadonlyMap<ColunaAgendaLeitura, number> {
     const indices = new Map<ColunaAgendaLeitura, number>();
     for (let index = 0; index < cabecalhos.length; index += 1) {
-      const titulo = cabecalhos[index]?.trim();
-      if (titulo === undefined || titulo.length === 0) {
+      const titulo = cabecalhos[index];
+      if (titulo === undefined) {
         continue;
       }
-      const canonico = ALIASES_CABECALHO_ABA_AGENDA[titulo];
+      const canonico = resolverAliasCabecalho(titulo);
       if (canonico !== undefined && !indices.has(canonico)) {
         indices.set(canonico, index);
       }

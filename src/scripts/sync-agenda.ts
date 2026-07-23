@@ -1,5 +1,7 @@
 import 'dotenv/config';
 
+import pino from 'pino';
+
 import { criarAgendaSyncRuntime } from '../composition/agenda-sync-runtime.js';
 import { AgendaSyncJob } from '../jobs/agenda-sync-job.js';
 import type { StructuredLogger } from '../types/logger.js';
@@ -11,14 +13,13 @@ import { formatarResumoSincronizacao } from './sync-agenda-resumo.js';
  * Compõe runtime + job com lock global e imprime resumo sem PII.
  */
 async function main(): Promise<void> {
-  const runtime = criarAgendaSyncRuntime({
-    logger: createQuietLogger()
-  });
+  const logger = createSyncLogger();
+  const runtime = criarAgendaSyncRuntime({ logger });
 
   const job = new AgendaSyncJob({
     entradas: runtime.entradas,
     lock: runtime.lock,
-    logger: createQuietLogger(),
+    logger,
     service: runtime.service
   });
 
@@ -43,9 +44,21 @@ async function main(): Promise<void> {
   }
 }
 
-function createQuietLogger(): StructuredLogger {
-  const noop = (): void => undefined;
-  return { debug: noop, error: noop, info: noop, warn: noop };
+/** Emite warn/error (ex.: cabeçalho incompatível); omite info/debug no console do sync manual. */
+function createSyncLogger(): StructuredLogger {
+  return pino({
+    level: 'warn',
+    redact: {
+      paths: [
+        'cpf',
+        'password',
+        'headers.cookie',
+        'headers.authorization',
+        'err.config.headers'
+      ],
+      remove: true
+    }
+  });
 }
 
 void main().catch((error: unknown) => {

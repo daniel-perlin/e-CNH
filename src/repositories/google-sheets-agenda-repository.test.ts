@@ -348,4 +348,83 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(semData.sucesso, false);
     assert.equal(semData.motivoFalha, 'data-consulta-ausente');
   });
+
+  it('aceita cabeçalho oficial com quebra de linha e espaços extras no título', async () => {
+    const { sheets, repository } = criarRepositorio();
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [
+        'UNIDADE',
+        'AGENDAMENTO\nDO DETRAN',
+        'HORÁRIO',
+        'PACIENTE',
+        'TELEFONE',
+        'EMAIL',
+        'PROFISSIONAL',
+        'DATA DE INCLUSÃO'
+      ]
+    ]);
+
+    const resultado = await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE WRAP', '444.444.444-44'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+    );
+
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.linhasGravadas, 1);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.equal(matriz[0]?.[COL.dataAgendamento], 'AGENDAMENTO DO DETRAN');
+    assert.equal(matriz[1]?.[COL.dataAgendamento], '21/07/2026');
+  });
+
+  it('registra diagnóstico ao rejeitar cabeçalho semanticamente incompatível', async () => {
+    const warnings: object[] = [];
+    const sheets = new InMemoryGoogleSheetsValues();
+    const repository = new GoogleSheetsAgendaRepository({
+      sheets,
+      agora: HOJE_FIXO,
+      logger: {
+        debug: () => undefined,
+        info: () => undefined,
+        error: () => undefined,
+        warn: (bindings: object) => {
+          warnings.push(bindings);
+        }
+      }
+    });
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [
+        'UNIDADE',
+        'COLUNA ERRADA',
+        'HORÁRIO',
+        'PACIENTE',
+        'TELEFONE',
+        'EMAIL',
+        'PROFISSIONAL',
+        'DATA DE INCLUSÃO'
+      ]
+    ]);
+
+    const resultado = await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO' }
+    );
+
+    assert.equal(resultado.sucesso, false);
+    assert.equal(resultado.motivoFalha, 'cabecalho-incompativel');
+    assert.equal(warnings.length, 1);
+    const diagnostico = warnings[0] as {
+      event: string;
+      cabecalhoEsperado: string[];
+      cabecalhoEncontrado: string[];
+      colunaDivergente: { indice: number; esperado: string; encontrado: string };
+    };
+    assert.equal(diagnostico.event, 'agenda.sheets.cabecalho_incompativel');
+    assert.equal(diagnostico.cabecalhoEsperado[1], 'AGENDAMENTO DO DETRAN');
+    assert.equal(diagnostico.cabecalhoEncontrado[1], 'COLUNA ERRADA');
+    assert.equal(diagnostico.colunaDivergente.indice, 1);
+    assert.equal(diagnostico.colunaDivergente.esperado, 'AGENDAMENTO DO DETRAN');
+    assert.equal(diagnostico.colunaDivergente.encontrado, 'COLUNA ERRADA');
+  });
 });

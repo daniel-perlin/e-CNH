@@ -50,7 +50,8 @@ export function criarAgendaSyncRuntime(
   });
   const agendaRepository = new GoogleSheetsAgendaRepository({
     sheets,
-    sheetName: sheetsConfig.sheetName
+    sheetName: sheetsConfig.sheetName,
+    logger: options.logger
   });
 
   const logger = options.logger;

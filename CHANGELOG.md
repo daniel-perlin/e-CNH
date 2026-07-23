@@ -2,14 +2,45 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Layout oficial da aba Agenda (projeção Sheets simplificada)  
-> **Próxima prioridade:** B014 (baixa) — separar projeção operacional de metadados técnicos; D3 fixtures se priorizado  
-> **Última atualização:** 2026-07-19 18:40 BRT  
-> **Última sessão executada:** 19/07/2026 • 18:40 — Backlog B014 / ADR-018 coluna técnica CPF
+> **Fase atual:** Layout oficial da aba Agenda (projeção Sheets simplificada)
+> **Próxima prioridade:** B014 (baixa) — separar projeção operacional de metadados técnicos; D3 fixtures se priorizado
+> **Última atualização:** 2026-07-23 17:17 BRT
+> **Última sessão executada:** 23/07/2026 • 13:38 — Cabeçalho Sheets tolerante a whitespace
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 13:38
+
+### 🎯 Objetivo
+
+Tornar a validação do cabeçalho da aba Agenda robusta a diferenças de formatação (whitespace) e melhorar o diagnóstico de `cabecalho-incompativel`.
+
+### ✅ O que mudou
+
+- Normalização de rótulos (`normalizeTextoCabecalho`) antes da comparação e na resolução de aliases do mapper.
+- Aceita quebras de linha / tabs / espaços múltiplos em títulos semanticamente iguais (ex.: `AGENDAMENTO\nDO DETRAN`).
+- Log estruturado com cabeçalho esperado, encontrado e coluna divergente.
+- `sync:agenda` passa a emitir warns do repositório (Pino `level: warn`) para o diagnóstico de cabeçalho.
+
+### 🧠 Decisões
+
+- **Decisão:** não alterar o contrato visual nem os motivos tipados de falha; apenas comparação e observabilidade.
+- **Evidência confirmada (prévia):** planilha real tinha `AGENDAMENTO \nDO DETRAN` na coluna B, rejeitado pelo match estrito.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-sheet-headers.ts`
+- `src/repositories/agenda-sheet-headers.test.ts`
+- `src/repositories/agenda-sheet-mapper.ts`
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `src/composition/agenda-sync-runtime.ts`
+- `src/scripts/sync-agenda.ts`
+- `CHANGELOG.md`
 
 ---
 

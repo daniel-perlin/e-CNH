@@ -105,3 +105,36 @@ export const ULTIMA_COLUNA_PERSISTENCIA_ABA_AGENDA = colunaA1(INDICE_COLUNA_TECN
  * A projeção operacional permanece nas colunas de `CABECALHOS_ABA_AGENDA`.
  */
 export const FAIXA_COLUNAS_LEITURA_ABA_AGENDA = 'A:Z';
+
+/**
+ * Normaliza rótulo de cabeçalho para comparação semântica.
+ * Colapsa qualquer sequência de whitespace (espaços, tabs, `\n`, `\r\n`) em um espaço
+ * e remove bordas — sem alterar o significado do texto.
+ */
+export function normalizeTextoCabecalho(valor: string): string {
+  return valor.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Resolve o canônico a partir do título bruto da planilha,
+ * tolerando diferenças de formatação de whitespace.
+ */
+export function resolverAliasCabecalho(tituloBruto: string): ColunaAgendaLeitura | undefined {
+  const normalizado = normalizeTextoCabecalho(tituloBruto);
+  if (normalizado.length === 0) {
+    return undefined;
+  }
+
+  const direto = ALIASES_CABECALHO_ABA_AGENDA[normalizado];
+  if (direto !== undefined) {
+    return direto;
+  }
+
+  for (const [chave, canonico] of Object.entries(ALIASES_CABECALHO_ABA_AGENDA)) {
+    if (normalizeTextoCabecalho(chave) === normalizado) {
+      return canonico;
+    }
+  }
+
+  return undefined;
+}

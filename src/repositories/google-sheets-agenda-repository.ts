@@ -1,5 +1,6 @@
 import type { Agenda, ItemAgenda } from '../models/agenda.js';
 import type { GoogleSheetsValuesPort } from '../client/google-sheets-client.js';
+import type { StructuredLogger } from '../types/logger.js';
 import { isDataAgendamentoAtiva } from '../utils/agenda-date.js';
 import { normalizeCpfKey } from '../utils/cpf.js';
 import { formatSyncTimestamp } from '../utils/sync-timestamp.js';
@@ -17,9 +18,18 @@ import {
   FAIXA_COLUNAS_LEITURA_ABA_AGENDA,
   INDICE_COLUNA_TECNICA_CPF,
   NOME_ABA_AGENDA_PADRAO,
+  normalizeTextoCabecalho,
   ULTIMA_COLUNA_PERSISTENCIA_ABA_AGENDA
 } from './agenda-sheet-headers.js';
 import { AgendaSheetMapper, type LinhaAgendaPersistida } from './agenda-sheet-mapper.js';
+
+/** Divergência pontual entre cabeçalho encontrado e uma variante esperada. */
+export interface DivergenciaCabecalhoAgenda {
+  /** Índice 0-based da primeira coluna divergente (ou faltante). */
+  indice: number;
+  esperado: string;
+  encontrado: string;
+}
 
 export interface GoogleSheetsAgendaRepositoryOptions {
   mapper?: AgendaSheetMapper;
@@ -30,6 +40,8 @@ export interface GoogleSheetsAgendaRepositoryOptions {
    * Destinado a testes; em produção usa `new Date()`.
    */
   agora?: Date;
+  /** Logger opcional para diagnóstico de cabeçalho incompatível (sem PII). */
+  logger?: StructuredLogger;
 }
 
 /**
@@ -43,12 +55,14 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   private readonly sheetName: string;
   private readonly sheets: GoogleSheetsValuesPort;
   private readonly agora: Date | undefined;
+  private readonly logger: StructuredLogger | undefined;
 
   public constructor(options: GoogleSheetsAgendaRepositoryOptions) {
     this.sheets = options.sheets;
     this.mapper = options.mapper ?? new AgendaSheetMapper();
     this.sheetName = options.sheetName?.trim() || NOME_ABA_AGENDA_PADRAO;
     this.agora = options.agora;
+    this.logger = options.logger;
   }
 
   public async salvarAgenda(
@@ -77,6 +91,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       const corpo = matriz.length > 0 ? matriz.slice(1) : [];
 
       if (cabecalhoAtual !== undefined && !this.cabecalhoCompativel(cabecalhoAtual)) {
+        this.registrarCabecalhoIncompativel(cabecalhoAtual);
         return { sucesso: false, motivoFalha: 'cabecalho-incompativel' };
       }
 
@@ -277,12 +292,18 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   }
 
   private cabecalhoCompativel(cabecalho: readonly string[]): boolean {
+    return this.variantesCabecalhoAceitas().some((esperado) =>
+      this.cabecalhosIguais(cabecalho, esperado)
+    );
+  }
+
+  private variantesCabecalhoAceitas(): readonly string[][] {
     const legado = [...CABECALHOS_ABA_AGENDA_LEGADO];
     const legadoSemUnidade = CABECALHOS_ABA_AGENDA_LEGADO.filter(
       (titulo) => titulo !== 'Unidade'
     );
 
-    const variantes: readonly string[][] = [
+    return [
       [...CABECALHOS_ABA_AGENDA],
       legado,
       this.substituirCabecalho(legado, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
@@ -315,8 +336,6 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         CABECALHO_DATA_AGENDAMENTO_LEGADO
       )
     ];
-
-    return variantes.some((esperado) => this.cabecalhosIguais(cabecalho, esperado));
   }
 
   private substituirCabecalho(
@@ -334,6 +353,70 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
     if (atual.length < esperado.length) {
       return false;
     }
-    return esperado.every((titulo, index) => atual[index]?.trim() === titulo);
+    return esperado.every(
+      (titulo, index) =>
+        normalizeTextoCabecalho(atual[index] ?? '') === normalizeTextoCabecalho(titulo)
+    );
+  }
+
+  /**
+   * Localiza a primeira coluna divergente em relação a uma variante esperada
+   * (após normalização de whitespace).
+   */
+  private primeiraDivergenciaCabecalho(
+    atual: readonly string[],
+    esperado: readonly string[]
+  ): DivergenciaCabecalhoAgenda | undefined {
+    const limite = Math.max(atual.length, esperado.length);
+    for (let indice = 0; indice < limite; indice += 1) {
+      const valorEsperado = esperado[indice];
+      const valorEncontrado = atual[indice];
+      if (valorEsperado === undefined) {
+        // Colunas extras após o prefixo aceito não invalidam o layout.
+        return undefined;
+      }
+      const encontrado = valorEncontrado ?? '';
+      if (normalizeTextoCabecalho(encontrado) !== normalizeTextoCabecalho(valorEsperado)) {
+        return {
+          indice,
+          esperado: valorEsperado,
+          encontrado
+        };
+      }
+    }
+    return undefined;
+  }
+
+  private registrarCabecalhoIncompativel(encontrado: readonly string[]): void {
+    const referencia = [...CABECALHOS_ABA_AGENDA];
+    let divergencia = this.primeiraDivergenciaCabecalho(encontrado, referencia);
+
+    if (divergencia === undefined) {
+      for (const variante of this.variantesCabecalhoAceitas()) {
+        const candidata = this.primeiraDivergenciaCabecalho(encontrado, variante);
+        if (candidata !== undefined) {
+          divergencia = candidata;
+          break;
+        }
+      }
+    }
+
+    this.logger?.warn(
+      {
+        event: 'agenda.sheets.cabecalho_incompativel',
+        motivoFalha: 'cabecalho-incompativel',
+        cabecalhoEsperado: referencia,
+        cabecalhoEncontrado: [...encontrado],
+        colunaDivergente: divergencia
+          ? {
+              indice: divergencia.indice,
+              posicao: divergencia.indice + 1,
+              esperado: divergencia.esperado,
+              encontrado: divergencia.encontrado
+            }
+          : undefined
+      },
+      'Cabeçalho da aba Agenda incompatível com o layout aceito'
+    );
   }
 }
