@@ -2,6 +2,7 @@ import { AxiosError } from 'axios';
 
 import { LoginCredentials, LoginResult } from '../types/auth.js';
 import { AuthTransport } from './auth-transport.js';
+import { classificarFalhaAutenticacaoHtml } from './classificar-falha-login.js';
 import {
   extrairAutenticadoCyberarkDeOpenDialogChoice,
   htmlContemFormularioEscolhaUnidade,
@@ -302,11 +303,7 @@ export class ECNHAuthenticationProtocol {
     const perfilDetectado = resolverPerfilNoHtml(html);
 
     if (!hasSessionCookie || perfilDetectado === undefined) {
-      return {
-        message:
-          'O portal respondeu ao login, mas os sinais de autenticação confirmados não foram encontrados.',
-        status: 'erro_desconhecido'
-      };
+      return classificarFalhaAutenticacaoHtml(html);
     }
 
     if (perfilEsperado !== undefined && perfilEsperado !== perfilDetectado.id) {
@@ -324,6 +321,34 @@ export class ECNHAuthenticationProtocol {
 
   private fromTransportError(error: unknown): Exclude<LoginResult, { status: 'sucesso' }> {
     if (error instanceof AxiosError) {
+      const code = error.code ?? '';
+      const messageLower = error.message.toLowerCase();
+
+      if (
+        code === 'ETIMEDOUT' ||
+        code === 'ECONNABORTED' ||
+        error.message.includes('timeout') ||
+        messageLower.includes('timed out')
+      ) {
+        return {
+          message: `Timeout na comunicação HTTP com o portal: ${error.message}`,
+          status: 'timeout'
+        };
+      }
+
+      if (
+        code === 'ECONNREFUSED' ||
+        code === 'ENOTFOUND' ||
+        code === 'EAI_AGAIN' ||
+        code === 'ENETUNREACH' ||
+        code === 'EHOSTUNREACH'
+      ) {
+        return {
+          message: `Portal indisponível ou inacessível: ${error.message}`,
+          status: 'portal_indisponivel'
+        };
+      }
+
       return {
         message: `Não foi possível concluir a comunicação HTTP com o portal: ${error.message}`,
         status: 'erro_sistema'

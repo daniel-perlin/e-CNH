@@ -4,12 +4,146 @@
 >
 > **Fase atual:** Layout oficial da aba Agenda (projeção Sheets simplificada)
 > **Próxima prioridade:** B014 (baixa) — separar projeção operacional de metadados técnicos; D3 fixtures se priorizado
-> **Última atualização:** 2026-07-23 17:55 BRT
-> **Última sessão executada:** 23/07/2026 • 17:55 — ROADMAP premium
+> **Última atualização:** 2026-07-23 18:30 BRT
+> **Última sessão executada:** 23/07/2026 • 18:30 — Evidência E2E credenciais + sync
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 18:30
+
+### 🎯 Objetivo
+
+Registrar oficialmente a validação E2E de credenciais e sincronização de agenda contra o portal real e o Google Sheets, como marco permanente do projeto.
+
+### ✅ O que mudou
+
+- Evidência sanitizada em `docs/evidencias/008-validacao-e2e-credenciais-sync-2026-07-23.md`.
+- Índice atualizado em `docs/evidencias/README.md`.
+- Resultado confirmado: auditoria 16/17 autenticados; sync E2E 16/16 sucesso; Alessandra excluída (bloqueio portal).
+
+### 🧠 Decisões
+
+- **Decisão:** declarar produção local aprovada e prontidão para deploy Railway, com ressalva operacional da conta bloqueada.
+- **Evidência confirmada:** sucesso geral do `npm run sync:agenda` com 16 profissionais habilitados.
+
+### 📂 Arquivos impactados
+
+- `docs/evidencias/008-validacao-e2e-credenciais-sync-2026-07-23.md`
+- `docs/evidencias/README.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 18:25
+
+### 🎯 Objetivo
+
+Corrigir `.env` (Rodrigo/Priscila) e tornar mensagens da auditoria precisas quando o `ECNH_USER` existe mas a senha não entra no escopo; reexecutar `audit:credenciais`.
+
+### ✅ O que mudou
+
+- `.env` local: senhas de Rodrigo e Priscila entre aspas (valores do catálogo).
+- Diagnóstico de fora do escopo: PASSWORD vazia vs `#` sem aspas vs ausência de usuário.
+- Mensagem quando candidata é idêntica e o portal rejeita (possível bloqueio).
+
+### 🧠 Decisões
+
+- **Decisão:** apenas observabilidade + correção local de secrets; regras de retry inalteradas.
+
+### 📂 Arquivos impactados
+
+- `.env` (local, não versionado)
+- `src/config/credential-audit-scope.ts` (+ testes)
+- `src/services/credential-refresh-service.ts`
+- `src/scripts/audit-credentials.ts`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 18:20
+
+### 🎯 Objetivo
+
+Adicionar modo `audit` de credenciais: percorrer o catálogo (inclui `ENABLED=false`), validar/atualizar CPF/senha sem sincronizar agenda e sem alterar `ENABLED`.
+
+### ✅ O que mudou
+
+- `npm run audit:credenciais` + `executarAuditoria` reutilizando o fluxo de retry do refresh.
+- Escopo catálogo × `.env` (`credential-audit-scope`); resumo próprio de auditoria.
+- Refresh (`executar`) permanece inalterado na regra de negócio.
+
+### 🧠 Decisões
+
+- **Decisão:** o catálogo define a varredura; matching por CPF/nome; órfãos sem `ECNH_USER` entram como falha `sem_env`.
+
+### 📂 Arquivos impactados
+
+- `src/config/credential-audit-scope.ts` (+ testes)
+- `src/services/credential-refresh-service.ts` (+ testes)
+- `src/scripts/audit-credentials.ts`
+- `package.json`, `.env.example`, `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 18:15
+
+### 🎯 Objetivo
+
+Reforçar observabilidade do `refresh:credenciais` (logs por profissional + resumo de auditoria), sem alterar regras de negócio nem expor senhas.
+
+### ✅ O que mudou
+
+- Logs por etapa: início (nome + CPF mascarado), tentativa atual, resultado tipado, busca/retry de candidata, persistência (`cpf`/`senha`/`ambos`).
+- Resumo final expandido (mantidos, atualizados, sem candidata, falharam novamente, portal, timeout, erros internos).
+- Utilitário `mascararCpf` para auditoria.
+
+### 🧠 Decisões
+
+- **Decisão:** apenas observabilidade; fluxo de retry e critérios de `senha_invalida` inalterados.
+
+### 📂 Arquivos impactados
+
+- `src/services/credential-refresh-service.ts` (+ testes)
+- `src/utils/cpf-mask.ts` (+ testes)
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 18:10
+
+### 🎯 Objetivo
+
+Implementar atualização inteligente e genérica de credenciais dos profissionais: manter as que ainda autenticam; só substituir no `.env` quando o login atual for `senha_invalida` e uma candidata do catálogo autenticar.
+
+### ✅ O que mudou
+
+- Classificação de falha de login: heurística `senha_invalida`; transporte tipado como `timeout` / `portal_indisponivel` / `erro_sistema`.
+- Catálogo JSON genérico (`secrets/credenciais-candidatas.json`, gitignored) + exemplo em `docs/exemplos/`.
+- `CredentialRefreshService` + `npm run refresh:credenciais` com resumo Mantidas/Atualizadas/Falharam (sem PII).
+- Persistência apenas de `ECNH_USER_<n>_CPF` / `PASSWORD` no `.env`.
+- ADR-019 e testes unitários.
+
+### 🧠 Decisões
+
+- **Decisão:** ADR-019 — retry único só em `senha_invalida`; matching por CPF/nome; sem hard-code de profissionais.
+- **Pendência de validação:** textos literais de senha incorreta no HTML do portal ainda sem evidência confirmada; usa-se heurística estrutural (`LoginActionForm`).
+
+### 📂 Arquivos impactados
+
+- `src/types/auth.ts`
+- `src/client/classificar-falha-login.ts`
+- `src/client/ecnh-auth-protocol.ts`
+- `src/config/credential-candidates.ts` (+ testes)
+- `src/config/env-credential-store.ts`
+- `src/services/credential-refresh-service.ts` (+ testes)
+- `src/scripts/refresh-credentials.ts`
+- `package.json`, `.env.example`
+- `docs/DECISOES.md`, `docs/exemplos/credenciais-candidatas.example.json`
+- `CHANGELOG.md`
 
 ---
 

@@ -149,3 +149,16 @@
   - preservar o CPF em **coluna técnica adjacente** (fora de `CABECALHOS_ABA_AGENDA`, sem título no cabeçalho oficial) exclusivamente para a deduplicação entre syncs;
   - **não** tratar essa coluna técnica como objetivo arquitetural permanente nem como parte do produto operacional.
 - **Consequência:** B004/B005 permanecem válidos na v1.0 sem expor o CPF no layout da clínica. A separação futura entre projeção operacional e metadados técnicos fica registrada em **B014** (aba técnica, store auxiliar ou equivalente — a solução não é escolhida agora).
+
+## ADR-019 — Atualização inteligente de credenciais
+
+- **Status:** aceito
+- **Contexto:** credenciais de profissionais mudam com frequência operacional. Substituir todas as senhas no `.env` a cada planilha gera churn desnecessário e risco de gravar valores errados. O tipo `LoginResult` já previa `senha_invalida`, mas o protocolo em geral devolvia `erro_desconhecido` quando o HTML pós-`autenticar` não confirmava sessão autenticada. Sinais literais de “senha incorreta” no HTML do portal seguem **pendência de validação** ([API.md](API.md)).
+- **Decisão:**
+  - comando dedicado `npm run refresh:credenciais` (não acoplado ao sync de agenda);
+  - catálogo genérico JSON em `secrets/credenciais-candidatas.json` (gitignored), sobrescrevível por `ECNH_CREDENTIAL_CANDIDATES_PATH`; matching por **CPF** (dígitos) e, se necessário, por **nome** normalizado — sem regras por profissional hard-coded;
+  - fluxo: login com credencial atual → se sucesso, **mantém**; se `senha_invalida`, tenta **no máximo uma** candidata distinta → se sucesso, persiste `ECNH_USER_<n>_CPF`/`PASSWORD` no `.env` e loga `credential.refresh.atualizada` **sem** senha/CPF; se falhar, registra e segue;
+  - **não** tentar atualização em `timeout`, `portal_indisponivel`, `erro_sistema`, `erro_desconhecido` ou `usuario_bloqueado`;
+  - classificar transporte Axios: timeout → `timeout`; ECONNREFUSED/ENOTFOUND/… → `portal_indisponivel`; demais Axios → `erro_sistema`;
+  - heurística operacional para `senha_invalida`: HTML ainda com `LoginActionForm`, sem marcador autenticado e sem ramos B010/B011 — documentada como heurística, não como texto confirmado do portal.
+- **Consequência:** atualizações futuras de planilha de senhas reutilizam o mesmo catálogo/serviço; o armazenamento oficial continua sendo o `.env` local; sync/daemon não mudam de comportamento.

@@ -27,6 +27,8 @@
     "validate:sheets": "tsx src/scripts/validate-sheets.ts",
     "sync:agenda": "tsx src/scripts/sync-agenda.ts",
     "job:agenda": "tsx src/scripts/job-agenda.ts",
+    "refresh:credenciais": "tsx src/scripts/refresh-credentials.ts",
+    "audit:credenciais": "tsx src/scripts/audit-credentials.ts",
     "validate:agenda-job": "tsx src/scripts/validate-agenda-job.ts",
     "test:agenda-job": "tsx --test src/jobs/*.test.ts src/config/agenda-sync-job-config.test.ts",
     "discover:logout": "tsx src/scripts/discover-logout.ts",

@@ -45,6 +45,12 @@ Os arquivos podem conter somente metadados técnicos, hashes e sinais booleanos.
 - Validação consolidada: `007-validacao-agendamento-2026-07-19T14-16-00-000Z.json`
 - Comandos: `npm run validate:agenda-job`, `npm run job:agenda`, `npm run sync:agenda`
 
+## Validação E2E pós-MVP — credenciais + sync (2026-07-23)
+
+- Relatório: [008-validacao-e2e-credenciais-sync-2026-07-23.md](008-validacao-e2e-credenciais-sync-2026-07-23.md)
+- Comandos: `npm run audit:credenciais`, `npm run sync:agenda`
+- Resultado: 16/16 sync OK; Alessandra excluída (bloqueio portal)
+
 ## Validação oficial da Fase 003C / B012
 
 - Documento da fase: [003c-perfis-profissionais-portal.md](../../.fases/003c-perfis-profissionais-portal.md)
