@@ -1,0 +1,14 @@
+# Nixpacks — alinhado ao Cron efêmero (ADR-020)
+# Start explícito: dist/index.js → sync-agenda (one-shot + process.exit).
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "node dist/index.js"

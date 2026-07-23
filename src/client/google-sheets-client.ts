@@ -1,3 +1,5 @@
+import type { GoogleSheetsCredentialsSource } from '../config/google-sheets-config.js';
+
 /**
  * Porta mínima de valores de planilha.
  * Isola `googleapis` do repositório para testes sem rede.
@@ -9,9 +11,19 @@ export interface GoogleSheetsValuesPort {
 }
 
 export interface GoogleSheetsClientOptions {
-  /** Caminho absoluto ou relativo do JSON da Service Account. */
-  credentialsPath: string;
+  /**
+   * Credenciais da Service Account.
+   * Aceita path (local) ou JSON inline (Railway / secrets).
+   * Compatível: `credentialsPath` sozinho equivale a `{ kind: 'path', path }`.
+   */
+  credentials: GoogleSheetsCredentialsSource;
   /** ID da planilha (não a URL). */
+  spreadsheetId: string;
+}
+
+/** @deprecated Preferir `credentials: { kind: 'path', path }`. */
+export interface GoogleSheetsClientLegacyOptions {
+  credentialsPath: string;
   spreadsheetId: string;
 }
 
@@ -19,12 +31,12 @@ export interface GoogleSheetsClientOptions {
  * Cliente fino sobre Sheets API v4 (somente operações de valores usadas na Fase 005).
  */
 export class GoogleSheetsClient implements GoogleSheetsValuesPort {
-  private readonly credentialsPath: string;
+  private readonly credentials: GoogleSheetsCredentialsSource;
   private readonly spreadsheetId: string;
   private valuesApi: SheetsValuesApi | undefined;
 
-  public constructor(options: GoogleSheetsClientOptions) {
-    this.credentialsPath = options.credentialsPath;
+  public constructor(options: GoogleSheetsClientOptions | GoogleSheetsClientLegacyOptions) {
+    this.credentials = normalizeCredentials(options);
     this.spreadsheetId = options.spreadsheetId;
   }
 
@@ -67,7 +79,7 @@ export class GoogleSheetsClient implements GoogleSheetsValuesPort {
   public async obterMetadados(): Promise<GoogleSheetsSpreadsheetMetadata> {
     const { google } = await import('googleapis');
     const auth = new google.auth.GoogleAuth({
-      keyFile: this.credentialsPath,
+      ...this.authOptions(),
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
     const sheets = google.sheets({ version: 'v4', auth });
@@ -97,13 +109,29 @@ export class GoogleSheetsClient implements GoogleSheetsValuesPort {
 
     const { google } = await import('googleapis');
     const auth = new google.auth.GoogleAuth({
-      keyFile: this.credentialsPath,
+      ...this.authOptions(),
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
     const sheets = google.sheets({ version: 'v4', auth });
     this.valuesApi = sheets.spreadsheets.values;
     return this.valuesApi;
   }
+
+  private authOptions(): { keyFile: string } | { credentials: Record<string, unknown> } {
+    if (this.credentials.kind === 'path') {
+      return { keyFile: this.credentials.path };
+    }
+    return { credentials: this.credentials.credentials };
+  }
+}
+
+function normalizeCredentials(
+  options: GoogleSheetsClientOptions | GoogleSheetsClientLegacyOptions
+): GoogleSheetsCredentialsSource {
+  if ('credentials' in options) {
+    return options.credentials;
+  }
+  return { kind: 'path', path: options.credentialsPath };
 }
 
 export interface GoogleSheetsSpreadsheetMetadata {

@@ -306,6 +306,8 @@ Validadores (`validate:*`, `discover:*`) → [docs/](docs/) e [.fases/](.fases/)
 | 🔄 | Logs centralizados |
 | 🔄 | Monitoramento |
 
+> Deploy Railway (Cron efêmero 16:00 BRT): guia em [docs/DEPLOY_RAILWAY.md](docs/DEPLOY_RAILWAY.md).
+
 Fontes oficiais: [BACKLOG.md](docs/BACKLOG.md) · [ROADMAP.md](docs/ROADMAP.md)
 
 <br />
@@ -324,6 +326,8 @@ Fontes oficiais: [BACKLOG.md](docs/BACKLOG.md) · [ROADMAP.md](docs/ROADMAP.md)
 | [Visão do produto](docs/VISAO_DO_PRODUTO.md) | Objetivo, usuários, escopo |
 | [Arquitetura](docs/ARQUITETURA.md) | Camadas e limites de integração |
 | [ADRs / Decisões](docs/DECISOES.md) | Decisões arquiteturais |
+| [Deploy Railway](docs/DEPLOY_RAILWAY.md) | Cron efêmero diário 16:00 BRT |
+| [Checklist de deploy](docs/DEPLOY_CHECKLIST.md) | Passo a passo acionável no Railway |
 | [API / protocolo](docs/API.md) | Contrato HTTP com o portal |
 | [Fluxo HTTP](docs/FLUXO_HTTP.md) | Sequência login → agenda |
 | [.fases/](.fases/) | Documentos por fase do MVP |

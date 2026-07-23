@@ -162,3 +162,15 @@
   - classificar transporte Axios: timeout → `timeout`; ECONNREFUSED/ENOTFOUND/… → `portal_indisponivel`; demais Axios → `erro_sistema`;
   - heurística operacional para `senha_invalida`: HTML ainda com `LoginActionForm`, sem marcador autenticado e sem ramos B010/B011 — documentada como heurística, não como texto confirmado do portal.
 - **Consequência:** atualizações futuras de planilha de senhas reutilizam o mesmo catálogo/serviço; o armazenamento oficial continua sendo o `.env` local; sync/daemon não mudam de comportamento.
+
+## ADR-020 — Produção no Railway via Cron efêmero
+
+- **Status:** aceito
+- **Contexto:** o MVP já possui `sync:agenda` (one-shot) e `job:agenda` (daemon + `node-cron`, ADR-013). O requisito de produção é disparar a sincronização **todos os dias às 16:00** (`America/Sao_Paulo`) sem alterar regras de negócio.
+- **Decisão:**
+  - usar **Railway Cron** para subir o serviço, executar `npm start` → `node dist/scripts/sync-agenda.js` e **encerrar**;
+  - expressão no painel: `0 19 * * *` (UTC ≡ 16:00 BRT; Brasil sem DST desde 2019);
+  - autenticação Google via `GOOGLE_SERVICE_ACCOUNT_JSON` (JSON inline) com fallback para path local;
+  - manter `job:agenda` para desenvolvimento/local (Opção B); não exigir `AGENDA_SYNC_CRON` no serviço Cron do Railway;
+  - documentar em `docs/DEPLOY_RAILWAY.md` + `railway.toml`.
+- **Consequência:** custo alinhado a uma execução diária; o `AgendaSyncJob`/lock existentes são reutilizados; processo que não encerra bloqueia o próximo tick do Cron da plataforma.

@@ -2,14 +2,102 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Layout oficial da aba Agenda (projeção Sheets simplificada)
-> **Próxima prioridade:** B014 (baixa) — separar projeção operacional de metadados técnicos; D3 fixtures se priorizado
-> **Última atualização:** 2026-07-23 18:55 BRT
-> **Última sessão executada:** 23/07/2026 • 18:55 — E2E formatação Sheets (PACIENTE/PROFISSIONAL)
+> **Fase atual:** Infraestrutura Railway (Cron efêmero 16:00 BRT)
+> **Próxima prioridade:** Redeploy no Railway com entrypoint `dist/index.js` → sync
+> **Última atualização:** 2026-07-23 20:05 BRT
+> **Última sessão executada:** 23/07/2026 • 20:05 — Correção entrypoint produção Railway
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 20:05
+
+### 🎯 Objetivo
+
+Corrigir o entrypoint de produção: Railway executava `node dist/index.js` (stub vazio) e encerrava sem sincronizar.
+
+### ✅ O que mudou
+
+- `src/index.ts` passa a importar `scripts/sync-agenda.js` (mesmo fluxo E2E).
+- `package.json` / `railway.toml` / `nixpacks.toml`: Start = `node dist/index.js`.
+- Docs de deploy alinhados.
+
+### 🧠 Decisões
+
+- **Causa raiz:** Start Command no Railway apontava para `dist/index.js`, que era stub (`export {}`) e não disparava o sync.
+- **Decisão:** tornar `dist/index.js` o entrypoint canônico que delega ao sync (compatível com detecção Nixpacks e override do painel).
+
+### 📂 Arquivos impactados
+
+- `src/index.ts`
+- `package.json`
+- `railway.toml` / `nixpacks.toml`
+- `docs/DEPLOY_RAILWAY.md` / `docs/DEPLOY_CHECKLIST.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 19:25
+
+### 🎯 Objetivo
+
+Revisar a preparação Railway (ADR-020), eliminar riscos de processo que não encerra, documentar checklist e garantir execução só com variáveis de ambiente — **sem deploy**.
+
+### ✅ O que mudou
+
+- `sync-agenda` chama `process.exit` após o sync (Cron efêmero + HTTP keep-alive).
+- `docs/DEPLOY_CHECKLIST.md` criado.
+- `docs/DEPLOY_RAILWAY.md` reescrito como guia passo a passo.
+- `nixpacks.toml` alinhado ao build/start.
+- Mensagens de config citam Railway Variables (não só `.env`).
+
+### 🧠 Decisões
+
+- **Decisão:** lock em `.data/` permanece (FS efêmero auto-criado); sem volume obrigatório.
+- **Decisão:** `node-cron` / `job:agenda` continuam só para uso local; Start de produção é one-shot.
+
+### 📂 Arquivos impactados
+
+- `src/scripts/sync-agenda.ts`
+- `src/config/google-sheets-config.ts`
+- `src/composition/agenda-sync-runtime.ts`
+- `docs/DEPLOY_CHECKLIST.md`
+- `docs/DEPLOY_RAILWAY.md`
+- `nixpacks.toml`
+- `README.md` / `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 19:15
+
+### 🎯 Objetivo
+
+Preparar a infraestrutura para execução automática diária às 16:00 BRT no Railway, sem alterar regras de negócio da sincronização.
+
+### ✅ O que mudou
+
+- Arquitetura **Opção A**: Railway Cron → `npm start` (`dist/scripts/sync-agenda.js`) → encerra.
+- `GOOGLE_SERVICE_ACCOUNT_JSON` para Service Account sem arquivo no disco.
+- `railway.toml`, `docs/DEPLOY_RAILWAY.md`, ADR-020.
+- Scripts `sync:agenda:prod` / `job:agenda:prod`; `start` aponta para o sync one-shot.
+
+### 🧠 Decisões
+
+- **Decisão (ADR-020):** Cron efêmero em vez de daemon 24/7; horário `0 19 * * *` UTC ≡ 16:00 `America/Sao_Paulo`.
+- **Decisão:** `job:agenda` permanece para uso local; não é o start do serviço Cron.
+
+### 📂 Arquivos impactados
+
+- `src/config/google-sheets-config.ts` (+ testes)
+- `src/client/google-sheets-client.ts`
+- `src/composition/agenda-sync-runtime.ts`
+- `src/scripts/validate-sheets.ts` / `discover-sheets.ts`
+- `package.json` / `railway.toml`
+- `docs/DEPLOY_RAILWAY.md` / `docs/DECISOES.md`
+- `.env.example` / `CHANGELOG.md` / `README.md`
 
 ---
 

@@ -1,0 +1,14 @@
+# Configuração de build/deploy no Railway (serviço Cron efêmero).
+# O agendamento diário é configurado no painel: Settings → Cron Schedule.
+# Documentação: docs/DEPLOY_RAILWAY.md
+#
+# Start explícito (evita detecção Nixpacks antiga / override incompleto).
+# `dist/index.js` delega a `scripts/sync-agenda.js` (mesmo fluxo E2E).
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm run build"
+
+[deploy]
+startCommand = "node dist/index.js"
+restartPolicyType = "NEVER"

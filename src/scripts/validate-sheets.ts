@@ -20,7 +20,7 @@ async function main(): Promise<void> {
   const startedAt = new Date();
   const config = resolveGoogleSheetsConfig();
   const client = new GoogleSheetsClient({
-    credentialsPath: config.credentialsPath,
+    credentials: config.credentials,
     spreadsheetId: config.spreadsheetId
   });
   const repository = new GoogleSheetsAgendaRepository({

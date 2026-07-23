@@ -1,6 +1,10 @@
 /**
- * Raiz de composição da aplicação.
- * O wiring de sincronização está em `src/composition/agenda-sync-runtime.ts`.
- * Pontos de entrada: `npm run sync:agenda` e `npm run job:agenda`.
+ * Entrypoint de produção.
+ *
+ * Railway/Nixpacks frequentemente executam `node dist/index.js` (Start Command
+ * detectado ou sobrescrito no painel). Este módulo delega ao mesmo fluxo one-shot
+ * validado na E2E (`sync-agenda`), sem alterar regras de negócio.
+ *
+ * Equivalente: `npm start` / `node dist/scripts/sync-agenda.js` (ADR-020).
  */
-export {};
+import './scripts/sync-agenda.js';

@@ -9,8 +9,11 @@ import type { StructuredLogger } from '../types/logger.js';
 import { formatarResumoSincronizacao } from './sync-agenda-resumo.js';
 
 /**
- * Ponto de entrada sob demanda da sincronização (Fase 006/007).
- * Compõe runtime + job com lock global e imprime resumo sem PII.
+ * Ponto de entrada sob demanda da sincronização (Fase 006/007 / Railway Cron).
+ * Compõe runtime + job com lock global, imprime resumo sem PII e encerra o processo.
+ *
+ * `process.exit` é intencional: agentes HTTP com keep-alive podem manter o event loop
+ * vivo após o sync; no Cron efêmero o processo deve terminar para liberar o próximo tick.
  */
 async function main(): Promise<void> {
   const logger = createSyncLogger();
@@ -33,15 +36,12 @@ async function main(): Promise<void> {
     console.error(
       'Sincronização ignorada: outra execução já está em andamento (lock ocupado).'
     );
-    process.exitCode = 1;
-    return;
+    process.exit(1);
   }
 
   console.log(formatarResumoSincronizacao(resultado.sincronizacao));
 
-  if (!resultado.sincronizacao.sucessoGeral) {
-    process.exitCode = 1;
-  }
+  process.exit(resultado.sincronizacao.sucessoGeral ? 0 : 1);
 }
 
 /** Emite warn/error (ex.: cabeçalho incompatível); omite info/debug no console do sync manual. */
@@ -64,5 +64,5 @@ function createSyncLogger(): StructuredLogger {
 void main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'erro desconhecido';
   console.error(`Sincronização da agenda falhou: ${message}`);
-  process.exitCode = 1;
+  process.exit(1);
 });

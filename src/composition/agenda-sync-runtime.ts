@@ -38,14 +38,14 @@ export function criarAgendaSyncRuntime(
   const baseUrl = env.ECNH_BASE_URL?.trim();
   if (baseUrl === undefined || baseUrl.length === 0) {
     throw new ConfigurationError(
-      'Defina ECNH_BASE_URL no arquivo .env antes de executar a sincronização.'
+      'Defina ECNH_BASE_URL no ambiente (Railway Variables ou .env) antes de executar a sincronização.'
     );
   }
 
   const entradas = resolveEntradasSincronizacao(env);
   const sheetsConfig = resolveGoogleSheetsConfig(env);
   const sheets = new GoogleSheetsClient({
-    credentialsPath: sheetsConfig.credentialsPath,
+    credentials: sheetsConfig.credentials,
     spreadsheetId: sheetsConfig.spreadsheetId
   });
   const agendaRepository = new GoogleSheetsAgendaRepository({
