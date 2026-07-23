@@ -13,6 +13,11 @@ import type {
 } from '../repositories/agenda-repository.js';
 import type { LoginResult } from '../types/auth.js';
 import type { StructuredLogger } from '../types/logger.js';
+import {
+  PIPELINE_STEPS,
+  PipelineStepTracker,
+  serializarErroObservabilidade
+} from '../utils/pipeline-observability.js';
 
 /** Garante em compile-time que `ECNHClient` continua satisfazendo a porta (sem alterá-lo). */
 type AssertECNHClientCompativel = ECNHClient extends AgendaSyncPortalClient ? true : never;
@@ -150,10 +155,19 @@ export class AgendaSyncService {
       logoutExecutado: false,
       sucesso: false
     };
+    const tracker = new PipelineStepTracker(this.logger, {
+      identificadorSeguro: entrada.identificadorSeguro
+    });
 
     try {
-      this.logger?.info(
-        { event: 'agenda.sync.profissional.started', identificadorSeguro: entrada.identificadorSeguro },
+      this.logger?.warn(
+        {
+          event: 'agenda.sync.profissional.started',
+          identificadorSeguro: entrada.identificadorSeguro,
+          temUnidadeDesejadaPortal: entrada.unidadeDesejada !== undefined,
+          unidadeOperacionalLength: entrada.unidadeOperacional.length,
+          perfilEsperado: entrada.perfilEsperado
+        },
         'Iniciando sincronização de profissional'
       );
 
@@ -165,63 +179,133 @@ export class AgendaSyncService {
           {
             event: 'agenda.sync.profissional.login_failed',
             identificadorSeguro: entrada.identificadorSeguro,
-            loginStatus: loginResult.status
+            loginStatus: loginResult.status,
+            lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep
           },
           'Login não confirmado; sincronização interrompida'
         );
+        tracker.flowFailed('login_failed', { loginStatus: loginResult.status });
         return resultado;
       }
 
+      this.logger?.warn(
+        {
+          event: 'agenda.pipeline.post_login.start',
+          identificadorSeguro: entrada.identificadorSeguro
+        },
+        'Login confirmado; iniciando pipeline pós-login'
+      );
+
+      const perfilStartedAt = tracker.start(PIPELINE_STEPS.RESOLVE_PERFIL_POS_LOGIN);
       resultado.perfilId =
         loginResult.session.perfilId ?? client.obterPerfilPortal?.() ?? undefined;
 
       const perfilId = resultado.perfilId;
       if (perfilId === undefined) {
+        tracker.fail(
+          PIPELINE_STEPS.RESOLVE_PERFIL_POS_LOGIN,
+          perfilStartedAt,
+          new Error('Login ok sem perfil resolvido')
+        );
         this.logger?.warn(
           {
             event: 'agenda.sync.profissional.perfil_ausente',
-            identificadorSeguro: entrada.identificadorSeguro
+            identificadorSeguro: entrada.identificadorSeguro,
+            lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep
           },
           'Login ok sem perfil resolvido; sincronização interrompida'
         );
+        tracker.flowFailed('perfil_ausente');
+        resultado.sucesso = false;
+        return resultado;
+      }
+      tracker.complete(PIPELINE_STEPS.RESOLVE_PERFIL_POS_LOGIN, perfilStartedAt, {
+        perfilId,
+        itemCount: 1
+      });
+
+      let datasDisponiveis: string[];
+      try {
+        datasDisponiveis = await tracker.run(
+          PIPELINE_STEPS.LIST_DATAS_AGENDAMENTO,
+          () => client.listarDatasAgendamento(),
+          {
+            onSuccess: (datas) => ({
+              itemCount: datas.length,
+              datasDisponiveisCount: datas.length
+            })
+          }
+        );
+      } catch (error) {
+        tracker.flowFailed('listar_datas', {
+          error: serializarErroObservabilidade(error)
+        });
         resultado.sucesso = false;
         return resultado;
       }
 
-      const datasDisponiveis = client.listarDatasAgendamento();
       const datasParaSincronizar = selecionarDatas(datasDisponiveis, entrada.datas);
+      this.logger?.warn(
+        {
+          event: 'agenda.pipeline.datas.selected',
+          identificadorSeguro: entrada.identificadorSeguro,
+          datasDisponiveisCount: datasDisponiveis.length,
+          datasParaSincronizarCount: datasParaSincronizar.length,
+          filtroAplicado: entrada.datas !== undefined,
+          lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep
+        },
+        'Datas de agendamento selecionadas para sincronização'
+      );
 
       for (const dataConsulta of datasParaSincronizar) {
         const resultadoData = await this.sincronizarData(
           client,
           entrada,
           dataConsulta,
-          perfilId
+          perfilId,
+          tracker
         );
         resultado.datas.push(resultadoData);
+        if (!resultadoData.sucesso) {
+          tracker.flowFailed('data_sync_failed', {
+            dataConsulta,
+            motivoFalhaExtracao: resultadoData.motivoFalhaExtracao,
+            motivoFalhaPersistencia: resultadoData.motivoFalhaPersistencia
+          });
+        }
       }
 
       resultado.sucesso = resultado.datas.every((item) => item.sucesso);
+      if (resultado.sucesso) {
+        tracker.flowCompleted({
+          datasSincronizadas: resultado.datas.length,
+          perfilId
+        });
+      }
       return resultado;
     } finally {
+      const logoutStartedAt = tracker.start(PIPELINE_STEPS.LOGOUT);
       try {
         await client.logout();
         resultado.logoutExecutado = true;
-        this.logger?.info(
+        tracker.complete(PIPELINE_STEPS.LOGOUT, logoutStartedAt, { itemCount: 0 });
+        this.logger?.warn(
           {
             event: 'agenda.sync.profissional.logout_completed',
-            identificadorSeguro: entrada.identificadorSeguro
+            identificadorSeguro: entrada.identificadorSeguro,
+            lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep
           },
           'Logout da sincronização concluído'
         );
       } catch (error) {
         resultado.logoutExecutado = false;
-        const message = error instanceof Error ? error.message : 'erro desconhecido';
+        tracker.fail(PIPELINE_STEPS.LOGOUT, logoutStartedAt, error);
         this.logger?.warn(
           {
             event: 'agenda.sync.profissional.logout_failed',
             identificadorSeguro: entrada.identificadorSeguro,
-            message
+            lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep,
+            error: serializarErroObservabilidade(error)
           },
           'Falha ao executar logout após sincronização'
         );
@@ -238,7 +322,7 @@ export class AgendaSyncService {
   ): Promise<ResultadoSincronizacao> {
     const profissionais: ResultadoSincronizacaoProfissional[] = [];
 
-    this.logger?.info(
+    this.logger?.warn(
       { event: 'agenda.sync.profissionais.started', quantidade: entradas.length },
       'Iniciando sincronização multi-profissional'
     );
@@ -250,11 +334,13 @@ export class AgendaSyncService {
 
     const sucessoGeral = profissionais.every((item) => item.sucesso);
 
-    this.logger?.info(
+    this.logger?.warn(
       {
         event: 'agenda.sync.profissionais.completed',
         quantidade: profissionais.length,
-        sucessoGeral
+        sucessoGeral,
+        sucessos: profissionais.filter((item) => item.sucesso).length,
+        falhas: profissionais.filter((item) => !item.sucesso).length
       },
       'Sincronização multi-profissional concluída'
     );
@@ -270,25 +356,74 @@ export class AgendaSyncService {
     client: AgendaSyncPortalClient,
     entrada: EntradaSincronizacaoProfissional,
     dataConsulta: string,
-    perfilId: PerfilProfissionalId
+    perfilId: PerfilProfissionalId,
+    tracker: PipelineStepTracker
   ): Promise<ResultadoSincronizacaoData> {
+    this.logger?.warn(
+      {
+        event: 'agenda.sync.data.started',
+        identificadorSeguro: entrada.identificadorSeguro,
+        dataConsulta,
+        perfilId,
+        lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep
+      },
+      'Sincronização de data da agenda iniciada'
+    );
+
     let html: string;
     try {
-      html = await client.obterHtmlAgenda({ data: dataConsulta, dataReferencia: dataConsulta });
+      html = await tracker.run(
+        PIPELINE_STEPS.FETCH_AGENDA_HTML,
+        () => client.obterHtmlAgenda({ data: dataConsulta, dataReferencia: dataConsulta }),
+        {
+          onStart: { dataConsulta },
+          onSuccess: (documento) => ({
+            dataConsulta,
+            itemCount: 1,
+            htmlBytes: Buffer.byteLength(documento, 'latin1')
+          })
+        }
+      );
     } catch (error) {
-      this.logFalhaData(entrada.identificadorSeguro, dataConsulta, 'obter_html', error);
+      this.logFalhaData(entrada.identificadorSeguro, dataConsulta, 'obter_html', error, tracker);
       return { dataConsulta, sucesso: false, motivoFalhaExtracao: 'estrutura-invalida' };
     }
 
     let extracao: ResultadoExtracaoAgenda;
+    const parseStartedAt = tracker.start(PIPELINE_STEPS.PARSE_AGENDA_HTML, {
+      dataConsulta,
+      htmlBytes: Buffer.byteLength(html, 'latin1')
+    });
     try {
       extracao = this.parseAgendaHtml(html, { dataConsulta });
     } catch (error) {
-      this.logFalhaData(entrada.identificadorSeguro, dataConsulta, 'parse', error);
+      tracker.fail(PIPELINE_STEPS.PARSE_AGENDA_HTML, parseStartedAt, error, { dataConsulta });
+      this.logFalhaData(entrada.identificadorSeguro, dataConsulta, 'parse', error, tracker);
       return { dataConsulta, sucesso: false, motivoFalhaExtracao: 'estrutura-invalida' };
     }
 
     if (!extracao.sucesso || extracao.agenda === undefined) {
+      tracker.fail(
+        PIPELINE_STEPS.PARSE_AGENDA_HTML,
+        parseStartedAt,
+        new Error(extracao.motivoFalha ?? 'estrutura-invalida'),
+        {
+          dataConsulta,
+          motivoFalhaExtracao: extracao.motivoFalha ?? 'estrutura-invalida',
+          itemCount: 0
+        }
+      );
+      this.logger?.warn(
+        {
+          event: 'agenda.sync.data.failed',
+          identificadorSeguro: entrada.identificadorSeguro,
+          dataConsulta,
+          etapa: 'parse',
+          motivoFalhaExtracao: extracao.motivoFalha ?? 'estrutura-invalida',
+          lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep
+        },
+        'Extração da agenda sem sucesso estrutural'
+      );
       return {
         dataConsulta,
         sucesso: false,
@@ -296,12 +431,29 @@ export class AgendaSyncService {
       };
     }
 
+    tracker.complete(PIPELINE_STEPS.PARSE_AGENDA_HTML, parseStartedAt, {
+      dataConsulta,
+      itemCount: extracao.agenda.itens.length
+    });
+
+    const transformStartedAt = tracker.start(PIPELINE_STEPS.TRANSFORM_AGENDA_DATA, {
+      dataConsulta,
+      itensBrutos: extracao.agenda.itens.length
+    });
     const agenda = {
       ...extracao.agenda,
       dataConsulta: extracao.agenda.dataConsulta ?? dataConsulta
     };
+    tracker.complete(PIPELINE_STEPS.TRANSFORM_AGENDA_DATA, transformStartedAt, {
+      dataConsulta,
+      itemCount: agenda.itens.length
+    });
 
     let persistencia: ResultadoPersistenciaAgenda;
+    const persistStartedAt = tracker.start(PIPELINE_STEPS.PERSIST_AGENDA, {
+      dataConsulta,
+      itemCount: agenda.itens.length
+    });
     try {
       persistencia = await this.agendaRepository.salvarAgenda(agenda, {
         profissional: entrada.profissional,
@@ -309,7 +461,8 @@ export class AgendaSyncService {
         unidadeOperacional: entrada.unidadeOperacional
       });
     } catch (error) {
-      this.logFalhaData(entrada.identificadorSeguro, dataConsulta, 'persistencia', error);
+      tracker.fail(PIPELINE_STEPS.PERSIST_AGENDA, persistStartedAt, error, { dataConsulta });
+      this.logFalhaData(entrada.identificadorSeguro, dataConsulta, 'persistencia', error, tracker);
       return {
         dataConsulta,
         itensExtraidos: agenda.itens.length,
@@ -319,6 +472,30 @@ export class AgendaSyncService {
     }
 
     if (!persistencia.sucesso) {
+      tracker.fail(
+        PIPELINE_STEPS.PERSIST_AGENDA,
+        persistStartedAt,
+        new Error(persistencia.motivoFalha ?? 'erro-infraestrutura'),
+        {
+          dataConsulta,
+          motivoFalhaPersistencia: persistencia.motivoFalha ?? 'erro-infraestrutura',
+          linhasGravadas: persistencia.linhasGravadas,
+          linhasRemovidas: persistencia.linhasRemovidas
+        }
+      );
+      this.logger?.warn(
+        {
+          event: 'agenda.sync.data.failed',
+          identificadorSeguro: entrada.identificadorSeguro,
+          dataConsulta,
+          etapa: 'persistencia',
+          motivoFalhaPersistencia: persistencia.motivoFalha ?? 'erro-infraestrutura',
+          lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep,
+          linhasGravadas: persistencia.linhasGravadas,
+          linhasRemovidas: persistencia.linhasRemovidas
+        },
+        'Persistência da agenda sem sucesso'
+      );
       return {
         dataConsulta,
         itensExtraidos: agenda.itens.length,
@@ -328,6 +505,26 @@ export class AgendaSyncService {
         sucesso: false
       };
     }
+
+    tracker.complete(PIPELINE_STEPS.PERSIST_AGENDA, persistStartedAt, {
+      dataConsulta,
+      itemCount: agenda.itens.length,
+      linhasGravadas: persistencia.linhasGravadas,
+      linhasRemovidas: persistencia.linhasRemovidas
+    });
+
+    this.logger?.warn(
+      {
+        event: 'agenda.sync.data.completed',
+        identificadorSeguro: entrada.identificadorSeguro,
+        dataConsulta,
+        itensExtraidos: agenda.itens.length,
+        linhasGravadas: persistencia.linhasGravadas,
+        linhasRemovidas: persistencia.linhasRemovidas,
+        lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep
+      },
+      'Sincronização de data da agenda concluída'
+    );
 
     return {
       dataConsulta,
@@ -342,16 +539,17 @@ export class AgendaSyncService {
     identificadorSeguro: string,
     dataConsulta: string,
     etapa: 'obter_html' | 'parse' | 'persistencia',
-    error: unknown
+    error: unknown,
+    tracker: PipelineStepTracker
   ): void {
-    const message = error instanceof Error ? error.message : 'erro desconhecido';
     this.logger?.warn(
       {
         event: 'agenda.sync.data.failed',
         identificadorSeguro,
         dataConsulta,
         etapa,
-        message
+        lastSuccessfulPipelineStep: tracker.lastSuccessfulPipelineStep,
+        error: serializarErroObservabilidade(error)
       },
       'Falha ao sincronizar data da agenda'
     );

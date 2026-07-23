@@ -414,14 +414,17 @@ describe('GoogleSheetsAgendaRepository', () => {
 
     assert.equal(resultado.sucesso, false);
     assert.equal(resultado.motivoFalha, 'cabecalho-incompativel');
-    assert.equal(warnings.length, 1);
-    const diagnostico = warnings[0] as {
-      event: string;
-      cabecalhoEsperado: string[];
-      cabecalhoEncontrado: string[];
-      colunaDivergente: { indice: number; esperado: string; encontrado: string };
-    };
-    assert.equal(diagnostico.event, 'agenda.sheets.cabecalho_incompativel');
+    const diagnostico = warnings.find(
+      (item) => (item as { event?: string }).event === 'agenda.sheets.cabecalho_incompativel'
+    ) as
+      | {
+          event: string;
+          cabecalhoEsperado: string[];
+          cabecalhoEncontrado: string[];
+          colunaDivergente: { indice: number; esperado: string; encontrado: string };
+        }
+      | undefined;
+    assert.ok(diagnostico, 'esperado evento agenda.sheets.cabecalho_incompativel');
     assert.equal(diagnostico.cabecalhoEsperado[1], 'AGENDAMENTO DO DETRAN');
     assert.equal(diagnostico.cabecalhoEncontrado[1], 'COLUNA ERRADA');
     assert.equal(diagnostico.colunaDivergente.indice, 1);

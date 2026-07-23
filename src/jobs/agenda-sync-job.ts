@@ -46,7 +46,7 @@ export class AgendaSyncJob {
       return { status: 'ignorado_por_lock' };
     }
 
-    this.logger?.info(
+    this.logger?.warn(
       {
         event: 'agenda.sync.job.started',
         profissionais: this.entradas.length
@@ -56,7 +56,7 @@ export class AgendaSyncJob {
 
     try {
       const sincronizacao = await this.service.sincronizarProfissionais(this.entradas);
-      this.logger?.info(
+      this.logger?.warn(
         {
           event: 'agenda.sync.job.finished',
           sucessoGeral: sincronizacao.sucessoGeral,

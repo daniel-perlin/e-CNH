@@ -65,6 +65,7 @@ export class ECNHAgendaProtocol {
         Origin: origin,
         Referer: transport.resolveUrl(LOGIN_PATH)
       },
+      loginStep: 'POST_consultarAgenda',
       method: 'POST',
       responseEncoding: 'latin1',
       url: DIVISAO_PATH

@@ -3,13 +3,43 @@
 > ### 📌 Estado atual
 >
 > **Fase atual:** Infraestrutura Railway (Cron efêmero 16:00 BRT)
-> **Próxima prioridade:** Rodar probe no Railway via `RUN_CONNECTIVITY_PROBE=true`
-> **Última atualização:** 2026-07-23 20:50 BRT
-> **Última sessão executada:** 23/07/2026 • 20:50 — Instrumentação etapas do login e-CNH
+> **Próxima prioridade:** Identificar primeira etapa pós-login que falha no Railway
+> **Última atualização:** 2026-07-23 20:55 BRT
+> **Última sessão executada:** 23/07/2026 • 20:55 — Instrumentação pipeline pós-login
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 20:55
+
+### 🎯 Objetivo
+
+Instrumentar o pipeline após `ecnh.login.flow.completed` até Google Sheets e logout — **somente observabilidade**, sem alterar regras de negócio.
+
+### ✅ O que mudou
+
+- Helper `PipelineStepTracker` com `lastSuccessfulPipelineStep`, duração, contagens e stack.
+- Etapas: perfil pós-login, listar datas, fetch HTML, parse, transform, persistência, Sheets API, logout.
+- Logs em `warn`/`error` (visíveis no Cron Railway com `level: warn`).
+- `catch` do Sheets agora registra o erro real (antes engolia sem log).
+
+### 🧠 Decisões
+
+- **Decisão:** eventos `agenda.pipeline.step.*` / `agenda.pipeline.flow.*` espelham o padrão do login.
+- **Decisão:** não logar CPF, senha, cookies nem conteúdo de células.
+
+### 📂 Arquivos impactados
+
+- `src/utils/pipeline-observability.ts`
+- `src/services/agenda-sync-service.ts`
+- `src/client/ecnh-client.ts`
+- `src/client/ecnh-agenda-protocol.ts`
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/jobs/agenda-sync-job.ts`
+- `CHANGELOG.md`
 
 ---
 

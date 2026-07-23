@@ -4,6 +4,10 @@ import type { StructuredLogger } from '../types/logger.js';
 import { isDataAgendamentoAtiva } from '../utils/agenda-date.js';
 import { normalizeCpfKey } from '../utils/cpf.js';
 import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
+import {
+  PIPELINE_STEPS,
+  serializarErroObservabilidade
+} from '../utils/pipeline-observability.js';
 import { formatSyncTimestamp } from '../utils/sync-timestamp.js';
 
 import type {
@@ -90,16 +94,77 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       contexto.perfilId
     );
 
+    const salvarStartedAt = Date.now();
+    this.logger?.warn(
+      {
+        event: 'agenda.sheets.salvar.started',
+        pipelineStep: PIPELINE_STEPS.PERSIST_AGENDA,
+        sheetName: this.sheetName,
+        dataConsulta,
+        itemCount: agenda.itens.length,
+        perfilId: contexto.perfilId
+      },
+      'Persistência da agenda no Google Sheets iniciada'
+    );
+
     try {
       const referencia = this.agora ?? new Date();
+
+      const lerStartedAt = Date.now();
+      this.logger?.warn(
+        {
+          event: 'agenda.pipeline.step.start',
+          pipelineStep: PIPELINE_STEPS.SHEETS_LER_MATRIZ,
+          sheetName: this.sheetName,
+          dataConsulta
+        },
+        'Etapa do pipeline pós-login iniciada'
+      );
       const matriz = await this.lerMatriz();
+      this.logger?.warn(
+        {
+          event: 'agenda.pipeline.step.completed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_LER_MATRIZ,
+          durationMs: Date.now() - lerStartedAt,
+          sheetName: this.sheetName,
+          dataConsulta,
+          itemCount: matriz.length,
+          rowCount: matriz.length,
+          columnCount: matriz[0]?.length ?? 0
+        },
+        'Etapa do pipeline pós-login concluída'
+      );
+
       const cabecalhoAtual = matriz[0];
       const corpo = matriz.length > 0 ? matriz.slice(1) : [];
 
       if (cabecalhoAtual !== undefined && !this.cabecalhoCompativel(cabecalhoAtual)) {
         this.registrarCabecalhoIncompativel(cabecalhoAtual);
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.salvar.failed',
+            pipelineStep: PIPELINE_STEPS.PERSIST_AGENDA,
+            durationMs: Date.now() - salvarStartedAt,
+            motivoFalha: 'cabecalho-incompativel',
+            dataConsulta,
+            itemCount: agenda.itens.length
+          },
+          'Persistência interrompida por cabeçalho incompatível'
+        );
         return { sucesso: false, motivoFalha: 'cabecalho-incompativel' };
       }
+
+      const transformStartedAt = Date.now();
+      this.logger?.warn(
+        {
+          event: 'agenda.pipeline.step.start',
+          pipelineStep: PIPELINE_STEPS.SHEETS_TRANSFORMAR,
+          dataConsulta,
+          registrosExistentesCount: corpo.length,
+          itensAgendaCount: agenda.itens.length
+        },
+        'Etapa do pipeline pós-login iniciada'
+      );
 
       const cabecalho = this.mapper.cabecalho();
       const registrosExistentes =
@@ -182,15 +247,79 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         }
       }
 
+      this.logger?.warn(
+        {
+          event: 'agenda.pipeline.step.completed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_TRANSFORMAR,
+          durationMs: Date.now() - transformStartedAt,
+          dataConsulta,
+          itemCount: novasLinhas.length,
+          linhasAtivasCount: linhasAtivas.length,
+          linhasNovasCount: novasLinhas.length,
+          linhasRemovidasCount: linhasRemovidas,
+          registrosExistentesCount: registrosExistentes.length
+        },
+        'Etapa do pipeline pós-login concluída'
+      );
+
       const valoresFinais = [cabecalho, ...linhasAtivas, ...novasLinhas];
+      const reescreverStartedAt = Date.now();
+      this.logger?.warn(
+        {
+          event: 'agenda.pipeline.step.start',
+          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+          dataConsulta,
+          itemCount: valoresFinais.length,
+          rowCount: valoresFinais.length
+        },
+        'Etapa do pipeline pós-login iniciada'
+      );
       await this.reescreverAba(valoresFinais);
+      this.logger?.warn(
+        {
+          event: 'agenda.pipeline.step.completed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+          durationMs: Date.now() - reescreverStartedAt,
+          dataConsulta,
+          itemCount: valoresFinais.length,
+          rowCount: valoresFinais.length,
+          linhasGravadas: novasLinhas.length,
+          linhasRemovidas
+        },
+        'Etapa do pipeline pós-login concluída'
+      );
+
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.salvar.completed',
+          pipelineStep: PIPELINE_STEPS.PERSIST_AGENDA,
+          durationMs: Date.now() - salvarStartedAt,
+          dataConsulta,
+          itemCount: agenda.itens.length,
+          linhasGravadas: novasLinhas.length,
+          linhasRemovidas
+        },
+        'Persistência da agenda no Google Sheets concluída'
+      );
 
       return {
         sucesso: true,
         linhasGravadas: novasLinhas.length,
         linhasRemovidas
       };
-    } catch {
+    } catch (error) {
+      this.logger?.error(
+        {
+          event: 'agenda.sheets.salvar.failed',
+          pipelineStep: PIPELINE_STEPS.PERSIST_AGENDA,
+          durationMs: Date.now() - salvarStartedAt,
+          dataConsulta,
+          itemCount: agenda.itens.length,
+          motivoFalha: 'erro-infraestrutura',
+          error: serializarErroObservabilidade(error)
+        },
+        'Falha de infraestrutura na persistência Google Sheets'
+      );
       return { sucesso: false, motivoFalha: 'erro-infraestrutura' };
     }
   }
@@ -284,15 +413,121 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   }
 
   private async lerMatriz(): Promise<string[][]> {
-    return this.sheets.getValues(this.rangeLeitura());
+    const range = this.rangeLeitura();
+    const startedAt = Date.now();
+    this.logger?.warn(
+      {
+        event: 'agenda.sheets.api.getValues.started',
+        pipelineStep: PIPELINE_STEPS.SHEETS_LER_MATRIZ,
+        rangeLength: range.length,
+        sheetName: this.sheetName
+      },
+      'Google Sheets getValues iniciado'
+    );
+    try {
+      const values = await this.sheets.getValues(range);
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.api.getValues.completed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_LER_MATRIZ,
+          durationMs: Date.now() - startedAt,
+          itemCount: values.length,
+          rowCount: values.length
+        },
+        'Google Sheets getValues concluído'
+      );
+      return values;
+    } catch (error) {
+      this.logger?.error(
+        {
+          event: 'agenda.sheets.api.getValues.failed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_LER_MATRIZ,
+          durationMs: Date.now() - startedAt,
+          error: serializarErroObservabilidade(error)
+        },
+        'Google Sheets getValues falhou'
+      );
+      throw error;
+    }
   }
 
   private async reescreverAba(valores: string[][]): Promise<void> {
-    await this.sheets.clearValues(this.rangeLeitura());
+    const rangeLeitura = this.rangeLeitura();
+    const clearStartedAt = Date.now();
+    this.logger?.warn(
+      {
+        event: 'agenda.sheets.api.clearValues.started',
+        pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+        sheetName: this.sheetName,
+        rangeLength: rangeLeitura.length
+      },
+      'Google Sheets clearValues iniciado'
+    );
+    try {
+      await this.sheets.clearValues(rangeLeitura);
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.api.clearValues.completed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+          durationMs: Date.now() - clearStartedAt
+        },
+        'Google Sheets clearValues concluído'
+      );
+    } catch (error) {
+      this.logger?.error(
+        {
+          event: 'agenda.sheets.api.clearValues.failed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+          durationMs: Date.now() - clearStartedAt,
+          error: serializarErroObservabilidade(error)
+        },
+        'Google Sheets clearValues falhou'
+      );
+      throw error;
+    }
+
     if (valores.length === 0) {
       return;
     }
-    await this.sheets.updateValues(this.rangeEscrita(valores), valores);
+
+    const rangeEscrita = this.rangeEscrita(valores);
+    const updateStartedAt = Date.now();
+    this.logger?.warn(
+      {
+        event: 'agenda.sheets.api.updateValues.started',
+        pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+        sheetName: this.sheetName,
+        itemCount: valores.length,
+        rowCount: valores.length,
+        rangeLength: rangeEscrita.length
+      },
+      'Google Sheets updateValues iniciado'
+    );
+    try {
+      await this.sheets.updateValues(rangeEscrita, valores);
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.api.updateValues.completed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+          durationMs: Date.now() - updateStartedAt,
+          itemCount: valores.length,
+          rowCount: valores.length
+        },
+        'Google Sheets updateValues concluído'
+      );
+    } catch (error) {
+      this.logger?.error(
+        {
+          event: 'agenda.sheets.api.updateValues.failed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+          durationMs: Date.now() - updateStartedAt,
+          itemCount: valores.length,
+          error: serializarErroObservabilidade(error)
+        },
+        'Google Sheets updateValues falhou'
+      );
+      throw error;
+    }
   }
 
   private rangeLeitura(): string {

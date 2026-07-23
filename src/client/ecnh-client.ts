@@ -60,7 +60,7 @@ export class ECNHClient {
 
   public async login(cpf: string, password: string): Promise<LoginResult> {
     const credentials = this.validateCredentials(cpf, password);
-    this.logger.info({ event: 'ecnh.login.started' }, 'Iniciando autenticação e-CNH');
+    this.logger.warn({ event: 'ecnh.login.started' }, 'Iniciando autenticação e-CNH');
 
     const result = await this.authenticationProtocol.login(credentials, this.transport, {
       logger: this.logger,
@@ -71,8 +71,12 @@ export class ECNHClient {
       this.lastAuthenticatedHtml = result.html;
       this.perfilResolvido = result.perfil;
       const session = this.sessionManager.markAuthenticated(result.perfil.id);
-      this.logger.info(
-        { event: 'ecnh.login.succeeded', perfilId: result.perfil.id },
+      this.logger.warn(
+        {
+          event: 'ecnh.login.succeeded',
+          perfilId: result.perfil.id,
+          htmlBytes: Buffer.byteLength(result.html, 'latin1')
+        },
         'Autenticação e-CNH concluída'
       );
       return { session, status: 'sucesso' };
@@ -98,8 +102,37 @@ export class ECNHClient {
    * Não interpreta a agenda nem dados de pacientes.
    */
   public listarDatasAgendamento(): string[] {
-    const html = this.requireAuthenticatedHtml('listarDatasAgendamento');
-    return this.agendaProtocol.listarDatasAgendamento(html);
+    const startedAt = Date.now();
+    this.logger.warn(
+      { event: 'ecnh.agenda.datas.started', pipelineStep: 'LIST_DATAS_AGENDAMENTO' },
+      'Listando datas de agendamento no HTML pós-login'
+    );
+    try {
+      const html = this.requireAuthenticatedHtml('listarDatasAgendamento');
+      const datas = this.agendaProtocol.listarDatasAgendamento(html);
+      this.logger.warn(
+        {
+          event: 'ecnh.agenda.datas.completed',
+          pipelineStep: 'LIST_DATAS_AGENDAMENTO',
+          durationMs: Date.now() - startedAt,
+          itemCount: datas.length,
+          htmlBytes: Buffer.byteLength(html, 'latin1')
+        },
+        'Datas de agendamento listadas no HTML pós-login'
+      );
+      return datas;
+    } catch (error) {
+      this.logger.error(
+        {
+          event: 'ecnh.agenda.datas.failed',
+          pipelineStep: 'LIST_DATAS_AGENDAMENTO',
+          durationMs: Date.now() - startedAt,
+          error: serializarErroCliente(error)
+        },
+        'Falha ao listar datas de agendamento no HTML pós-login'
+      );
+      throw error;
+    }
   }
 
   /**
@@ -107,35 +140,57 @@ export class ECNHClient {
    * Retorna somente o documento HTML; parsing de pacientes fica fora desta camada.
    */
   public async obterHtmlAgenda(params: ConsultarAgendaParams): Promise<string> {
+    const startedAt = Date.now();
     const html = this.requireAuthenticatedHtml('obterHtmlAgenda');
     const perfil = this.requirePerfilResolvido('obterHtmlAgenda');
-    this.logger.info(
+    this.logger.warn(
       {
         event: 'ecnh.agenda.consulta.started',
+        pipelineStep: 'FETCH_AGENDA_HTML',
         method: perfil.methodConsultarAgenda,
         path: '/gefor/GFR/divisao/divisaoEquitativa.do',
-        perfilId: perfil.id
+        perfilId: perfil.id,
+        dataConsulta: params.data
       },
       'Iniciando consulta HTTP da agenda e-CNH'
     );
 
-    const agendaHtml = await this.agendaProtocol.consultarAgenda(
-      this.transport,
-      html,
-      perfil,
-      params
-    );
+    try {
+      const agendaHtml = await this.agendaProtocol.consultarAgenda(
+        this.transport,
+        html,
+        perfil,
+        params
+      );
 
-    this.logger.info(
-      {
-        event: 'ecnh.agenda.consulta.completed',
-        htmlBytes: Buffer.byteLength(agendaHtml, 'latin1'),
-        perfilId: perfil.id
-      },
-      'Consulta HTTP da agenda e-CNH concluída'
-    );
+      this.logger.warn(
+        {
+          event: 'ecnh.agenda.consulta.completed',
+          pipelineStep: 'FETCH_AGENDA_HTML',
+          durationMs: Date.now() - startedAt,
+          htmlBytes: Buffer.byteLength(agendaHtml, 'latin1'),
+          itemCount: 1,
+          perfilId: perfil.id,
+          dataConsulta: params.data
+        },
+        'Consulta HTTP da agenda e-CNH concluída'
+      );
 
-    return agendaHtml;
+      return agendaHtml;
+    } catch (error) {
+      this.logger.error(
+        {
+          event: 'ecnh.agenda.consulta.failed',
+          pipelineStep: 'FETCH_AGENDA_HTML',
+          durationMs: Date.now() - startedAt,
+          perfilId: perfil.id,
+          dataConsulta: params.data,
+          error: serializarErroCliente(error)
+        },
+        'Falha na consulta HTTP da agenda e-CNH'
+      );
+      throw error;
+    }
   }
 
   /**
@@ -143,25 +198,45 @@ export class ECNHClient {
    * O CookieJar é limpo mesmo se a requisição HTTP falhar.
    */
   public async logout(): Promise<void> {
-    this.logger.info({ event: 'ecnh.logout.started' }, 'Iniciando encerramento da sessão e-CNH');
+    const startedAt = Date.now();
+    this.logger.warn(
+      { event: 'ecnh.logout.started', pipelineStep: 'LOGOUT' },
+      'Iniciando encerramento da sessão e-CNH'
+    );
 
     try {
       await this.authenticationProtocol.logout(this.transport);
-      this.logger.info(
-        { event: 'ecnh.logout.http', path: '/gefor/SGU/login.do?method=finalizarLogin' },
+      this.logger.warn(
+        {
+          event: 'ecnh.logout.http',
+          pipelineStep: 'LOGOUT',
+          path: '/gefor/SGU/login.do?method=finalizarLogin',
+          durationMs: Date.now() - startedAt
+        },
         'Logout HTTP enviado ao portal e-CNH'
       );
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'erro desconhecido';
       this.logger.warn(
-        { event: 'ecnh.logout.http_failed', message },
+        {
+          event: 'ecnh.logout.http_failed',
+          pipelineStep: 'LOGOUT',
+          durationMs: Date.now() - startedAt,
+          error: serializarErroCliente(error)
+        },
         'Falha ao enviar logout HTTP; a sessão local será descartada mesmo assim'
       );
     } finally {
       this.lastAuthenticatedHtml = undefined;
       this.perfilResolvido = undefined;
       this.sessionManager.clear();
-      this.logger.info({ event: 'ecnh.logout.completed' }, 'Sessão e-CNH encerrada localmente');
+      this.logger.warn(
+        {
+          event: 'ecnh.logout.completed',
+          pipelineStep: 'LOGOUT',
+          durationMs: Date.now() - startedAt
+        },
+        'Sessão e-CNH encerrada localmente'
+      );
     }
   }
 
@@ -197,6 +272,29 @@ export class ECNHClient {
 
     return { cpf: formattedCpf, password };
   }
+}
+
+function serializarErroCliente(error: unknown): Record<string, unknown> {
+  if (!(error instanceof Error)) {
+    return { message: String(error) };
+  }
+  const cause =
+    error.cause instanceof Error
+      ? {
+          name: error.cause.name,
+          message: error.cause.message,
+          stack: error.cause.stack
+        }
+      : error.cause !== undefined
+        ? { message: String(error.cause) }
+        : undefined;
+  return {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+    code: (error as NodeJS.ErrnoException).code,
+    cause
+  };
 }
 
 function createLogger(): StructuredLogger {
