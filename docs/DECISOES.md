@@ -175,6 +175,35 @@
   - documentar em `docs/DEPLOY_RAILWAY.md` + `railway.toml`.
 - **Consequência:** custo alinhado a uma execução diária; o `AgendaSyncJob`/lock existentes são reutilizados; processo que não encerra bloqueia o próximo tick do Cron da plataforma.
 
+## ADR-023 — Política de domínio da Agenda operacional
+
+- **Status:** aceito e implementado
+- **Contexto:** a decisão “o que permanece na aba Agenda” estava embutida em `isDataAgendamentoAtiva` (`src/utils/agenda-date.ts`). Em `fb5d59d` a comparação passou de `>= hoje` para `> hoje`, divergindo de `docs/VISAO_DO_PRODUTO.md` (“hoje ou futuras”). Utilitário de calendário misturava parsing técnico com regra de produto; alterações futuras podiam esvaziar a planilha sem um ponto de política explícito.
+- **Evidências:**
+  - **Confirmada:** visão de produto exige hoje ou futuras (`VISAO_DO_PRODUTO.md`).
+  - **Confirmada:** após `fb5d59d`, código e testes excluíam “hoje”; `salvarAgenda` não reinsere `dataConsulta === hoje`.
+  - **Confirmada (mecanismo):** se portal/planilha só tiverem “hoje”, a regra `> hoje` reescreve a aba só com cabeçalho.
+  - **Snapshot 24/07/2026:** aba Agenda lia **158** linhas futuras (planilha **não** vazia naquele instante) — o incidente “só cabeçalho” não foi reproduzido com log da sync; a correção alinha o código ao contrato de produto, não a um log ausente.
+- **Decisão:**
+  - criar `AgendaOperacionalPolicy` em `src/domain/` com métodos nomeados (`devePermanecerNaAgendaOperacional`, `deveIncluirAgendamentoDoPortalNaAgendaOperacional`, `pacientePermaneceAtivoNaAgendaOperacional`);
+  - contrato: **hoje ou futuro** (calendário `America/Sao_Paulo`);
+  - `agenda-date` permanece só parsing/fuso; `GoogleSheetsAgendaRepository` consome a policy;
+  - não alterar persistência paralela de pessoas (ADR-022).
+- **Consequência:** regras de Agenda editáveis num único lugar; testes de policy protegem regressão silenciosa; alinhamento com a visão de produto.
+
+## ADR-022 — Camada de persistência relacional paralela (pessoas)
+
+- **Status:** aceito e implementado
+- **Contexto:** a Google Sheets é a interface operacional da clínica e deve permanecer intacta. Há necessidade de base histórica permanente de pessoas (CPF), sem que falhas de banco interrompam o Cron/Railway nem a atualização da planilha. O filesystem do Cron efêmero não serve como store histórico sem volume.
+- **Decisão:**
+  - introduzir camada genérica `src/db/` (client, schema, ensure-schema) preparada para múltiplos repositórios futuros (`PessoaRepository`, depois profissional/agendamento/sync_run);
+  - objetos de domínio alimentam **dois destinos independentes**: `AgendaRepository` (Sheets) e `PessoaRepository` (banco);
+  - ordem de execução: Sheets primeiro; em seguida upsert de pessoas em **best-effort** (`try/catch` + log); erro no banco **nunca** altera o resultado operacional do Sheets;
+  - SQLite local (`.data/ecnh.sqlite`); PostgreSQL no Railway via `DATABASE_URL`; Drizzle com schemas por dialeto;
+  - tabela `pessoas`: `cpf` único, `origem='Projeto e-CNH'`, `ativo` (soft-flag futura, sync não inativa), `primeira_sincronizacao` / `ultima_sincronizacao`, timestamps; **sem DELETE**;
+  - `DATABASE_PERSISTENCE_ENABLED=false` ou falha ao abrir DB → `NoOpPessoaRepository`; sync Sheets idêntico ao anterior.
+- **Consequência:** histórico de pessoas cresce sem risco operacional; migração SQLite→Postgres = connection string + dialeto no wiring, sem reescrever o serviço.
+
 ## ADR-021 — Resiliência da cota Google Sheets (retry + menos writes)
 
 - **Status:** aceito

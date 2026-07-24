@@ -18,10 +18,15 @@ Axios + CookieJar
         │
 AgendaSyncJob / SyncLock (Fase 007)
         │
-AgendaSyncService ──> parseAgendaHtml (Cheerio) ──> AgendaRepository ──> Google Sheets
+AgendaSyncService ──> parseAgendaHtml (Cheerio)
+        │
+        ├──> AgendaRepository ──> Google Sheets (operacional; B004/B005)
+        └──> PessoaRepository ──> SQLite/Postgres (histórico; best-effort; ADR-022)
 ```
 
 `ECNHClient` é o centro da integração com o portal: autenticação, manutenção de sessão, transporte HTTP e navegação autenticada. Nenhuma outra camada realiza chamadas HTTP diretamente ao e-CNH. Parser e integração com Sheets trabalham sobre dados/HTML entregues pelos contratos do cliente e do serviço, sem conhecer Axios, cookies ou endpoints.
+
+A camada `src/db/` é a persistência relacional **genérica** da aplicação (schemas + client). O primeiro consumidor é `PessoaRepository`; repositórios futuros (profissional, agendamento, sync_run) compartilham o mesmo client sem acoplar o serviço ao SQL.
 
 A **Fase 003A — Autenticação HTTP** trata exclusivamente login e sessão. A **Fase 003B — Navegação autenticada** adiciona navegação pós-login e entrega HTML de agenda. A **Fase 004 — Extração de dados da agenda** converte esse HTML em modelos tipados via Cheerio. A **Fase 005 — Integração Google Sheets** persiste os modelos via `AgendaRepository` / `GoogleSheetsAgendaRepository`. A **Fase 006 — Orquestração multi-profissionais** entrega `AgendaSyncService` e o script `npm run sync:agenda` (`Concluída`). A **Fase 007 — Agendamento automático (cron)** entrega daemon, `SyncLock` e `AgendaSyncJob` sobre o serviço existente (`Concluída`, ADR-013).
 
@@ -38,7 +43,9 @@ Os contratos conceituais entre essas camadas estão em [MODELO_DOMINIO.md](MODEL
 | -------------- | ------------------------------------------------------------------------- | --------------------------------------------------- |
 | `client`       | `ECNHClient` (portal) e `GoogleSheetsClient` (Sheets API).                | Interpretar agenda ou decidir regra de negócio.     |
 | `parsers`      | Converter HTML recebido pelo fluxo do `ECNHClient` em estruturas tipadas. | Fazer requests ou reter sessão.                     |
-| `repositories` | `AgendaRepository`: persistir/recuperar modelos sem expor o SDK Sheets.   | Expor Axios/Cheerio/`googleapis` aos serviços.      |
+| `repositories` | `AgendaRepository` (Sheets) e `PessoaRepository` (banco); portas sem expor SDK/SQL. | Expor Axios/Cheerio/`googleapis`/Drizzle aos serviços. |
+| `domain`       | Políticas de negócio (ex.: `AgendaOperacionalPolicy`).                            | HTTP, SQL, Sheets API.                                  |
+| `db`           | Client e schemas da persistência relacional (SQLite/Postgres).                    | Regras de sincronização ou HTML.                        |
 | `services`     | Coordenar casos de uso usando `ECNHClient`; fornecer HTML ao parser.      | Conhecer cookies, campos ou seletores HTML.         |
 | `jobs`         | Disparo agendado, `SyncLock` e chamada ao serviço (Fase 007).             | Incluir autenticação, parsing ou regras de negócio. |
 
@@ -57,7 +64,7 @@ Playwright não é tecnologia principal e não será usado no fluxo produtivo no
 ## Limites confirmados
 
 - A Fase 005 está `Concluída`: persistência via `AgendaRepository` / Google Sheets foi implementada e validada no ambiente real.
-- A implementação Sheets mantém **pacientes ativos** (AGENDAMENTO DO DETRAN **após** hoje): remove automaticamente registros cuja data é hoje ou já passou e usa **CPF** como chave única enquanto o paciente permanece ativo (B004/B005). O CPF continua sendo a identidade de negócio; apenas deixa de constar no contrato visual das colunas operacionais.
+- A implementação Sheets mantém **pacientes ativos** via `AgendaOperacionalPolicy` (AGENDAMENTO DO DETRAN **hoje ou futuro**): remove automaticamente registros cuja data já passou e usa **CPF** como chave única enquanto o paciente permanece ativo (B004/B005). O CPF continua sendo a identidade de negócio; apenas deixa de constar no contrato visual das colunas operacionais.
 - A Fase 006 está `Concluída`: `AgendaSyncService` orquestra multi-profissional sob demanda (`npm run sync:agenda`).
 - A Fase 007 está `Concluída`: jobs disparam o serviço via lock global (`npm run job:agenda`); o serviço não conhece cron nem arquivo de lock.
 - O `ECNHClient` continua responsável apenas por HTTP/sessão/HTML bruto; o parser não conhece Axios nem cookies; o domínio não conhece `googleapis`.

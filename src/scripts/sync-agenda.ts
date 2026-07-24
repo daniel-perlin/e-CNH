@@ -17,32 +17,40 @@ import { codigoSaidaSincronizacao, formatarResumoSincronizacao } from './sync-ag
  */
 async function main(): Promise<void> {
   const logger = createSyncLogger();
-  const runtime = criarAgendaSyncRuntime({ logger });
+  const runtime = await criarAgendaSyncRuntime({ logger });
 
-  const job = new AgendaSyncJob({
-    entradas: runtime.entradas,
-    lock: runtime.lock,
-    logger,
-    service: runtime.service
-  });
+  let exitCode = 0;
+  try {
+    const job = new AgendaSyncJob({
+      entradas: runtime.entradas,
+      lock: runtime.lock,
+      logger,
+      service: runtime.service
+    });
 
-  console.log(
-    `Iniciando sincronização de ${runtime.entradas.length} profissional(is) habilitado(s)...`
-  );
-
-  const resultado = await job.executar();
-
-  if (resultado.status === 'ignorado_por_lock') {
-    console.error(
-      'Sincronização ignorada: outra execução já está em andamento (lock ocupado).'
+    console.log(
+      `Iniciando sincronização de ${runtime.entradas.length} profissional(is) habilitado(s)...`
     );
-    process.exit(1);
+
+    const resultado = await job.executar();
+
+    if (resultado.status === 'ignorado_por_lock') {
+      console.error(
+        'Sincronização ignorada: outra execução já está em andamento (lock ocupado).'
+      );
+      exitCode = 1;
+      return;
+    }
+
+    console.log(formatarResumoSincronizacao(resultado.sincronizacao));
+
+    // Falha parcial não derruba o Cron no Railway; só falha total (0 sucessos).
+    exitCode = codigoSaidaSincronizacao(resultado.sincronizacao);
+  } finally {
+    await runtime.close();
   }
 
-  console.log(formatarResumoSincronizacao(resultado.sincronizacao));
-
-  // Falha parcial não derruba o Cron no Railway; só falha total (0 sucessos).
-  process.exit(codigoSaidaSincronizacao(resultado.sincronizacao));
+  process.exit(exitCode);
 }
 
 /** Emite warn/error (ex.: cabeçalho incompatível); omite info/debug no console do sync manual. */
@@ -62,7 +70,7 @@ function createSyncLogger(): StructuredLogger {
   });
 }
 
-void main().catch((error: unknown) => {
+void main().catch(async (error: unknown) => {
   const message = error instanceof Error ? error.message : 'erro desconhecido';
   console.error(`Sincronização da agenda falhou: ${message}`);
   process.exit(1);

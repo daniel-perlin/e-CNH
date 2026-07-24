@@ -2,14 +2,69 @@
 
 > ### 📌 Estado atual
 >
-> **Fase atual:** Infraestrutura Railway (Cron efêmero 16:00 BRT)
-> **Próxima prioridade:** Validar sync no Railway após retry Sheets / menos writes
-> **Última atualização:** 2026-07-23 21:30 BRT
-> **Última sessão executada:** 23/07/2026 • 21:30 — Ativos só com data > hoje
+> **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
+> **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
+> **Última atualização:** 2026-07-24 17:40 BRT
+> **Última sessão executada:** 24/07/2026 • 17:40 — Policy de Agenda (hoje ou futuro)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 24/07/2026 • 17:40
+
+### 🎯 Objetivo
+
+Extrair regras de negócio da Agenda para o domínio e realinhar ao contrato de produto (hoje ou futuro), sem correção pontual em utilitário.
+
+### ✅ O que mudou
+
+- Nova `AgendaOperacionalPolicy` (`src/domain/agenda-operacional-policy.ts`).
+- `agenda-date` só parsing/fuso; removido `isDataAgendamentoAtiva`.
+- `GoogleSheetsAgendaRepository` usa a policy.
+- Testes de policy + cenários Sheets (só hoje, só futuro, hoje+futuro, vazio).
+
+### 🧠 Decisões
+
+- **ADR-023:** política explícita; contrato = `VISAO_DO_PRODUTO.md` (hoje ou futuras).
+
+### 📂 Arquivos impactados
+
+- `src/domain/agenda-operacional-policy.ts` (+ teste)
+- `src/utils/agenda-date.ts` (+ teste)
+- `src/repositories/google-sheets-agenda-repository.ts` (+ teste)
+- `docs/DECISOES.md`, `MODELO_DOMINIO.md`, `ARQUITETURA.md`, `BACKLOG.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 24/07/2026 • 17:25
+
+### 🎯 Objetivo
+
+Introduzir persistência relacional paralela de pessoas sem alterar Google Sheets nem o Cron.
+
+### ✅ O que mudou
+
+- Camada genérica `src/db/` (SQLite local / Postgres via `DATABASE_URL`).
+- `PessoaRepository` + Drizzle + NoOp; tabela `pessoas` com `origem`, `ativo`, `primeira_sincronizacao`, `ultima_sincronizacao`.
+- `AgendaSyncService` grava Sheets e depois upsert best-effort no banco.
+- Wiring assíncrono em `criarAgendaSyncRuntime` com `close()`.
+
+### 🧠 Decisões
+
+- **ADR-022:** destinos independentes do domínio; banco nunca bloqueia Sheets; Postgres no Railway.
+
+### 📂 Arquivos impactados
+
+- `src/db/**`, `src/config/database-config.ts`
+- `src/repositories/pessoa-*.ts`, `drizzle-pessoa-repository.ts`, `noop-pessoa-repository.ts`
+- `src/services/agenda-sync-service.ts` (+ testes)
+- `src/composition/agenda-sync-runtime.ts`, `src/scripts/sync-agenda.ts`, `job-agenda.ts`
+- `docs/DECISOES.md`, `ARQUITETURA.md`, `DEPLOY_RAILWAY.md`, `MODELO_DOMINIO.md`, `BACKLOG.md`, `ROADMAP.md`
+- `.fases/010-persistencia-relacional-pessoas.md`, `.env.example`, `package.json`, `CHANGELOG.md`
 
 ---
 

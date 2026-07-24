@@ -103,7 +103,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     ]);
   });
 
-  it('agendamento de hoje é removido', async () => {
+  it('agendamento de hoje é mantido (policy: hoje ou futuro)', async () => {
     const { sheets, repository } = criarRepositorio();
 
     const resultado = await repository.salvarAgenda(
@@ -112,10 +112,10 @@ describe('GoogleSheetsAgendaRepository', () => {
     );
 
     assert.equal(resultado.sucesso, true);
-    assert.equal(resultado.linhasGravadas, 0);
+    assert.equal(resultado.linhasGravadas, 1);
     const matriz = await sheets.getValues(RANGE_LEITURA);
-    // Apenas cabeçalho (ou planilha vazia se nunca houve escrita)
-    assert.ok(matriz.length <= 1);
+    assert.equal(matriz.length, 2);
+    assert.equal(matriz[1]?.[COL.dataAgendamento], '20/07/2026');
   });
 
   it('agendamento futuro é mantido', async () => {
@@ -129,6 +129,80 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(resultado.linhasGravadas, 1);
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz[1]?.[COL.dataAgendamento], '21/07/2026');
+  });
+
+  it('somente hoje: planilha recebe a linha (não fica só cabeçalho)', async () => {
+    const { sheets, repository } = criarRepositorio();
+    await repository.salvarAgenda(
+      agendaFixture('20/07/2026', '08:00', 'SO SO HOJE', '111.111.111-11'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.equal(matriz.length, 2);
+  });
+
+  it('hoje + futuros: ambos permanecem; passado é removido', async () => {
+    const { sheets, repository } = criarRepositorio();
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [
+        'UNIDADE',
+        'AGENDAMENTO DO DETRAN',
+        'HORÁRIO',
+        'PACIENTE',
+        'TELEFONE',
+        'EMAIL',
+        'PROFISSIONAL',
+        'DATA DE INCLUSÃO',
+        '000.000.000-00'
+      ],
+      [
+        'LIMÃO',
+        '19/07/2026',
+        '08:00',
+        'Paciente',
+        '',
+        '',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        '18/07/2026 10:00',
+        '000.000.000-00'
+      ]
+    ]);
+
+    await repository.salvarAgenda(
+      {
+        dataConsulta: '20/07/2026',
+        itens: [
+          {
+            horario: '09:00',
+            paciente: { nome: 'HOJE', cpf: '111.111.111-11' }
+          }
+        ]
+      },
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+    await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '10:00', 'FUTURO', '222.222.222-22'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    const datas = matriz.slice(1).map((linha) => linha[COL.dataAgendamento]);
+    assert.ok(datas.includes('20/07/2026'));
+    assert.ok(datas.includes('21/07/2026'));
+    assert.equal(datas.includes('19/07/2026'), false);
+  });
+
+  it('nenhum paciente: não grava linhas de dados', async () => {
+    const { sheets, repository } = criarRepositorio();
+    const resultado = await repository.salvarAgenda(
+      { dataConsulta: '21/07/2026', itens: [] },
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.linhasGravadas, 0);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.ok(matriz.length <= 1);
   });
 
   it('paciente removido e retornando meses depois recebe nova linha e nova DATA DE INCLUSÃO', async () => {

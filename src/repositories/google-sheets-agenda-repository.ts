@@ -1,7 +1,7 @@
 import type { Agenda, ItemAgenda } from '../models/agenda.js';
 import type { GoogleSheetsValuesPort } from '../client/google-sheets-client.js';
+import { agendaOperacionalPolicy } from '../domain/agenda-operacional-policy.js';
 import type { StructuredLogger } from '../types/logger.js';
-import { isDataAgendamentoAtiva } from '../utils/agenda-date.js';
 import { normalizeCpfKey } from '../utils/cpf.js';
 import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
 import { mascararCpf } from '../utils/cpf-mask.js';
@@ -52,8 +52,8 @@ export interface GoogleSheetsAgendaRepositoryOptions {
 
 /**
  * Persistência da agenda em Google Sheets.
- * Cadastro de pacientes ativos: mantém apenas agendamento DETRAN **após** hoje;
- * chave de negócio / deduplicação: CPF normalizado (B004/B005) — inalterada.
+ * Cadastro de pacientes ativos (B004/B005): `AgendaOperacionalPolicy`
+ * (hoje ou futuro no calendário SP); chave CPF normalizado.
  * A projeção operacional (`CABECALHOS_ABA_AGENDA`) não exibe CPF.
  */
 export class GoogleSheetsAgendaRepository implements AgendaRepository {
@@ -179,7 +179,12 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       const ativos: LinhaAgendaPersistida[] = [];
       let linhasRemovidas = 0;
       for (const registro of registrosExistentes) {
-        if (isDataAgendamentoAtiva(registro.dataConsulta, referencia)) {
+        if (
+          agendaOperacionalPolicy.devePermanecerNaAgendaOperacional(
+            registro.dataConsulta,
+            referencia
+          )
+        ) {
           ativos.push(registro);
         } else {
           linhasRemovidas += 1;
@@ -245,7 +250,12 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       const dataInclusao = formatSyncTimestamp(referencia);
       const novasLinhas: string[][] = [];
 
-      if (isDataAgendamentoAtiva(dataConsulta, referencia)) {
+      if (
+        agendaOperacionalPolicy.deveIncluirAgendamentoDoPortalNaAgendaOperacional(
+          dataConsulta,
+          referencia
+        )
+      ) {
         for (const item of agenda.itens) {
           const cpfOriginalPortal = item.paciente.cpf?.trim() ?? '';
           const chave = normalizeCpfKey(cpfOriginalPortal);
@@ -267,7 +277,10 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
             existiaEmRegistrosExistentes,
             registroExistenteAtivo:
               registroExistenteMesmoCpf !== undefined &&
-              isDataAgendamentoAtiva(registroExistenteMesmoCpf.dataConsulta, referencia)
+              agendaOperacionalPolicy.pacientePermaneceAtivoNaAgendaOperacional(
+                registroExistenteMesmoCpf.dataConsulta,
+                referencia
+              )
           });
 
           this.logger?.warn(

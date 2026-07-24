@@ -327,6 +327,7 @@ Itens **B006–B009** (Painel / Observabilidade) foram removidos do catálogo at
 | 005 | `repositories` | Objetos de domínio → Google Sheets |
 | 006 | `services` | `AgendaSyncService`: orquestração multi-profissionais |
 | 007 | `jobs` | Disparo automático e controle de concorrência |
+| 010 | `db` / `repositories` | Persistência relacional paralela (pessoas); Sheets intacto |
 
 <br />
 

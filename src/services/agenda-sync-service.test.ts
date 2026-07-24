@@ -124,14 +124,25 @@ const entradaBase: EntradaSincronizacaoProfissional = {
   unidadeOperacional: 'LIMÃO'
 };
 
-function parserComAgenda(itens = 1): (html: string, contexto?: { dataConsulta?: string }) => ResultadoExtracaoAgenda {
+function parserComAgenda(
+  itens = 1,
+  comCpf = false
+): (html: string, contexto?: { dataConsulta?: string }) => ResultadoExtracaoAgenda {
   return (_html, contexto) => ({
     sucesso: true,
     agenda: {
       dataConsulta: contexto?.dataConsulta,
       itens: Array.from({ length: itens }, (_, index) => ({
         horario: `0${index + 8}:00`,
-        paciente: { nome: `PACIENTE ${index + 1}` }
+        paciente: {
+          nome: `PACIENTE ${index + 1}`,
+          ...(comCpf
+            ? {
+                cpf: `${String(index + 1).padStart(11, '0')}`,
+                email: `p${index + 1}@example.com`
+              }
+            : {})
+        }
       }))
     }
   });
@@ -431,5 +442,65 @@ describe('AgendaSyncService.sincronizarProfissionais', () => {
     assert.equal(resultado.falhas, 0);
     assert.deepEqual(resultado.falhasPorMotivo, {});
     assert.equal(resultado.profissionais.length, 0);
+  });
+});
+
+describe('AgendaSyncService — persistência paralela de pessoas', () => {
+  it('Sheets continua ok quando PessoaRepository lança erro', async () => {
+    const client = new FakePortalClient({ datas: ['21/07/2026'] });
+    const repository = new FakeAgendaRepository();
+    const events: string[] = [];
+    const service = new AgendaSyncService({
+      client,
+      agendaRepository: repository,
+      parseAgendaHtml: parserComAgenda(1, true),
+      pessoaRepository: {
+        async upsertMuitos() {
+          throw new Error('banco indisponivel');
+        }
+      },
+      logger: {
+        debug: () => undefined,
+        info: () => undefined,
+        error: () => undefined,
+        warn: (bindings) => {
+          const event = (bindings as { event?: string }).event;
+          if (event !== undefined) {
+            events.push(event);
+          }
+        }
+      }
+    });
+
+    const resultado = await service.sincronizarProfissional(entradaBase);
+
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.datas[0]?.sucesso, true);
+    assert.equal(repository.salvos.length, 1);
+    assert.ok(events.includes('pessoas.upsert.failed'));
+  });
+
+  it('chama PessoaRepository após Sheets com pacientes do domínio', async () => {
+    const client = new FakePortalClient({ datas: ['21/07/2026'] });
+    const repository = new FakeAgendaRepository();
+    const upserts: unknown[] = [];
+    const service = new AgendaSyncService({
+      client,
+      agendaRepository: repository,
+      parseAgendaHtml: parserComAgenda(2, true),
+      pessoaRepository: {
+        async upsertMuitos(pessoas) {
+          upserts.push(pessoas);
+          return { sucesso: true, inseridas: 2, atualizadas: 0, ignoradas: 0 };
+        }
+      }
+    });
+
+    const resultado = await service.sincronizarProfissional(entradaBase);
+
+    assert.equal(resultado.sucesso, true);
+    assert.equal(repository.salvos.length, 1);
+    assert.equal(upserts.length, 1);
+    assert.equal((upserts[0] as unknown[]).length, 2);
   });
 });

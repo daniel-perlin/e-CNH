@@ -10,6 +10,9 @@ export interface DataCalendario {
 /**
  * Interpreta `DD/MM/YYYY` como data de calendário.
  * Retorna `undefined` quando o formato ou a data civil é inválida.
+ *
+ * Utilitário técnico — não decide se a data permanece na Agenda operacional.
+ * Decisões de negócio: `AgendaOperacionalPolicy`.
  */
 export function parseDataAgendamento(valor: string): DataCalendario | undefined {
   const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(valor.trim());
@@ -53,30 +56,4 @@ export function obterDataCalendarioSaoPaulo(instant: Date = new Date()): DataCal
     month: valor('month'),
     year: valor('year')
   };
-}
-
-function compararDatasCalendario(a: DataCalendario, b: DataCalendario): number {
-  if (a.year !== b.year) {
-    return a.year - b.year;
-  }
-  if (a.month !== b.month) {
-    return a.month - b.month;
-  }
-  return a.day - b.day;
-}
-
-/**
- * Indica se a Data de Agendamento é ativa: **estritamente posterior** ao dia atual
- * em `America/Sao_Paulo`. Compara só a data de calendário (sem horário).
- */
-export function isDataAgendamentoAtiva(
-  dataAgendamento: string,
-  referencia: Date = new Date()
-): boolean {
-  const agendada = parseDataAgendamento(dataAgendamento);
-  if (agendada === undefined) {
-    return false;
-  }
-  const hoje = obterDataCalendarioSaoPaulo(referencia);
-  return compararDatasCalendario(agendada, hoje) > 0;
 }

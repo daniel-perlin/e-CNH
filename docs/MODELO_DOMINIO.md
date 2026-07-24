@@ -24,9 +24,13 @@ Representa um médico ou psicólogo credenciado que possui acesso individual ao 
 | função              | Papel profissional no portal (`psicologo` / `medico`). | Resolvido no HTML pós-login; opcionalmente `ECNH_USER_<n>_PROFILE`. |
 | status do login     | Estado lógico da autenticação mais recente.   | Derivado de `ResultadoLogin`; não contém segredo. |
 
-## Paciente
+## Paciente / Pessoa
 
 Representa a pessoa associada a uma linha da agenda (`table#agenda`).
+
+No Google Sheets (operacional), a pessoa aparece como linha ativa (B004/B005).
+
+No banco relacional (ADR-022), a mesma pessoa é upsertada em `pessoas` (histórico permanente, nunca apagada), com `origem = "Projeto e-CNH"`, flag `ativo` e `primeira_sincronizacao` / `ultima_sincronizacao`.
 
 | Atributo | Coluna HTML | Tratamento |
 | -------- | ----------- | ---------- |
@@ -97,7 +101,7 @@ Representa o retorno lógico da persistência domínio → destino (Fase 005). I
 | -------- | --------- |
 | sucesso | Persistência concluída. |
 | linhasGravadas | Quantidade de linhas **novas** inseridas (CPF ainda não ativo na planilha). |
-| linhasRemovidas | Quantidade de linhas removidas por agendamento DETRAN anterior a hoje (B005). |
+| linhasRemovidas | Quantidade de linhas removidas por agendamento DETRAN **passado** (B005 / `AgendaOperacionalPolicy`). |
 | motivoFalha | `contexto-incompleto`, `data-consulta-ausente`, `cabecalho-incompativel` ou `erro-infraestrutura`. |
 
 O contexto de persistência inclui `profissional` (coluna **PROFISSIONAL**) e `unidadeOperacional` (coluna **UNIDADE**). A senha do profissional nunca entra nesta camada.
@@ -115,7 +119,7 @@ O contexto de persistência inclui `profissional` (coluna **PROFISSIONAL**) e `u
 
 CPF, tipo de processo, categoria e status de exames permanecem no **domínio** (`Paciente` / `ItemAgenda`) e na extração HTML. O CPF **não** faz parte do contrato visual da planilha.
 
-**Regra de negócio (B004/B005) — inalterada:** a aba `Agenda` é um cadastro de **pacientes ativos**. Em cada sincronização, permanecem apenas linhas cujo agendamento DETRAN é **estritamente futuro** (posterior a hoje no calendário `America/Sao_Paulo`; a data de hoje não permanece). O **CPF normalizado continua sendo a chave única** do paciente enquanto ele está ativo (domínio, sincronização e deduplicação). Se o paciente sair (data passada ou de hoje) e voltar depois, a reinclusão gera nova DATA DE INCLUSÃO. A mudança de layout é só de **projeção**: o CPF deixa de ser exibido nas colunas operacionais; a identidade de negócio não mudou.
+**Regra de negócio (B004/B005):** a aba `Agenda` é um cadastro de **pacientes ativos**. Em cada sincronização, permanecem linhas cujo agendamento DETRAN é **hoje ou futuro** (calendário `America/Sao_Paulo`; datas passadas saem). A decisão vive em `AgendaOperacionalPolicy` (`src/domain/agenda-operacional-policy.ts`), não em utilitários de data. O **CPF normalizado continua sendo a chave única** do paciente enquanto ele está ativo. Se o paciente sair (data passada) e voltar depois, a reinclusão gera nova DATA DE INCLUSÃO. A mudança de layout é só de **projeção**: o CPF deixa de ser exibido nas colunas operacionais.
 
 **Implementação da projeção:** o mapper grava só as 8 colunas de `CABECALHOS_ABA_AGENDA`. Para a deduplicação por CPF continuar funcionando entre sincronizações sem colocar o CPF no contrato visual, o repositório preserva o valor em coluna técnica adjacente (sem título no cabeçalho oficial) — fora do layout operacional da clínica, sem mudar a regra B004/B005.
 

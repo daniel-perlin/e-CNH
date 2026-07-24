@@ -16,7 +16,7 @@ async function main(): Promise<void> {
   const config = resolveAgendaSyncJobConfig();
   const logger = createDaemonLogger();
 
-  const runtime = criarAgendaSyncRuntime({ logger });
+  const runtime = await criarAgendaSyncRuntime({ logger });
   const job = new AgendaSyncJob({
     entradas: runtime.entradas,
     lock: runtime.lock,
@@ -47,7 +47,9 @@ async function main(): Promise<void> {
   const encerrar = (): void => {
     logger.info({ event: 'agenda.sync.daemon.shutdown' }, 'Encerrando daemon');
     scheduler.parar();
-    process.exit(0);
+    void runtime.close().finally(() => {
+      process.exit(0);
+    });
   };
 
   process.on('SIGINT', encerrar);

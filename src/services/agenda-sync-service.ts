@@ -2,6 +2,7 @@ import type { ECNHClient } from '../client/ecnh-client.js';
 import type { UnidadeDesejadaConfig } from '../client/escolha-unidade-portal.js';
 import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
 import type {
+  Agenda,
   ContextoExtracaoAgenda,
   MotivoFalhaExtracaoAgenda,
   ResultadoExtracaoAgenda
@@ -11,6 +12,8 @@ import type {
   MotivoFalhaPersistenciaAgenda,
   ResultadoPersistenciaAgenda
 } from '../repositories/agenda-repository.js';
+import { pessoasDaAgenda } from '../repositories/pessoa-from-agenda.js';
+import type { PessoaRepository } from '../repositories/pessoa-repository.js';
 import type { LoginResult } from '../types/auth.js';
 import type { StructuredLogger } from '../types/logger.js';
 import {
@@ -125,7 +128,13 @@ export interface AgendaSyncServiceOptions {
   client:
     | AgendaSyncPortalClient
     | ((entrada: EntradaSincronizacaoProfissional) => AgendaSyncPortalClient);
+  /** Destino operacional (Google Sheets) — comportamento inalterado. */
   agendaRepository: AgendaRepository;
+  /**
+   * Destino histórico paralelo (banco). Best-effort: falha nunca altera o resultado do Sheets.
+   * Opcional: ausente = não persiste pessoas.
+   */
+  pessoaRepository?: PessoaRepository;
   logger?: StructuredLogger;
   parseAgendaHtml: AgendaSyncHtmlParser;
 }
@@ -133,9 +142,13 @@ export interface AgendaSyncServiceOptions {
 /**
  * Caso de uso de sincronização da agenda (Fase 006).
  * Passo 3: `sincronizarProfissional` e `sincronizarProfissionais` implementados.
+ *
+ * Após o parse, os objetos de domínio alimentam destinos independentes:
+ * Sheets (`AgendaRepository`) e, em best-effort, banco (`PessoaRepository`).
  */
 export class AgendaSyncService {
   private readonly agendaRepository: AgendaRepository;
+  private readonly pessoaRepository: PessoaRepository | undefined;
   private readonly client:
     | AgendaSyncPortalClient
     | ((entrada: EntradaSincronizacaoProfissional) => AgendaSyncPortalClient);
@@ -146,6 +159,7 @@ export class AgendaSyncService {
     this.client = options.client;
     this.parseAgendaHtml = options.parseAgendaHtml;
     this.agendaRepository = options.agendaRepository;
+    this.pessoaRepository = options.pessoaRepository;
     this.logger = options.logger;
   }
 
@@ -486,6 +500,7 @@ export class AgendaSyncService {
     } catch (error) {
       tracker.fail(PIPELINE_STEPS.PERSIST_AGENDA, persistStartedAt, error, { dataConsulta });
       this.logFalhaData(entrada.identificadorSeguro, dataConsulta, 'persistencia', error, tracker);
+      await this.persistirPessoasBestEffort(agenda, entrada.identificadorSeguro, dataConsulta);
       return {
         dataConsulta,
         itensExtraidos: agenda.itens.length,
@@ -493,6 +508,9 @@ export class AgendaSyncService {
         motivoFalhaPersistencia: 'erro-infraestrutura'
       };
     }
+
+    // Destino histórico paralelo: após Sheets, nunca altera sucesso/falha operacional.
+    await this.persistirPessoasBestEffort(agenda, entrada.identificadorSeguro, dataConsulta);
 
     if (!persistencia.sucesso) {
       tracker.fail(
@@ -556,6 +574,50 @@ export class AgendaSyncService {
       linhasRemovidas: persistencia.linhasRemovidas,
       sucesso: true
     };
+  }
+
+  /**
+   * Grava pessoas no banco sem afetar o resultado operacional do Sheets.
+   * Qualquer erro é apenas registrado.
+   */
+  private async persistirPessoasBestEffort(
+    agenda: Agenda,
+    identificadorSeguro: string,
+    dataConsulta: string
+  ): Promise<void> {
+    if (this.pessoaRepository === undefined) {
+      return;
+    }
+
+    const pessoas = pessoasDaAgenda(agenda);
+    if (pessoas.length === 0) {
+      return;
+    }
+
+    try {
+      const resultado = await this.pessoaRepository.upsertMuitos(pessoas);
+      this.logger?.warn(
+        {
+          event: 'pessoas.upsert.ok',
+          identificadorSeguro,
+          dataConsulta,
+          inseridas: resultado.inseridas,
+          atualizadas: resultado.atualizadas,
+          ignoradas: resultado.ignoradas
+        },
+        'Upsert de pessoas no banco concluído (best-effort)'
+      );
+    } catch (error) {
+      this.logger?.warn(
+        {
+          event: 'pessoas.upsert.failed',
+          identificadorSeguro,
+          dataConsulta,
+          error: serializarErroObservabilidade(error)
+        },
+        'Falha ao persistir pessoas no banco; sync Sheets permanece válida'
+      );
+    }
   }
 
   private logFalhaData(
