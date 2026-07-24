@@ -57,7 +57,7 @@ Playwright não é tecnologia principal e não será usado no fluxo produtivo no
 ## Limites confirmados
 
 - A Fase 005 está `Concluída`: persistência via `AgendaRepository` / Google Sheets foi implementada e validada no ambiente real.
-- A implementação Sheets mantém **pacientes ativos** (AGENDAMENTO DO DETRAN ≥ hoje): remove automaticamente registros cuja data já passou e usa **CPF** como chave única enquanto o paciente permanece ativo (B004/B005). O CPF continua sendo a identidade de negócio; apenas deixa de constar no contrato visual das colunas operacionais.
+- A implementação Sheets mantém **pacientes ativos** (AGENDAMENTO DO DETRAN **após** hoje): remove automaticamente registros cuja data é hoje ou já passou e usa **CPF** como chave única enquanto o paciente permanece ativo (B004/B005). O CPF continua sendo a identidade de negócio; apenas deixa de constar no contrato visual das colunas operacionais.
 - A Fase 006 está `Concluída`: `AgendaSyncService` orquestra multi-profissional sob demanda (`npm run sync:agenda`).
 - A Fase 007 está `Concluída`: jobs disparam o serviço via lock global (`npm run job:agenda`); o serviço não conhece cron nem arquivo de lock.
 - O `ECNHClient` continua responsável apenas por HTTP/sessão/HTML bruto; o parser não conhece Axios nem cookies; o domínio não conhece `googleapis`.

@@ -4,12 +4,37 @@
 >
 > **Fase atual:** Infraestrutura Railway (Cron efêmero 16:00 BRT)
 > **Próxima prioridade:** Validar sync no Railway após retry Sheets / menos writes
-> **Última atualização:** 2026-07-23 21:25 BRT
-> **Última sessão executada:** 23/07/2026 • 21:25 — Correção índice CPF técnico (rowIndex)
+> **Última atualização:** 2026-07-23 21:30 BRT
+> **Última sessão executada:** 23/07/2026 • 21:30 — Ativos só com data > hoje
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 21:30
+
+### 🎯 Objetivo
+
+Ajustar a regra de pacientes ativos: permanecem apenas agendamentos com data **estritamente maior** que hoje (calendário `America/Sao_Paulo`).
+
+### ✅ O que mudou
+
+- `isDataAgendamentoAtiva`: comparação `>=` → `>`.
+- Testes: ontem/hoje removidos; amanhã mantido.
+
+### 🧠 Decisões
+
+- **Decisão:** menor alteração possível na função existente; demais regras intactas.
+
+### 📂 Arquivos impactados
+
+- `src/utils/agenda-date.ts`, `src/utils/agenda-date.test.ts`
+- `src/repositories/google-sheets-agenda-repository.ts` (comentário)
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `docs/MODELO_DOMINIO.md`, `docs/ARQUITETURA.md`, `docs/BACKLOG.md`
+- `CHANGELOG.md`
 
 ---
 

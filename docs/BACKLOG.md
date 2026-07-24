@@ -42,7 +42,7 @@ Melhorias usam IDs sequenciais: `B001`, `B002`, `B003`, …
 | B002 | ✅ Concluído | Média | Normalizar telefones | Remover lixo/hífens, DDD 11 em celular de 9 dígitos e normalizar listas com `/` antes da persistência. |
 | B003 | ✅ Concluído | Alta | Coluna de inclusão na Agenda | Timestamp operacional por linha (hoje: "Data de inclusão"). |
 | B004 | ✅ Concluído | Alta | Evitar pacientes duplicados por CPF | Introduziu CPF como chave única. **Supersedida pela B005** quanto ao caráter permanente do cadastro. |
-| B005 | ✅ Concluído | Alta | Cadastro de pacientes ativos | Aba Agenda mantém só agendamentos de hoje/futuro; remove passados; CPF único enquanto ativo; reinclusão gera nova Data de inclusão. |
+| B005 | ✅ Concluído | Alta | Cadastro de pacientes ativos | Aba Agenda mantém só agendamentos **futuros** (após hoje); remove hoje e passados; CPF único enquanto ativo; reinclusão gera nova Data de inclusão. |
 | B010 | ✅ Concluído | Alta | Tratar sessão já autenticada no portal | `openDialogNewSession` → `POST autenticar` com `forceLogout=true`; validado com profissional real. Escopo distinto de B011. |
 | B011 | ✅ Concluído | Alta | Escolha genérica de Perfil / Visão (unidade) | `openDialogChoice` / `openChoice` / segundo `autenticar`; config `UNIDADE`/`UNID_TRANSITO`; validado com multi-unidade real. |
 | B012 | ✅ Concluído | Alta | Arquitetura de perfis profissionais do portal | Strategy extensível para múltiplos perfis (Psicólogo, Médico e futuros); validada com Médico real. |

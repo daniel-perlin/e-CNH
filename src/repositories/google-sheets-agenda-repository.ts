@@ -52,7 +52,7 @@ export interface GoogleSheetsAgendaRepositoryOptions {
 
 /**
  * Persistência da agenda em Google Sheets.
- * Cadastro de pacientes ativos: mantém apenas agendamento DETRAN ≥ hoje;
+ * Cadastro de pacientes ativos: mantém apenas agendamento DETRAN **após** hoje;
  * chave de negócio / deduplicação: CPF normalizado (B004/B005) — inalterada.
  * A projeção operacional (`CABECALHOS_ABA_AGENDA`) não exibe CPF.
  */

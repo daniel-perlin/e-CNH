@@ -66,8 +66,8 @@ function compararDatasCalendario(a: DataCalendario, b: DataCalendario): number {
 }
 
 /**
- * Indica se a Data de Agendamento é ativa: igual ou posterior ao dia atual
- * em `America/Sao_Paulo`. Compara datas reais (calendário), não strings.
+ * Indica se a Data de Agendamento é ativa: **estritamente posterior** ao dia atual
+ * em `America/Sao_Paulo`. Compara só a data de calendário (sem horário).
  */
 export function isDataAgendamentoAtiva(
   dataAgendamento: string,
@@ -78,5 +78,5 @@ export function isDataAgendamentoAtiva(
     return false;
   }
   const hoje = obterDataCalendarioSaoPaulo(referencia);
-  return compararDatasCalendario(agendada, hoje) >= 0;
+  return compararDatasCalendario(agendada, hoje) > 0;
 }

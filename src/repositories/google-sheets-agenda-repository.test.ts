@@ -103,7 +103,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     ]);
   });
 
-  it('agendamento de hoje é mantido', async () => {
+  it('agendamento de hoje é removido', async () => {
     const { sheets, repository } = criarRepositorio();
 
     const resultado = await repository.salvarAgenda(
@@ -111,13 +111,11 @@ describe('GoogleSheetsAgendaRepository', () => {
       { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 
-    assert.equal(resultado.linhasGravadas, 1);
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.linhasGravadas, 0);
     const matriz = await sheets.getValues(RANGE_LEITURA);
-    assert.equal(matriz.length, 2);
-    assert.equal(matriz[0]?.length, 8);
-    assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
-    assert.equal(matriz[1]?.[COL.dataAgendamento], '20/07/2026');
-    assert.equal(matriz[1]?.slice(0, 8).length, 8);
+    // Apenas cabeçalho (ou planilha vazia se nunca houve escrita)
+    assert.ok(matriz.length <= 1);
   });
 
   it('agendamento futuro é mantido', async () => {
@@ -141,7 +139,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     });
 
     await repositoryJulho.salvarAgenda(
-      agendaFixture('20/07/2026', '08:00', 'PACIENTE RECORRENTE', '333.333.333-33'),
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE RECORRENTE', '333.333.333-33'),
       { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     const matrizJulho = await sheets.getValues(RANGE_LEITURA);
@@ -193,7 +191,7 @@ describe('GoogleSheetsAgendaRepository', () => {
       [
         'Profissional Alpha',
         'LIMÃO',
-        '20/07/2026',
+        '25/07/2026',
         '08:00',
         '000.000.000-00',
         'PACIENTE ORIGINAL',
@@ -224,7 +222,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     const { sheets, repository } = criarRepositorio();
 
     await repository.salvarAgenda(
-      agendaFixture('20/07/2026', '08:00', 'PACIENTE ORIGINAL', '000.000.000-00'),
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE ORIGINAL', '000.000.000-00'),
       { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     const matrizInicial = await sheets.getValues(RANGE_LEITURA);
@@ -268,7 +266,7 @@ describe('GoogleSheetsAgendaRepository', () => {
       ],
       [
         'Profissional Alpha',
-        '20/07/2026',
+        '25/07/2026',
         '08:00',
         '000.000.000-00',
         'PACIENTE LEGADO',
@@ -299,7 +297,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     const { sheets, repository } = criarRepositorio();
 
     await repository.salvarAgenda(
-      agendaFixture('20/07/2026', '08:00', 'PACIENTE A', '000.000.000-00'),
+      agendaFixture('22/07/2026', '08:00', 'PACIENTE A', '000.000.000-00'),
       { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     const segundo = await repository.salvarAgenda(
