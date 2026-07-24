@@ -135,9 +135,9 @@ Repita o bloco `ECNH_USER_<n>_…` para cada índice habilitado (1, 2, 3…).
 | `LOG_LEVEL` | O script de sync usa logger em nível warn |
 | `AGENDA_SYNC_LOCK_PATH` | Default `.data/agenda-sync.lock` (auto-criado) |
 | `RUN_CONNECTIVITY_PROBE` | `true` só para diagnóstico de rede (não deixe ligado em produção diária) |
-| `DATABASE_URL` | PostgreSQL para histórico de pessoas (ADR-022). Recomendado no Railway via plugin Postgres. Sem isso, SQLite no FS efêmero não persiste entre runs. |
+| `DATABASE_URL` | PostgreSQL para histórico de pessoas (ADR-022). **Obrigatório no Railway** se quiser persistência relacional: o build omite `better-sqlite3` (`npm ci --omit=optional`). |
 | `DATABASE_PERSISTENCE_ENABLED` | `false` desliga só o banco; Sheets continua igual |
-| `DATABASE_SQLITE_PATH` | Só desenvolvimento local (default `.data/ecnh.sqlite`) |
+| `DATABASE_SQLITE_PATH` | Só desenvolvimento local (default `.data/ecnh.sqlite`; driver `better-sqlite3` é optionalDependency) |
 
 ### Proibido / desnecessário neste serviço
 

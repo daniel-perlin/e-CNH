@@ -1,9 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
-import Database from 'better-sqlite3';
-import { drizzle as drizzleSqlite } from 'drizzle-orm/better-sqlite3';
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
@@ -11,13 +5,21 @@ import postgres from 'postgres';
 import type { DatabaseConfig, DatabaseDialect } from '../config/database-config.js';
 import type { StructuredLogger } from '../types/logger.js';
 
-import { ensurePessoasSchemaPostgres, ensurePessoasSchemaSqlite } from './ensure-schema.js';
+import { ensurePessoasSchemaPostgres } from './ensure-schema.js';
 import * as schemaPg from './schema/pessoas.pg.js';
-import * as schemaSqlite from './schema/pessoas.sqlite.js';
+import type * as schemaSqlite from './schema/pessoas.sqlite.js';
 
-export type SqliteDb = BetterSQLite3Database<typeof schemaSqlite>;
+/** Tipagem do handle SQLite sem importar o driver nativo em runtime. */
+export type SqliteDb = import('drizzle-orm/better-sqlite3').BetterSQLite3Database<
+  typeof schemaSqlite
+>;
 export type PostgresDb = PostgresJsDatabase<typeof schemaPg>;
-type SqliteRaw = InstanceType<typeof Database>;
+
+export type SqliteRaw = {
+  close: () => void;
+  pragma: (source: string) => unknown;
+  exec: (source: string) => unknown;
+};
 
 /**
  * Handle da camada de persistência da aplicação.
@@ -33,6 +35,9 @@ export interface AppDatabase {
 /**
  * Abre a conexão conforme a config e garante o schema mínimo.
  * Em falha, lança — o wiring deve capturar e cair para NoOp.
+ *
+ * Postgres: dependências puras JS (sempre disponíveis no Railway).
+ * SQLite: adapter carregado dinamicamente (`better-sqlite3` opcional).
  */
 export async function openAppDatabase(
   config: DatabaseConfig,
@@ -64,20 +69,6 @@ export async function openAppDatabase(
   }
 
   const sqlitePath = config.sqlitePath ?? '.data/ecnh.sqlite';
-  fs.mkdirSync(path.dirname(path.resolve(sqlitePath)), { recursive: true });
-  const raw = new Database(sqlitePath);
-  raw.pragma('journal_mode = WAL');
-  ensurePessoasSchemaSqlite(raw);
-  const db = drizzleSqlite(raw, { schema: schemaSqlite });
-  logger?.warn(
-    { event: 'database.opened', dialect: 'sqlite', sqlitePath },
-    'Camada de persistência aberta (SQLite)'
-  );
-  return {
-    dialect: 'sqlite',
-    sqlite: { db, raw },
-    async close() {
-      raw.close();
-    }
-  };
+  const { openSqliteAppDatabase } = await import('./sqlite-adapter.js');
+  return openSqliteAppDatabase(sqlitePath, logger);
 }

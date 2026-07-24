@@ -4,12 +4,35 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-24 17:40 BRT
-> **Última sessão executada:** 24/07/2026 • 17:40 — Policy de Agenda (hoje ou futuro)
+> **Última atualização:** 2026-07-24 18:05 BRT
+> **Última sessão executada:** 24/07/2026 • 18:05 — SQLite opcional no deploy Railway
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 24/07/2026 • 18:05
+
+### 🎯 Objetivo
+
+Permitir deploy Railway sem compilar `better-sqlite3`, mantendo SQLite local intacto.
+
+### ✅ O que mudou
+
+- `better-sqlite3` → `optionalDependencies`.
+- Adapter SQLite em `src/db/sqlite-adapter.ts` com import dinâmico.
+- `railway.toml`: `npm ci --omit=optional`.
+
+### 🧠 Decisões
+
+- **Decisão:** Postgres no Railway (JS puro); SQLite só local via optional + dynamic import.
+
+### 📂 Arquivos impactados
+
+- `package.json`, `railway.toml`, `src/db/client.ts`, `src/db/sqlite-adapter.ts`
+- `docs/DEPLOY_RAILWAY.md`, `CHANGELOG.md`
 
 ---
 

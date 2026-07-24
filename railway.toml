@@ -7,6 +7,8 @@
 
 [build]
 builder = "NIXPACKS"
+# Omite optionalDependencies (better-sqlite3 nativo). Persistência no Railway = Postgres via DATABASE_URL.
+installCommand = "npm ci --omit=optional"
 buildCommand = "npm run build"
 
 [deploy]
