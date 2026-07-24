@@ -470,4 +470,83 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(updates, updatesAposPrimeira);
     assert.equal(clears, 0);
   });
+
+  it('com linha vazia no meio, CPF técnico de A e B não se desloca e existentes não viram novos', async () => {
+    const sheets = new InMemoryGoogleSheetsValues();
+    const repository = new GoogleSheetsAgendaRepository({ sheets, agora: HOJE_FIXO });
+    const dataInclusaoA = '15/07/2026 08:00';
+    const dataInclusaoB = '16/07/2026 09:00';
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [
+        'UNIDADE',
+        'AGENDAMENTO DO DETRAN',
+        'HORÁRIO',
+        'PACIENTE',
+        'TELEFONE',
+        'EMAIL',
+        'PROFISSIONAL',
+        'DATA DE INCLUSÃO'
+      ],
+      [
+        'LIMÃO',
+        '21/07/2026',
+        '08:00',
+        'Paciente',
+        '',
+        '',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        dataInclusaoA,
+        '111.111.111-11'
+      ],
+      ['', '', '', '', '', '', '', ''],
+      [
+        'LIMÃO',
+        '22/07/2026',
+        '09:00',
+        'Paciente',
+        '',
+        '',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        dataInclusaoB,
+        '222.222.222-22'
+      ]
+    ]);
+
+    const resultado = await repository.salvarAgenda(
+      {
+        dataConsulta: '21/07/2026',
+        itens: [
+          {
+            horario: '08:00',
+            paciente: { nome: 'PACIENTE A', cpf: '111.111.111-11' }
+          },
+          {
+            horario: '09:00',
+            paciente: { nome: 'PACIENTE B', cpf: '222.222.222-22' }
+          }
+        ]
+      },
+      {
+        profissional: 'Profissional Alpha',
+        unidadeOperacional: 'LIMÃO',
+        perfilId: 'psicologo'
+      }
+    );
+
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.linhasGravadas, 0);
+
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    const linhasDados = matriz.slice(1).filter((row) => (row[6] ?? '').trim().length > 0);
+    assert.equal(linhasDados.length, 2);
+
+    const linhaA = linhasDados.find((row) => row[8] === '111.111.111-11');
+    const linhaB = linhasDados.find((row) => row[8] === '222.222.222-22');
+    assert.ok(linhaA);
+    assert.ok(linhaB);
+    assert.equal(linhaA[COL.dataInclusao], dataInclusaoA);
+    assert.equal(linhaB[COL.dataInclusao], dataInclusaoB);
+    assert.notEqual(linhaA[COL.dataInclusao], linhaB[COL.dataInclusao]);
+  });
 });

@@ -4,6 +4,7 @@ import type { StructuredLogger } from '../types/logger.js';
 import { isDataAgendamentoAtiva } from '../utils/agenda-date.js';
 import { normalizeCpfKey } from '../utils/cpf.js';
 import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
+import { mascararCpf } from '../utils/cpf-mask.js';
 import {
   PIPELINE_STEPS,
   serializarErroObservabilidade
@@ -193,6 +194,29 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         }
       }
 
+      // Diagnóstico: dessincronização possível entre corpo[] e registros[] após skips no mapper.
+      const linhasCorpoIgnoradasEstimate = Math.max(0, corpo.length - registrosExistentes.length);
+      const registrosComCpf = registrosExistentes.filter(
+        (registro) => normalizeCpfKey(registro.item.paciente.cpf ?? '') !== undefined
+      ).length;
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.classificacao.resumo_pre',
+          dataConsulta,
+          corpoLinhasCount: corpo.length,
+          registrosExistentesCount: registrosExistentes.length,
+          linhasCorpoIgnoradasEstimate,
+          possivelDessincronizacaoIndiceCpf: linhasCorpoIgnoradasEstimate > 0,
+          registrosComCpfCount: registrosComCpf,
+          registrosSemCpfCount: registrosExistentes.length - registrosComCpf,
+          ativosCount: ativos.length,
+          cpfsAtivosCount: cpfsAtivos.size,
+          linhasRemovidasCount: linhasRemovidas,
+          itensAgendaPortalCount: agenda.itens.length
+        },
+        'Resumo pré-classificação de linhas novas vs existentes'
+      );
+
       const linhasAtivas: string[][] = [];
       for (const registro of ativos) {
         const unidadePreservada = registro.unidadeOperacional?.trim() ?? '';
@@ -223,10 +247,45 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
       if (isDataAgendamentoAtiva(dataConsulta, referencia)) {
         for (const item of agenda.itens) {
-          const chave = normalizeCpfKey(item.paciente.cpf ?? '');
-          if (chave !== undefined && cpfsAtivos.has(chave)) {
+          const cpfOriginalPortal = item.paciente.cpf?.trim() ?? '';
+          const chave = normalizeCpfKey(cpfOriginalPortal);
+          const existiaEmCpfsAtivos = chave !== undefined && cpfsAtivos.has(chave);
+          if (existiaEmCpfsAtivos) {
             continue;
           }
+
+          const registroExistenteMesmoCpf =
+            chave === undefined
+              ? undefined
+              : registrosExistentes.find(
+                  (registro) => normalizeCpfKey(registro.item.paciente.cpf ?? '') === chave
+                );
+          const existiaEmRegistrosExistentes = registroExistenteMesmoCpf !== undefined;
+          const motivo = classificarMotivoLinhaNova({
+            chaveDefinida: chave !== undefined,
+            existiaEmCpfsAtivos,
+            existiaEmRegistrosExistentes,
+            registroExistenteAtivo:
+              registroExistenteMesmoCpf !== undefined &&
+              isDataAgendamentoAtiva(registroExistenteMesmoCpf.dataConsulta, referencia)
+          });
+
+          this.logger?.warn(
+            {
+              event: 'agenda.sheets.classificacao.linha_nova',
+              dataConsulta,
+              cpfMascarado: mascararCpf(cpfOriginalPortal),
+              cpfNormalizadoDigits: chave?.length ?? 0,
+              cpfNormalizadoPresente: chave !== undefined,
+              nomePaciente: item.paciente.nome ?? '',
+              existiaEmCpfsAtivos,
+              existiaEmRegistrosExistentes,
+              dataInclusaoExistente: registroExistenteMesmoCpf?.dataInclusao,
+              dataInclusaoNova: dataInclusao,
+              motivo
+            },
+            'Paciente classificado como linha nova na planilha'
+          );
 
           const linha = this.projetarLinhaComCpfTecnico(
             item,
@@ -247,6 +306,20 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         }
       }
 
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.classificacao.resumo_pos',
+          dataConsulta,
+          registrosExistentesCount: registrosExistentes.length,
+          ativosCount: ativos.length,
+          cpfsAtivosCount: cpfsAtivos.size,
+          novasLinhasCount: novasLinhas.length,
+          linhasAtivasCount: linhasAtivas.length,
+          linhasRemovidasCount: linhasRemovidas,
+          possivelDessincronizacaoIndiceCpf: linhasCorpoIgnoradasEstimate > 0
+        },
+        'Resumo pós-classificação de linhas novas vs existentes'
+      );
       this.logger?.warn(
         {
           event: 'agenda.pipeline.step.completed',
@@ -428,16 +501,29 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
   /**
    * Reinjeta CPF da coluna técnica (ou mantém o CPF legado já mapeado) no domínio.
+   * Usa `registro.rowIndex` (índice na matriz original), nunca o índice do array filtrado.
    */
   private hidratarCpfTecnico(
     registros: LinhaAgendaPersistida[],
     corpo: readonly (readonly string[])[]
   ): LinhaAgendaPersistida[] {
-    return registros.map((registro, index) => {
+    if (registros.length !== corpo.length) {
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.hidratar_cpf.indice_dessincronizado',
+          registrosCount: registros.length,
+          corpoLinhasCount: corpo.length,
+          delta: corpo.length - registros.length
+        },
+        'Possível dessincronização de índice entre registros parseados e linhas do corpo'
+      );
+    }
+
+    return registros.map((registro) => {
       if (registro.item.paciente.cpf !== undefined) {
         return registro;
       }
-      const cpfTecnico = corpo[index]?.[INDICE_COLUNA_TECNICA_CPF]?.trim() ?? '';
+      const cpfTecnico = corpo[registro.rowIndex]?.[INDICE_COLUNA_TECNICA_CPF]?.trim() ?? '';
       if (cpfTecnico.length === 0) {
         return registro;
       }
@@ -739,4 +825,26 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       'Cabeçalho da aba Agenda incompatível com o layout aceito'
     );
   }
+}
+
+/** Motivo estruturado (diagnóstico) para entrada em `novasLinhas`. */
+function classificarMotivoLinhaNova(input: {
+  chaveDefinida: boolean;
+  existiaEmCpfsAtivos: boolean;
+  existiaEmRegistrosExistentes: boolean;
+  registroExistenteAtivo: boolean;
+}): string {
+  if (!input.chaveDefinida) {
+    return 'cpf_ausente_ou_invalido_no_portal';
+  }
+  if (input.existiaEmCpfsAtivos) {
+    return 'nao_deveria_entrar_ja_em_cpfs_ativos';
+  }
+  if (input.existiaEmRegistrosExistentes && input.registroExistenteAtivo) {
+    return 'cpf_presente_em_registros_mas_ausente_em_cpfs_ativos';
+  }
+  if (input.existiaEmRegistrosExistentes && !input.registroExistenteAtivo) {
+    return 'cpf_em_registro_inativo_reinserido_como_novo';
+  }
+  return 'cpf_nao_encontrado_em_registros_existentes';
 }

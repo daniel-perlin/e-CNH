@@ -184,6 +184,40 @@ describe('AgendaSheetMapper', () => {
     assert.equal(registros[0]?.unidadeOperacional, 'CAPÃO REDONDO');
     assert.equal(registros[0]?.item.horario, '14:15');
     assert.equal(registros[0]?.item.paciente.cpf, undefined);
+    assert.equal(registros[0]?.rowIndex, 0);
+  });
+
+  it('preserva rowIndex original mesmo com linha vazia ignorada no meio', () => {
+    const linhas = [
+      [
+        'LIMÃO',
+        '21/07/2026',
+        '08:00',
+        'PACIENTE A',
+        '',
+        '',
+        'Profissional A',
+        timestampFixo
+      ],
+      ['', '', '', '', '', '', '', ''],
+      [
+        'LIMÃO',
+        '22/07/2026',
+        '09:00',
+        'PACIENTE B',
+        '',
+        '',
+        'Profissional B',
+        timestampFixo
+      ]
+    ];
+
+    const registros = mapper.linhasParaRegistros(linhas, [...CABECALHOS_ABA_AGENDA]);
+    assert.equal(registros.length, 2);
+    assert.equal(registros[0]?.item.paciente.nome, 'PACIENTE A');
+    assert.equal(registros[0]?.rowIndex, 0);
+    assert.equal(registros[1]?.item.paciente.nome, 'PACIENTE B');
+    assert.equal(registros[1]?.rowIndex, 2);
   });
 
   it('liga colunas pelo texto do cabeçalho mesmo com ordem diferente', () => {

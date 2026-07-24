@@ -46,6 +46,11 @@ export interface LinhaAgendaPersistida {
   unidadeOperacional?: string;
   /** Valor da coluna operacional; ausente em planilhas legadas. */
   dataInclusao?: string;
+  /**
+   * Índice 0-based da linha em `corpo`/`linhas` original (antes de skips do parser).
+   * Necessário para hidratar o CPF técnico sem dessincronizar após linhas ignoradas.
+   */
+  rowIndex: number;
 }
 
 /**
@@ -92,7 +97,11 @@ export class AgendaSheetMapper {
     const indices = this.mapearIndices(cabecalhos);
     const registros: LinhaAgendaPersistida[] = [];
 
-    for (const linha of linhas) {
+    for (let rowIndex = 0; rowIndex < linhas.length; rowIndex += 1) {
+      const linha = linhas[rowIndex];
+      if (linha === undefined) {
+        continue;
+      }
       const profissional = this.celula(linha, indices, 'PROFISSIONAL');
       const dataConsulta = this.celula(linha, indices, 'AGENDAMENTO DO DETRAN');
       if (profissional === undefined || dataConsulta === undefined) {
@@ -104,6 +113,7 @@ export class AgendaSheetMapper {
       const registro: LinhaAgendaPersistida = {
         dataConsulta,
         profissional,
+        rowIndex,
         item: this.linhaParaItem(linha, indices)
       };
       if (dataInclusao !== undefined) {

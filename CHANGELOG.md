@@ -4,12 +4,61 @@
 >
 > **Fase atual:** Infraestrutura Railway (Cron efêmero 16:00 BRT)
 > **Próxima prioridade:** Validar sync no Railway após retry Sheets / menos writes
-> **Última atualização:** 2026-07-23 21:15 BRT
-> **Última sessão executada:** 23/07/2026 • 21:15 — Resiliência quota Google Sheets (429)
+> **Última atualização:** 2026-07-23 21:25 BRT
+> **Última sessão executada:** 23/07/2026 • 21:25 — Correção índice CPF técnico (rowIndex)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 21:25
+
+### 🎯 Objetivo
+
+Corrigir dessincronização de índice em `hidratarCpfTecnico` que fazia pacientes existentes serem classificados como novos e receberem nova `DATA DE INCLUSÃO`.
+
+### ✅ O que mudou
+
+- `linhasParaRegistros` passa a gravar `rowIndex` da linha original.
+- `hidratarCpfTecnico` usa `registro.rowIndex` (não o índice do array filtrado).
+- Teste de regressão com linha vazia entre A e B.
+
+### 🧠 Decisões
+
+- **Decisão:** menor correção possível; sem mudar dedupe, Sheets, retry ou pipeline.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-sheet-mapper.ts`
+- `src/repositories/agenda-sheet-mapper.test.ts`
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `CHANGELOG.md`
+
+---
+
+## 📅 23/07/2026 • 21:20
+
+### 🎯 Objetivo
+
+Diagnosticar por que registros existentes podem receber nova `DATA DE INCLUSÃO` — **somente observabilidade**, sem corrigir ainda.
+
+### ✅ O que mudou
+
+- Logs `agenda.sheets.classificacao.*` e `agenda.sheets.hidratar_cpf.indice_dessincronizado` (CPF mascarado).
+- Evidência de dessincronização `corpo[index]` vs registros após skip do mapper.
+
+### 🧠 Decisões
+
+- **Evidência:** `hidratarCpfTecnico` usa índice do array parseado, não da linha original do corpo.
+- **Pendência:** correção mínima a decidir após revisar logs no Railway.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `CHANGELOG.md`
 
 ---
 
