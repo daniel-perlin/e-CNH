@@ -9,8 +9,12 @@ export function formatarResumoSincronizacao(resultado: ResultadoSincronizacao): 
   const linhas: string[] = [
     '',
     '=== Resumo da sincronização ===',
+    `Profissionais processados: ${resultado.profissionais.length}`,
+    `Sucesso: ${resultado.sucessos}`,
+    `Falhas: ${resultado.falhas}`,
     `Sucesso geral: ${resultado.sucessoGeral ? 'sim' : 'não'}`,
-    `Profissionais: ${resultado.profissionais.length}`,
+    `Tempo total: ${formatarDuracao(resultado.duracaoTotalMs)}`,
+    ...formatarFalhasPorMotivo(resultado.falhasPorMotivo),
     ''
   ];
 
@@ -19,6 +23,45 @@ export function formatarResumoSincronizacao(resultado: ResultadoSincronizacao): 
   }
 
   return linhas.join('\n');
+}
+
+/**
+ * Código de saída do Cron: não derruba o job por falha parcial.
+ * - 0: execução concluída com pelo menos um sucesso, ou sem profissionais
+ * - 1: lock ocupado / todos falharam / erro não tratado no caller
+ */
+export function codigoSaidaSincronizacao(resultado: ResultadoSincronizacao): number {
+  if (resultado.profissionais.length === 0) {
+    return 0;
+  }
+  if (resultado.sucessos > 0) {
+    return 0;
+  }
+  return 1;
+}
+
+function formatarDuracao(duracaoTotalMs: number): string {
+  if (!Number.isFinite(duracaoTotalMs) || duracaoTotalMs < 0) {
+    return 'n/d';
+  }
+  const totalSegundos = Math.round(duracaoTotalMs / 1000);
+  if (totalSegundos < 60) {
+    return `${totalSegundos}s (${duracaoTotalMs}ms)`;
+  }
+  const minutos = Math.floor(totalSegundos / 60);
+  const segundos = totalSegundos % 60;
+  return `${minutos}m ${segundos}s (${duracaoTotalMs}ms)`;
+}
+
+function formatarFalhasPorMotivo(falhasPorMotivo: Record<string, number>): string[] {
+  const entradas = Object.entries(falhasPorMotivo).sort(([a], [b]) => a.localeCompare(b));
+  if (entradas.length === 0) {
+    return ['Falhas por motivo: (nenhuma)'];
+  }
+  return [
+    'Falhas por motivo:',
+    ...entradas.map(([motivo, quantidade]) => `  - ${motivo}: ${quantidade}`)
+  ];
 }
 
 function formatarProfissional(profissional: ResultadoSincronizacaoProfissional): string[] {

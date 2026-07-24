@@ -431,4 +431,43 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(diagnostico.colunaDivergente.esperado, 'AGENDAMENTO DO DETRAN');
     assert.equal(diagnostico.colunaDivergente.encontrado, 'COLUNA ERRADA');
   });
+
+  it('omite rewrite quando não há linhas novas nem remoções (noop)', async () => {
+    let updates = 0;
+    let clears = 0;
+    const base = new InMemoryGoogleSheetsValues();
+    const sheets: InMemoryGoogleSheetsValues = Object.assign(base, {
+      updateValues: async (range: string, values: string[][]): Promise<void> => {
+        updates += 1;
+        return InMemoryGoogleSheetsValues.prototype.updateValues.call(base, range, values);
+      },
+      clearValues: async (range: string): Promise<void> => {
+        clears += 1;
+        return InMemoryGoogleSheetsValues.prototype.clearValues.call(base, range);
+      }
+    });
+
+    const repository = new GoogleSheetsAgendaRepository({
+      sheets,
+      agora: HOJE_FIXO
+    });
+
+    const primeira = await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+    assert.equal(primeira.sucesso, true);
+    assert.equal(primeira.linhasGravadas, 1);
+    const updatesAposPrimeira = updates;
+
+    const segunda = await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+    assert.equal(segunda.sucesso, true);
+    assert.equal(segunda.linhasGravadas, 0);
+    assert.equal(segunda.linhasRemovidas, 0);
+    assert.equal(updates, updatesAposPrimeira);
+    assert.equal(clears, 0);
+  });
 });

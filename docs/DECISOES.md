@@ -174,3 +174,14 @@
   - manter `job:agenda` para desenvolvimento/local (Opção B); não exigir `AGENDA_SYNC_CRON` no serviço Cron do Railway;
   - documentar em `docs/DEPLOY_RAILWAY.md` + `railway.toml`.
 - **Consequência:** custo alinhado a uma execução diária; o `AgendaSyncJob`/lock existentes são reutilizados; processo que não encerra bloqueia o próximo tick do Cron da plataforma.
+
+## ADR-021 — Resiliência da cota Google Sheets (retry + menos writes)
+
+- **Status:** aceito
+- **Contexto:** evidência em produção (Railway, 23/07/2026): login/parse OK; falha em `PERSIST_AGENDA` com HTTP 429 `Write requests per minute per user`. Cada data fazia `clearValues` + `updateValues` (2 writes), e datas sem mudança ainda reescreviam a aba. `process.exit(1)` em `sucessoGeral=false` marcava o Cron como crashed mesmo com sucesso parcial.
+- **Decisão:**
+  - centralizar retry com backoff exponencial (e `Retry-After`) em `GoogleSheetsClient` para erros transitórios (429/quota/5xx/rede); erros permanentes (401/403/404/credencial/range) falham na hora;
+  - reescrever a aba com `updateValues` do conteúdo e `clearValues` **somente** da cauda quando encolhe (em vez de clear total + update sempre); **pular** persistência quando não há linhas novas nem remoções;
+  - código de saída do Cron: `0` se houver pelo menos um profissional com sucesso (falha parcial); `1` só se todos falharem ou lock/erro fatal;
+  - resumo agregado: processados, sucessos, falhas, tempo total, falhas por motivo.
+- **Consequência:** picos de cota não derrubam o job inteiro; repositórios continuam sem lógica de retry; `GOOGLE_SHEETS_MAX_ATTEMPTS` configura tentativas (default 5).

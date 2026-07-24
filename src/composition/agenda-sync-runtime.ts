@@ -46,7 +46,9 @@ export function criarAgendaSyncRuntime(
   const sheetsConfig = resolveGoogleSheetsConfig(env);
   const sheets = new GoogleSheetsClient({
     credentials: sheetsConfig.credentials,
-    spreadsheetId: sheetsConfig.spreadsheetId
+    spreadsheetId: sheetsConfig.spreadsheetId,
+    logger: options.logger,
+    retry: { maxAttempts: sheetsConfig.maxAttempts }
   });
   const agendaRepository = new GoogleSheetsAgendaRepository({
     sheets,

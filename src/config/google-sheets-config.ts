@@ -11,6 +11,8 @@ export type GoogleSheetsCredentialsSource =
 
 export interface GoogleSheetsConfig {
   credentials: GoogleSheetsCredentialsSource;
+  /** Tentativas totais por operação Sheets (inclui a primeira). */
+  maxAttempts: number;
   sheetName: string;
   spreadsheetId: string;
 }
@@ -32,12 +34,28 @@ export function resolveGoogleSheetsConfig(
 
   const credentials = resolveCredentialsSource(env);
   const sheetName = env.GOOGLE_SHEETS_SHEET_NAME?.trim() || NOME_ABA_AGENDA_PADRAO;
+  const maxAttempts = resolveSheetsMaxAttempts(env);
 
   return {
     credentials,
+    maxAttempts,
     sheetName,
     spreadsheetId
   };
+}
+
+function resolveSheetsMaxAttempts(env: NodeJS.ProcessEnv): number {
+  const raw = env.GOOGLE_SHEETS_MAX_ATTEMPTS?.trim();
+  if (raw === undefined || raw.length === 0) {
+    return 5;
+  }
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 20) {
+    throw new ConfigurationError(
+      'GOOGLE_SHEETS_MAX_ATTEMPTS deve ser um inteiro entre 1 e 20.'
+    );
+  }
+  return parsed;
 }
 
 function resolveCredentialsSource(

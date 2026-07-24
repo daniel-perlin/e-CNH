@@ -263,6 +263,44 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       );
 
       const valoresFinais = [cabecalho, ...linhasAtivas, ...novasLinhas];
+
+      const cabecalhoJaOficial =
+        cabecalhoAtual !== undefined &&
+        this.cabecalhosIguais(cabecalhoAtual, CABECALHOS_ABA_AGENDA);
+
+      // Sem mudança efetiva e layout já canônico: evita writes desnecessários.
+      if (novasLinhas.length === 0 && linhasRemovidas === 0 && cabecalhoJaOficial) {
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.salvar.skipped_noop',
+            pipelineStep: PIPELINE_STEPS.PERSIST_AGENDA,
+            durationMs: Date.now() - salvarStartedAt,
+            dataConsulta,
+            itemCount: agenda.itens.length,
+            rowCountExistente: matriz.length
+          },
+          'Persistência Sheets omitida: nenhuma linha nova nem remoção'
+        );
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.salvar.completed',
+            pipelineStep: PIPELINE_STEPS.PERSIST_AGENDA,
+            durationMs: Date.now() - salvarStartedAt,
+            dataConsulta,
+            itemCount: agenda.itens.length,
+            linhasGravadas: 0,
+            linhasRemovidas: 0,
+            skippedNoop: true
+          },
+          'Persistência da agenda no Google Sheets concluída'
+        );
+        return {
+          sucesso: true,
+          linhasGravadas: 0,
+          linhasRemovidas: 0
+        };
+      }
+
       const reescreverStartedAt = Date.now();
       this.logger?.warn(
         {
@@ -270,11 +308,12 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
           dataConsulta,
           itemCount: valoresFinais.length,
-          rowCount: valoresFinais.length
+          rowCount: valoresFinais.length,
+          previousRowCount: matriz.length
         },
         'Etapa do pipeline pós-login iniciada'
       );
-      await this.reescreverAba(valoresFinais);
+      await this.reescreverAba(valoresFinais, matriz.length);
       this.logger?.warn(
         {
           event: 'agenda.pipeline.step.completed',
@@ -451,67 +490,57 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
     }
   }
 
-  private async reescreverAba(valores: string[][]): Promise<void> {
-    const rangeLeitura = this.rangeLeitura();
-    const clearStartedAt = Date.now();
-    this.logger?.warn(
-      {
-        event: 'agenda.sheets.api.clearValues.started',
-        pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
-        sheetName: this.sheetName,
-        rangeLength: rangeLeitura.length
-      },
-      'Google Sheets clearValues iniciado'
-    );
-    try {
-      await this.sheets.clearValues(rangeLeitura);
-      this.logger?.warn(
-        {
-          event: 'agenda.sheets.api.clearValues.completed',
-          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
-          durationMs: Date.now() - clearStartedAt
-        },
-        'Google Sheets clearValues concluído'
-      );
-    } catch (error) {
-      this.logger?.error(
-        {
-          event: 'agenda.sheets.api.clearValues.failed',
-          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
-          durationMs: Date.now() - clearStartedAt,
-          error: serializarErroObservabilidade(error)
-        },
-        'Google Sheets clearValues falhou'
-      );
-      throw error;
-    }
-
+  /**
+   * Reescreve a aba priorizando **um** write:
+   * - `updateValues` com o conteúdo novo;
+   * - `clearValues` apenas das linhas excedentes (quando o conteúdo encolhe).
+   * Evita o padrão anterior clear-total + update (2 writes sempre).
+   */
+  private async reescreverAba(
+    valores: string[][],
+    previousRowCount: number = 0
+  ): Promise<void> {
     if (valores.length === 0) {
+      if (previousRowCount <= 0) {
+        return;
+      }
+      await this.executarClearValues(this.rangeLeitura());
       return;
     }
 
-    const rangeEscrita = this.rangeEscrita(valores);
+    await this.executarUpdateValues(this.rangeEscrita(valores), valores);
+
+    if (previousRowCount > valores.length) {
+      const primeiraLinhaExcedente = valores.length + 1;
+      const rangeCauda = `'${this.escapeSheetName(this.sheetName)}'!A${primeiraLinhaExcedente}:${ULTIMA_COLUNA_PERSISTENCIA_ABA_AGENDA}${previousRowCount}`;
+      await this.executarClearValues(rangeCauda);
+    }
+  }
+
+  private async executarUpdateValues(range: string, values: string[][]): Promise<void> {
     const updateStartedAt = Date.now();
     this.logger?.warn(
       {
         event: 'agenda.sheets.api.updateValues.started',
         pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
         sheetName: this.sheetName,
-        itemCount: valores.length,
-        rowCount: valores.length,
-        rangeLength: rangeEscrita.length
+        itemCount: values.length,
+        rowCount: values.length,
+        writeStrategy: 'update_then_clear_tail',
+        rangeLength: range.length
       },
       'Google Sheets updateValues iniciado'
     );
     try {
-      await this.sheets.updateValues(rangeEscrita, valores);
+      await this.sheets.updateValues(range, values);
       this.logger?.warn(
         {
           event: 'agenda.sheets.api.updateValues.completed',
           pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
           durationMs: Date.now() - updateStartedAt,
-          itemCount: valores.length,
-          rowCount: valores.length
+          itemCount: values.length,
+          rowCount: values.length,
+          writeStrategy: 'update_then_clear_tail'
         },
         'Google Sheets updateValues concluído'
       );
@@ -521,10 +550,49 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           event: 'agenda.sheets.api.updateValues.failed',
           pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
           durationMs: Date.now() - updateStartedAt,
-          itemCount: valores.length,
+          itemCount: values.length,
+          writeStrategy: 'update_then_clear_tail',
           error: serializarErroObservabilidade(error)
         },
         'Google Sheets updateValues falhou'
+      );
+      throw error;
+    }
+  }
+
+  private async executarClearValues(range: string): Promise<void> {
+    const clearStartedAt = Date.now();
+    this.logger?.warn(
+      {
+        event: 'agenda.sheets.api.clearValues.started',
+        pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+        sheetName: this.sheetName,
+        writeStrategy: 'update_then_clear_tail',
+        rangeLength: range.length
+      },
+      'Google Sheets clearValues iniciado'
+    );
+    try {
+      await this.sheets.clearValues(range);
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.api.clearValues.completed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+          durationMs: Date.now() - clearStartedAt,
+          writeStrategy: 'update_then_clear_tail'
+        },
+        'Google Sheets clearValues concluído'
+      );
+    } catch (error) {
+      this.logger?.error(
+        {
+          event: 'agenda.sheets.api.clearValues.failed',
+          pipelineStep: PIPELINE_STEPS.SHEETS_REESCREVER,
+          durationMs: Date.now() - clearStartedAt,
+          writeStrategy: 'update_then_clear_tail',
+          error: serializarErroObservabilidade(error)
+        },
+        'Google Sheets clearValues falhou'
       );
       throw error;
     }

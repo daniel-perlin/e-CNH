@@ -6,7 +6,7 @@ import { criarAgendaSyncRuntime } from '../composition/agenda-sync-runtime.js';
 import { AgendaSyncJob } from '../jobs/agenda-sync-job.js';
 import type { StructuredLogger } from '../types/logger.js';
 
-import { formatarResumoSincronizacao } from './sync-agenda-resumo.js';
+import { codigoSaidaSincronizacao, formatarResumoSincronizacao } from './sync-agenda-resumo.js';
 
 /**
  * Ponto de entrada sob demanda da sincronização (Fase 006/007 / Railway Cron).
@@ -41,7 +41,8 @@ async function main(): Promise<void> {
 
   console.log(formatarResumoSincronizacao(resultado.sincronizacao));
 
-  process.exit(resultado.sincronizacao.sucessoGeral ? 0 : 1);
+  // Falha parcial não derruba o Cron no Railway; só falha total (0 sucessos).
+  process.exit(codigoSaidaSincronizacao(resultado.sincronizacao));
 }
 
 /** Emite warn/error (ex.: cabeçalho incompatível); omite info/debug no console do sync manual. */

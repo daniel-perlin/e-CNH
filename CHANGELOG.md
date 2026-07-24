@@ -3,13 +3,41 @@
 > ### 📌 Estado atual
 >
 > **Fase atual:** Infraestrutura Railway (Cron efêmero 16:00 BRT)
-> **Próxima prioridade:** Identificar primeira etapa pós-login que falha no Railway
-> **Última atualização:** 2026-07-23 20:55 BRT
-> **Última sessão executada:** 23/07/2026 • 20:55 — Instrumentação pipeline pós-login
+> **Próxima prioridade:** Validar sync no Railway após retry Sheets / menos writes
+> **Última atualização:** 2026-07-23 21:15 BRT
+> **Última sessão executada:** 23/07/2026 • 21:15 — Resiliência quota Google Sheets (429)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 23/07/2026 • 21:15
+
+### 🎯 Objetivo
+
+Tornar a persistência Google Sheets resiliente à cota de writes (HTTP 429) observada no Railway, sem mascarar erros permanentes e sem derrubar o Cron por falha parcial.
+
+### ✅ O que mudou
+
+- Retry com backoff + `Retry-After` centralizado em `GoogleSheetsClient` (`agenda.sheets.retry.*`).
+- Reescrita: `update` + clear só da cauda (quando encolhe); skip quando não há mudança.
+- Resumo: processados/sucessos/falhas/tempo/`falhasPorMotivo`; exit code 0 em sucesso parcial.
+- ADR-021 + `GOOGLE_SHEETS_MAX_ATTEMPTS`.
+
+### 🧠 Decisões
+
+- **Evidência:** falha em `PERSIST_AGENDA` / `updateValues`|`clearValues` com quota “Write requests per minute per user”.
+- **Decisão:** ADR-021 — retry só transitório; menos writes; Cron não crasha por falha parcial.
+
+### 📂 Arquivos impactados
+
+- `src/client/google-sheets-client.ts`, `src/client/google-sheets-retry.ts` (+ testes)
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/services/agenda-sync-service.ts`, `src/scripts/sync-agenda*.ts`
+- `src/config/google-sheets-config.ts`, `src/composition/agenda-sync-runtime.ts`
+- `docs/DECISOES.md`, `.env.example`, `CHANGELOG.md`
 
 ---
 

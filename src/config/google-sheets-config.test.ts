@@ -15,6 +15,7 @@ describe('resolveGoogleSheetsConfig', () => {
 
     assert.equal(config.spreadsheetId, 'sheet-id');
     assert.equal(config.sheetName, 'Agenda');
+    assert.equal(config.maxAttempts, 5);
     assert.equal(config.credentials.kind, 'json');
     if (config.credentials.kind === 'json') {
       assert.equal(config.credentials.credentials.client_email, 'sa@example.test');
@@ -39,6 +40,25 @@ describe('resolveGoogleSheetsConfig', () => {
         resolveGoogleSheetsConfig({
           GOOGLE_SHEETS_SPREADSHEET_ID: 'sheet-id',
           GOOGLE_SERVICE_ACCOUNT_JSON: '{nao-json'
+        }),
+      ConfigurationError
+    );
+  });
+
+  it('aceita GOOGLE_SHEETS_MAX_ATTEMPTS válido e rejeita inválido', () => {
+    const config = resolveGoogleSheetsConfig({
+      GOOGLE_SHEETS_SPREADSHEET_ID: 'sheet-id',
+      GOOGLE_SHEETS_CREDENTIALS_PATH: './secrets/google-service-account.json',
+      GOOGLE_SHEETS_MAX_ATTEMPTS: '8'
+    });
+    assert.equal(config.maxAttempts, 8);
+
+    assert.throws(
+      () =>
+        resolveGoogleSheetsConfig({
+          GOOGLE_SHEETS_SPREADSHEET_ID: 'sheet-id',
+          GOOGLE_SHEETS_CREDENTIALS_PATH: './secrets/x.json',
+          GOOGLE_SHEETS_MAX_ATTEMPTS: '0'
         }),
       ConfigurationError
     );

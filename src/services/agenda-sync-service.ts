@@ -107,6 +107,14 @@ export interface ResultadoSincronizacao {
   profissionais: ResultadoSincronizacaoProfissional[];
   /** Verdadeiro somente se todos os profissionais sincronizaram com sucesso. */
   sucessoGeral: boolean;
+  /** Contagem de profissionais com sucesso. */
+  sucessos: number;
+  /** Contagem de profissionais com falha. */
+  falhas: number;
+  /** Duração total da sincronização multi-profissional (ms). */
+  duracaoTotalMs: number;
+  /** Agregado de motivos de falha (login/data/persistência) sem PII. */
+  falhasPorMotivo: Record<string, number>;
 }
 
 export interface AgendaSyncServiceOptions {
@@ -321,6 +329,7 @@ export class AgendaSyncService {
     entradas: EntradaSincronizacaoProfissional[]
   ): Promise<ResultadoSincronizacao> {
     const profissionais: ResultadoSincronizacaoProfissional[] = [];
+    const iniciadoEm = Date.now();
 
     this.logger?.warn(
       { event: 'agenda.sync.profissionais.started', quantidade: entradas.length },
@@ -333,19 +342,33 @@ export class AgendaSyncService {
     }
 
     const sucessoGeral = profissionais.every((item) => item.sucesso);
+    const sucessos = profissionais.filter((item) => item.sucesso).length;
+    const falhas = profissionais.length - sucessos;
+    const duracaoTotalMs = Date.now() - iniciadoEm;
+    const falhasPorMotivo = agregarFalhasPorMotivo(profissionais);
 
     this.logger?.warn(
       {
         event: 'agenda.sync.profissionais.completed',
         quantidade: profissionais.length,
+        profissionaisProcessados: profissionais.length,
         sucessoGeral,
-        sucessos: profissionais.filter((item) => item.sucesso).length,
-        falhas: profissionais.filter((item) => !item.sucesso).length
+        sucessos,
+        falhas,
+        duracaoTotalMs,
+        falhasPorMotivo
       },
       'Sincronização multi-profissional concluída'
     );
 
-    return { profissionais, sucessoGeral };
+    return {
+      profissionais,
+      sucessoGeral,
+      sucessos,
+      falhas,
+      duracaoTotalMs,
+      falhasPorMotivo
+    };
   }
 
   private resolveClient(entrada: EntradaSincronizacaoProfissional): AgendaSyncPortalClient {
@@ -563,4 +586,44 @@ function selecionarDatas(disponiveis: string[], filtro: string[] | undefined): s
 
   const permitidas = new Set(filtro);
   return disponiveis.filter((data) => permitidas.has(data));
+}
+
+/** Agrega motivos de falha por profissional/data sem PII. */
+export function agregarFalhasPorMotivo(
+  profissionais: ResultadoSincronizacaoProfissional[]
+): Record<string, number> {
+  const contagem: Record<string, number> = {};
+  const incrementar = (motivo: string): void => {
+    contagem[motivo] = (contagem[motivo] ?? 0) + 1;
+  };
+
+  for (const profissional of profissionais) {
+    if (profissional.sucesso) {
+      continue;
+    }
+    if (profissional.loginStatus !== undefined && profissional.loginStatus !== 'sucesso') {
+      incrementar(`login:${profissional.loginStatus}`);
+      continue;
+    }
+    if (profissional.perfilId === undefined && profissional.loginStatus === 'sucesso') {
+      incrementar('perfil_ausente');
+      continue;
+    }
+    const falhasData = profissional.datas.filter((data) => !data.sucesso);
+    if (falhasData.length === 0) {
+      incrementar('profissional_falha_nao_classificada');
+      continue;
+    }
+    for (const data of falhasData) {
+      if (data.motivoFalhaPersistencia !== undefined) {
+        incrementar(`persistencia:${data.motivoFalhaPersistencia}`);
+      } else if (data.motivoFalhaExtracao !== undefined) {
+        incrementar(`extracao:${data.motivoFalhaExtracao}`);
+      } else {
+        incrementar('data_falha_nao_classificada');
+      }
+    }
+  }
+
+  return contagem;
 }

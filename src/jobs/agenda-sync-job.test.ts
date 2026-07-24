@@ -29,7 +29,11 @@ describe('AgendaSyncJob', () => {
           sucesso: true
         }
       ],
-      sucessoGeral: true
+      sucessoGeral: true,
+      sucessos: 1,
+      falhas: 0,
+      duracaoTotalMs: 10,
+      falhasPorMotivo: {}
     };
 
     let liberado = false;
@@ -73,7 +77,14 @@ describe('AgendaSyncJob', () => {
     const service = {
       sincronizarProfissionais: async (): Promise<ResultadoSincronizacao> => {
         chamado = true;
-        return { profissionais: [], sucessoGeral: true };
+        return {
+          profissionais: [],
+          sucessoGeral: true,
+          sucessos: 0,
+          falhas: 0,
+          duracaoTotalMs: 0,
+          falhasPorMotivo: {}
+        };
       }
     } as Pick<AgendaSyncService, 'sincronizarProfissionais'> as AgendaSyncService;
 

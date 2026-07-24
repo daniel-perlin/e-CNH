@@ -39,7 +39,11 @@ async function main(): Promise<void> {
         sucesso: true
       }
     ],
-    sucessoGeral: true
+    sucessoGeral: true,
+    sucessos: 1,
+    falhas: 0,
+    duracaoTotalMs: 1,
+    falhasPorMotivo: {}
   };
 
   let chamadasServico = 0;

@@ -427,6 +427,9 @@ describe('AgendaSyncService.sincronizarProfissionais', () => {
     const resultado = await service.sincronizarProfissionais([]);
 
     assert.equal(resultado.sucessoGeral, true);
+    assert.equal(resultado.sucessos, 0);
+    assert.equal(resultado.falhas, 0);
+    assert.deepEqual(resultado.falhasPorMotivo, {});
     assert.equal(resultado.profissionais.length, 0);
   });
 });
