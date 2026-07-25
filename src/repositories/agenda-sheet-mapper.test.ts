@@ -66,7 +66,7 @@ describe('AgendaSheetMapper', () => {
       '13/07/2026',
       '08:00',
       'Paciente',
-      '(11) 900000001',
+      '11900000001',
       'paciente1@example.test',
       'Primeira Habilitação',
       'B',
@@ -120,7 +120,7 @@ describe('AgendaSheetMapper', () => {
     assert.equal(linhas.length, 0);
   });
 
-  it('normaliza e-mail e telefone na persistência', () => {
+  it('projeta e-mail normalizado e telefone só com celulares em dígitos', () => {
     const agenda: Agenda = {
       dataConsulta: '13/07/2026',
       itens: [
@@ -129,7 +129,7 @@ describe('AgendaSheetMapper', () => {
           paciente: {
             cpf: '000.000.000-00',
             nome: 'PACIENTE FIXTURE UM',
-            telefone: '(11) 90000-0001',
+            telefone: '39513081 / (11) 90000-0001',
             email: '  PaCiEnTe@Example.TEST  '
           }
         }
@@ -142,7 +142,7 @@ describe('AgendaSheetMapper', () => {
       dataInclusao: timestampFixo
     });
     assert.equal(linhas[0]?.[indiceCabecalhoAgenda('EMAIL')], 'paciente@example.test');
-    assert.equal(linhas[0]?.[indiceCabecalhoAgenda('TELEFONE')], '(11) 900000001');
+    assert.equal(linhas[0]?.[indiceCabecalhoAgenda('TELEFONE')], '11900000001');
     assert.equal(linhas[0]?.[indiceCabecalhoAgenda('UNIDADE')], 'VILA CARRÃO');
     assert.equal(linhas[0]?.[indiceCabecalhoAgenda('Categoria')], SHEET_PLACEHOLDER);
   });

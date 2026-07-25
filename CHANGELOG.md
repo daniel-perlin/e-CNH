@@ -4,12 +4,37 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-25 17:52 BRT
-> **Última sessão executada:** 25/07/2026 • 17:52 — Backfill visual de placeholders na Agenda
+> **Última atualização:** 2026-07-25 18:06 BRT
+> **Última sessão executada:** 25/07/2026 • 18:06 — Telefone na planilha: só celulares (projeção)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 25/07/2026 • 18:06
+
+### 🎯 Objetivo
+
+Projetar na planilha apenas celulares (dígitos), descartando fixos — Sheets como visão operacional (ADR-026).
+
+### ✅ O que mudou
+
+- `formatPhoneForSheet` na escrita do mapper (borda Sheets).
+- Docs: ADR-026 + seção em `MODELO_DOMINIO.md`.
+
+### 🧠 Decisões
+
+- Sem mudar parser/domínio/merge/`normalizePhone`/SQLite. Rewrite ocasional com fixo no portal é aceitável.
+
+### 📂 Arquivos impactados
+
+- `src/utils/sheet-phone.ts` (+ teste)
+- `src/repositories/agenda-sheet-mapper.ts` (+ teste)
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `src/utils/phone.ts` (comentário)
+- `docs/DECISOES.md`, `docs/MODELO_DOMINIO.md`, `CHANGELOG.md`
 
 ---
 

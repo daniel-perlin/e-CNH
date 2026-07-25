@@ -1,6 +1,6 @@
 /**
- * Normaliza telefone antes da persistência na planilha.
- * Não altera o domínio; apenas prepara o valor para gravação.
+ * Normaliza telefone para comparação / consistência interna (ex.: merge).
+ * Não é a projeção visual da planilha — ver `formatPhoneForSheet`.
  *
  * Regras:
  * - remove hífens e espaços extras;

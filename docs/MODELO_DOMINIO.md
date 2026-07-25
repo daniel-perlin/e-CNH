@@ -49,9 +49,10 @@ Decisão formal: [ADR-025](./DECISOES.md#adr-025--ausência-canônica-no-domíni
 
 **Google Sheets**
 
-- É apenas uma representação visual operacional.
-- Exibe `"(não informado)"` para facilitar a leitura da equipe (`formatOptionalFieldForSheet`).
-- Ao ler a planilha, converte novamente para `undefined` (`parseOptionalFieldFromSheet`).
+- É uma **projeção operacional**, não espelho reversível do domínio (ADR-026).
+- Exibe `"(não informado)"` para ausência (`formatOptionalFieldForSheet`).
+- Telefone: só celulares em dígitos (`formatPhoneForSheet`).
+- Ao ler a planilha, placeholder de ausência volta a `undefined` (`parseOptionalFieldFromSheet`); demais células entram no domínio como texto da célula (a canonicidade do telefone permanece no portal/domínio da sync, não na planilha).
 
 ### Objetivo da decisão
 
@@ -61,6 +62,21 @@ Essa separação:
 - evita sentinelas espalhadas pelo sistema;
 - simplifica merge, SQLite e comparações;
 - permite trocar a forma como o portal ou a planilha representam ausência **sem** alterar o domínio.
+
+## Google Sheets como projeção operacional
+
+A aba Agenda **não** é um espelho reversível do domínio. É uma visão otimizada para o trabalho da clínica ([ADR-026](./DECISOES.md#adr-026--google-sheets-como-projeção-operacional-não-espelho-do-domínio)).
+
+| Camada | Papel |
+| -------- | ----- |
+| Portal D-CNH | Fonte da verdade do atendimento |
+| Domínio (`ItemAgenda`) | Representação canônica (fiel ao que o parser extrai) |
+| SQLite / `pessoas` | Histórico do domínio (telefone original, etc.) |
+| Google Sheets | Projeção operacional; pode omitir dados irrelevantes à clínica |
+
+**Telefone na planilha:** apenas celulares, somente dígitos, DDD preservado (ou `11` se ausente). Fixos são descartados na projeção (`formatPhoneForSheet`). Sem celular útil → `(não informado)`.
+
+O domínio e o merge continuam com o valor original do portal (`normalizePhone` só para comparação). Perda de informação na planilha (e possível rewrite ocasional no sync) é decisão consciente de UX.
 
 ## Profissional
 

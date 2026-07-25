@@ -820,7 +820,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     // Contato do portal atualizado; horário da linha ativa preservado.
     assert.equal(matriz[1]?.[indiceCabecalhoAgenda('HORÁRIO')], '08:00');
     assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
-    assert.equal(matriz[1]?.[indiceCabecalhoAgenda('TELEFONE')], '(11) 988887777');
+    assert.equal(matriz[1]?.[indiceCabecalhoAgenda('TELEFONE')], '11988887777');
     assert.equal(matriz[1]?.[COL.email], 'novo@example.test');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
     assert.equal(matriz[1]?.[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');

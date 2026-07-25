@@ -3,11 +3,11 @@ import type { Agenda, ItemAgenda, Paciente } from '../models/agenda.js';
 import { formatPatientName } from '../utils/format-patient-name.js';
 import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
 import { normalizeEmail } from '../utils/email.js';
-import { normalizePhone } from '../utils/phone.js';
 import {
   formatOptionalFieldForSheet,
   parseOptionalFieldFromSheet
 } from '../utils/sheet-optional-field.js';
+import { formatPhoneForSheet } from '../utils/sheet-phone.js';
 
 import {
   CABECALHOS_ABA_AGENDA,
@@ -162,7 +162,7 @@ export class AgendaSheetMapper {
       'AGENDAMENTO DO DETRAN': dataConsulta,
       HORÁRIO: item.horario ?? '',
       PACIENTE: formatPatientName(item.paciente.nome ?? ''),
-      TELEFONE: formatOptionalFieldForSheet(normalizePhone(item.paciente.telefone ?? '')),
+      TELEFONE: formatOptionalFieldForSheet(formatPhoneForSheet(item.paciente.telefone ?? '')),
       EMAIL: formatOptionalFieldForSheet(normalizeEmail(item.paciente.email ?? '')),
       'Tipo de Processo': item.tipoProcesso?.trim() ?? '',
       Categoria: formatOptionalFieldForSheet(item.categoria?.trim() ?? ''),

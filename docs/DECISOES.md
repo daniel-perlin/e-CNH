@@ -202,6 +202,20 @@
 - **Consequência:** uma semântica de ausência em todo o núcleo; UX da planilha permanece visual; menos risco de gravar sentinela no banco ou forçar rewrite por “valor fantasma” do portal.
 - **Documentação:** contrato narrativo e tabela de mapeamento em [MODELO_DOMINIO.md — Normalização de Ausência de Informação](./MODELO_DOMINIO.md#normalização-de-ausência-de-informação).
 
+## ADR-026 — Google Sheets como projeção operacional (não espelho do domínio)
+
+- **Status:** aceito e implementado
+- **Contexto:** a clínica usa a aba Agenda como ferramenta operacional. Espelhar o domínio 1:1 (ex.: telefone com fixo + celular no formato do portal) atrapalha o uso diário. Round-trip perfeito planilha ↔ domínio forçaria ou poluir o domínio com formato visual, ou equivalências no merge.
+- **Decisão:**
+  - a aba Google Sheets é uma **projeção operacional otimizada**, não um espelho reversível do domínio;
+  - portal = fonte da verdade do atendimento; domínio (`ItemAgenda`) = representação canônica; SQLite = histórico do domínio;
+  - a planilha **pode descartar** informação inútil à operação (ex.: telefones fixos);
+  - telefone na planilha: só celulares, só dígitos, DDD preservado ou `11` se ausente (`formatPhoneForSheet`); ausência → `(não informado)`;
+  - parser, `ItemAgenda`, merge, `normalizePhone` e SQLite **não** mudam por causa da UX da planilha;
+  - rewrite ocasional no sync quando o portal traz fixo (ou fixo+celular) e a planilha só tem o recorte operacional é **aceitável**.
+- **Consequência:** UX alinhada à clínica; domínio permanece fiel ao Detran; backfill/`reescreverProjecaoVisual` reaplica a projeção sem portal.
+- **Documentação:** [MODELO_DOMINIO.md — Google Sheets como projeção operacional](./MODELO_DOMINIO.md#google-sheets-como-projeção-operacional).
+
 ## ADR-023 — Política de domínio da Agenda operacional
 
 - **Status:** aceito e implementado
