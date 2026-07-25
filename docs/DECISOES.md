@@ -190,6 +190,18 @@
 - **Consequência:** planilhas em produção migram sem intervenção manual; filtros/views por índice de coluna (ex.: G=PROFISSIONAL no V8) precisam ser revisados após a primeira sync; linhas já ativas migradas ficam com Tipo/Categoria vazios até a próxima sync em que o mesmo CPF reapareça no portal (merge em registro ativo — ver evolução abaixo).
 - **Evolução (24/07/2026):** CPF já ativo não descarta o `ItemAgenda` do portal. `mesclarItemPortalEmRegistroAtivo` atualiza Tipo de Processo, Categoria e contato (telefone/e-mail/nome quando a projeção muda); preserva DATA DE INCLUSÃO, AGENDAMENTO, PROFISSIONAL, UNIDADE, horário e CPF técnico. Deduplicação e inclusão de pacientes novos inalteradas.
 
+## ADR-025 — Ausência canônica no domínio (`undefined`); sentinelas só nas fronteiras
+
+- **Status:** aceito e implementado
+- **Contexto:** o portal e-CNH exibe textos de apresentação como `NÃO INFORMADO` em células opcionais. O parser preservava o literal no `ItemAgenda`, contaminando merge, SQLite e logs, enquanto a planilha já projetava ausência como `(não informado)` só na borda Sheets.
+- **Decisão:**
+  - representação canônica de ausência no domínio: propriedade omitida / `undefined`;
+  - normalizar na fronteira do portal via `parseOptionalPortalField` (parser / `cellByHeader`);
+  - manter `formatOptionalFieldForSheet` / `parseOptionalFieldFromSheet` só na projeção Google Sheets;
+  - não alterar merge, deduplicação (CPF), noop nem SQLite para reconhecer o literal — o domínio chega limpo.
+- **Consequência:** uma semântica de ausência em todo o núcleo; UX da planilha permanece visual; menos risco de gravar sentinela no banco ou forçar rewrite por “valor fantasma” do portal.
+- **Documentação:** contrato narrativo e tabela de mapeamento em [MODELO_DOMINIO.md — Normalização de Ausência de Informação](./MODELO_DOMINIO.md#normalização-de-ausência-de-informação).
+
 ## ADR-023 — Política de domínio da Agenda operacional
 
 - **Status:** aceito e implementado

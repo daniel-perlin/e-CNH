@@ -11,6 +11,7 @@ import {
   resolverIndiceColunaTecnicaCpf
 } from './agenda-sheet-headers.js';
 import { AgendaSheetMapper } from './agenda-sheet-mapper.js';
+import { SHEET_PLACEHOLDER } from '../utils/sheet-optional-field.js';
 
 describe('AgendaSheetMapper', () => {
   const mapper = new AgendaSheetMapper();
@@ -143,6 +144,56 @@ describe('AgendaSheetMapper', () => {
     assert.equal(linhas[0]?.[indiceCabecalhoAgenda('EMAIL')], 'paciente@example.test');
     assert.equal(linhas[0]?.[indiceCabecalhoAgenda('TELEFONE')], '(11) 900000001');
     assert.equal(linhas[0]?.[indiceCabecalhoAgenda('UNIDADE')], 'VILA CARRÃO');
+    assert.equal(linhas[0]?.[indiceCabecalhoAgenda('Categoria')], SHEET_PLACEHOLDER);
+  });
+
+  it('projeta telefone, e-mail e categoria ausentes/NÃO INFORMADO como placeholder visual', () => {
+    const agenda: Agenda = {
+      dataConsulta: '13/07/2026',
+      itens: [
+        {
+          horario: '08:00',
+          paciente: {
+            nome: 'PACIENTE SEM CONTATO',
+            telefone: 'NÃO INFORMADO',
+            email: ''
+          },
+          categoria: 'não informado'
+        }
+      ]
+    };
+
+    const linhas = mapper.agendaParaLinhas(agenda, {
+      profissional: 'Profissional Teste',
+      unidadeOperacional: 'LIMÃO',
+      dataInclusao: timestampFixo
+    });
+    assert.equal(linhas[0]?.[indiceCabecalhoAgenda('TELEFONE')], SHEET_PLACEHOLDER);
+    assert.equal(linhas[0]?.[indiceCabecalhoAgenda('EMAIL')], SHEET_PLACEHOLDER);
+    assert.equal(linhas[0]?.[indiceCabecalhoAgenda('Categoria')], SHEET_PLACEHOLDER);
+  });
+
+  it('na leitura, placeholder e NÃO INFORMADO voltam como ausência no domínio', () => {
+    const linhas = [
+      [
+        'LIMÃO',
+        '15/07/2026',
+        '14:15',
+        'PACIENTE PLACEHOLDER',
+        SHEET_PLACEHOLDER,
+        'NÃO INFORMADO',
+        'Renovação',
+        SHEET_PLACEHOLDER,
+        'Profissional Teste',
+        timestampFixo
+      ]
+    ];
+
+    const registros = mapper.linhasParaRegistros(linhas, [...CABECALHOS_ABA_AGENDA]);
+    assert.equal(registros[0]?.item.paciente.telefone, undefined);
+    assert.equal(registros[0]?.item.paciente.email, undefined);
+    assert.equal(registros[0]?.item.categoria, undefined);
+    assert.equal(registros[0]?.item.tipoProcesso, 'Renovação');
   });
 
   it('aceita cabeçalhos legados Data e Última sincronização', () => {

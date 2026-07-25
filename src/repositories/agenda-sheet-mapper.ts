@@ -4,6 +4,10 @@ import { formatPatientName } from '../utils/format-patient-name.js';
 import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
 import { normalizeEmail } from '../utils/email.js';
 import { normalizePhone } from '../utils/phone.js';
+import {
+  formatOptionalFieldForSheet,
+  parseOptionalFieldFromSheet
+} from '../utils/sheet-optional-field.js';
 
 import {
   CABECALHOS_ABA_AGENDA,
@@ -158,10 +162,10 @@ export class AgendaSheetMapper {
       'AGENDAMENTO DO DETRAN': dataConsulta,
       HORÁRIO: item.horario ?? '',
       PACIENTE: formatPatientName(item.paciente.nome ?? ''),
-      TELEFONE: normalizePhone(item.paciente.telefone ?? ''),
-      EMAIL: normalizeEmail(item.paciente.email ?? ''),
+      TELEFONE: formatOptionalFieldForSheet(normalizePhone(item.paciente.telefone ?? '')),
+      EMAIL: formatOptionalFieldForSheet(normalizeEmail(item.paciente.email ?? '')),
       'Tipo de Processo': item.tipoProcesso?.trim() ?? '',
-      Categoria: item.categoria?.trim() ?? '',
+      Categoria: formatOptionalFieldForSheet(item.categoria?.trim() ?? ''),
       PROFISSIONAL: profissional,
       'DATA DE INCLUSÃO': dataInclusao
     };
@@ -176,8 +180,8 @@ export class AgendaSheetMapper {
     const paciente: Paciente = {};
     const cpf = this.celula(linha, indices, 'CPF');
     const nome = this.celula(linha, indices, 'PACIENTE');
-    const telefone = this.celula(linha, indices, 'TELEFONE');
-    const email = this.celula(linha, indices, 'EMAIL');
+    const telefone = parseOptionalFieldFromSheet(this.celula(linha, indices, 'TELEFONE'));
+    const email = parseOptionalFieldFromSheet(this.celula(linha, indices, 'EMAIL'));
 
     if (cpf !== undefined) {
       paciente.cpf = cpf;
@@ -195,7 +199,7 @@ export class AgendaSheetMapper {
     const item: ItemAgenda = { paciente };
     const horario = this.celula(linha, indices, 'HORÁRIO');
     const tipoProcesso = this.celula(linha, indices, 'Tipo de Processo');
-    const categoria = this.celula(linha, indices, 'Categoria');
+    const categoria = parseOptionalFieldFromSheet(this.celula(linha, indices, 'Categoria'));
 
     if (horario !== undefined) {
       item.horario = horario;

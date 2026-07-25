@@ -89,4 +89,24 @@ describe('parseAgendaHtml', () => {
     assert.ok(result.agenda);
     assert.equal(result.agenda.dataConsulta, undefined);
   });
+
+  it('converte NÃO INFORMADO do portal em ausência no domínio', () => {
+    const result = parseAgendaHtml(loadFixture('campos-nao-informado.html'), {
+      dataConsulta: '25/07/2026'
+    });
+
+    assert.equal(result.sucesso, true);
+    assert.ok(result.agenda);
+    assert.equal(result.agenda.itens.length, 1);
+
+    const item = result.agenda.itens[0];
+    assert.ok(item);
+    assert.equal(item.paciente.cpf, '333.333.333-33');
+    assert.equal(item.paciente.nome, 'PACIENTE SEM CONTATO');
+    assert.equal(item.paciente.telefone, undefined);
+    assert.equal(item.paciente.email, undefined);
+    assert.equal(item.categoria, undefined);
+    assert.equal(item.tipoProcesso, 'Renovação');
+    assert.equal(item.horario, '10:00');
+  });
 });

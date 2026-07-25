@@ -10,6 +10,58 @@ Este documento define os contratos conceituais compartilhados entre `ECNHClient`
 - A senha do profissional existe somente como dado de entrada para autenticação; não deve ser persistida no domínio nem propagada para parser, serviços ou Sheets.
 - Campos podem ser ausentes, incompletos ou indisponíveis no portal. A obrigatoriedade definitiva será definida por evidência e pela fase que implementar cada integração.
 
+## Normalização de Ausência de Informação
+
+O domínio possui **uma única** representação canônica de ausência de informação: `undefined` (propriedade omitida no modelo tipado).
+
+O objetivo é impedir que textos de interface do portal ou da planilha contaminem o modelo de domínio. Sentinelas de apresentação vivem **somente** nas fronteiras; o núcleo (merge, regras B004/B005, SQLite, comparações) trabalha só com presença ou ausência canônica.
+
+Decisão formal: [ADR-025](./DECISOES.md#adr-025--ausência-canônica-no-domínio-undefined-sentinelas-só-nas-fronteiras).
+
+### Mapeamento por origem
+
+| Origem | Valor recebido | Domínio | Persistência | Google Sheets |
+| -------- | ---------------- | ---------- | -------------- | --------------- |
+| Portal D-CNH | `"NÃO INFORMADO"` | `undefined` | NULL / ausência | `"(não informado)"` |
+| Portal D-CNH | vazio | `undefined` | NULL / ausência | `"(não informado)"` |
+| Google Sheets | `"(não informado)"` | `undefined` | — | `"(não informado)"` |
+
+### Responsabilidades por camada
+
+**Portal**
+
+- Pode usar textos de interface como `"NÃO INFORMADO"`.
+
+**Parser**
+
+- Traduz a linguagem do portal para o domínio (`parseOptionalPortalField`).
+- Converte ausência (vazio / `"NÃO INFORMADO"`) em `undefined`.
+
+**Domínio**
+
+- Nunca conhece `"NÃO INFORMADO"`.
+- Nunca conhece `"(não informado)"`.
+- Trabalha apenas com `undefined` para ausência.
+
+**Persistência**
+
+- Persiste ausência (`NULL` / campo omitido), não textos de interface.
+
+**Google Sheets**
+
+- É apenas uma representação visual operacional.
+- Exibe `"(não informado)"` para facilitar a leitura da equipe (`formatOptionalFieldForSheet`).
+- Ao ler a planilha, converte novamente para `undefined` (`parseOptionalFieldFromSheet`).
+
+### Objetivo da decisão
+
+Essa separação:
+
+- reduz acoplamento entre camadas;
+- evita sentinelas espalhadas pelo sistema;
+- simplifica merge, SQLite e comparações;
+- permite trocar a forma como o portal ou a planilha representam ausência **sem** alterar o domínio.
+
 ## Profissional
 
 Representa um médico ou psicólogo credenciado que possui acesso individual ao portal.
@@ -39,7 +91,7 @@ No banco relacional (ADR-022), a mesma pessoa é upsertada em `pessoas` (histór
 | telefone | Telefone | Dado pessoal sensível. |
 | email | E-mail | Dado pessoal sensível. |
 
-**Evidência confirmada (Fase 004):** esses quatro campos correspondem a colunas de domínio na tabela de resultado. Ausência de valor na célula vira propriedade omitida no modelo tipado.
+**Evidência confirmada (Fase 004):** esses quatro campos correspondem a colunas de domínio na tabela de resultado. Ausência de valor na célula vira propriedade omitida no modelo tipado. Ver [Normalização de Ausência de Informação](#normalização-de-ausência-de-informação) e ADR-025.
 
 ## ItemAgenda
 

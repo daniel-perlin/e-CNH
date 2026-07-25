@@ -7,6 +7,7 @@ import {
   Paciente,
   ResultadoExtracaoAgenda
 } from '../models/agenda.js';
+import { parseOptionalPortalField } from '../utils/portal-optional-field.js';
 
 const AGENDA_TABLE_SELECTOR = 'table#agenda';
 const RESULT_LEGEND = 'Resultado';
@@ -216,7 +217,7 @@ function cellByHeader(
   }
 
   const text = normalizeText(cells.eq(index).text());
-  return text.length > 0 ? text : undefined;
+  return parseOptionalPortalField(text.length > 0 ? text : undefined);
 }
 
 function normalizeText(value: string): string {

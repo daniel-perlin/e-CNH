@@ -11,6 +11,7 @@ import {
 } from './agenda-sheet-headers.js';
 import { GoogleSheetsAgendaRepository } from './google-sheets-agenda-repository.js';
 import { InMemoryGoogleSheetsValues } from './in-memory-google-sheets-values.js';
+import { SHEET_PLACEHOLDER } from '../utils/sheet-optional-field.js';
 
 /** 20/07/2026 15:00 UTC = 12:00 em America/Sao_Paulo. */
 const HOJE_FIXO = new Date('2026-07-20T15:00:00.000Z');
@@ -335,7 +336,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.ok(linhaMigrada, 'CPF técnico do layout V8 deve migrar para o índice canônico');
     assert.equal(linhaMigrada[COL.email], 'paciente@example.test');
     assert.equal(linhaMigrada[COL.tipoProcesso], '');
-    assert.equal(linhaMigrada[COL.categoria], '');
+    assert.equal(linhaMigrada[COL.categoria], SHEET_PLACEHOLDER);
     assert.equal(linhaMigrada[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
     assert.equal(linhaMigrada[COL.dataInclusao], dataInclusao);
     // No canônico, índice 8 é PROFISSIONAL — não o CPF técnico (agora em COL.cpfTecnico).

@@ -4,12 +4,85 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-24 21:45 BRT
-> **Última sessão executada:** 24/07/2026 • 21:45 — Fix cabeçalho case-insensitive
+> **Última atualização:** 2026-07-25 17:27 BRT
+> **Última sessão executada:** 25/07/2026 • 17:27 — Docs: normalização de ausência no domínio
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 25/07/2026 • 17:27
+
+### 🎯 Objetivo
+
+Documentar oficialmente as duas fronteiras de normalização de ausência (portal e Sheets).
+
+### ✅ O que mudou
+
+- Seção em `MODELO_DOMINIO.md` com tabela e responsabilidades por camada.
+- Referência cruzada no ADR-025.
+
+### 🧠 Decisões
+
+- Sem mudança de regra de negócio; só documentação arquitetural.
+
+### 📂 Arquivos impactados
+
+- `docs/MODELO_DOMINIO.md`
+- `docs/DECISOES.md`
+- `CHANGELOG.md`
+
+---
+
+## 📅 25/07/2026 • 17:14
+
+### 🎯 Objetivo
+
+Normalizar `NÃO INFORMADO` do portal para `undefined` já na fronteira do parser.
+
+### ✅ O que mudou
+
+- `parseOptionalPortalField` + uso em `cellByHeader`.
+- Fixture/teste de parser e fluxo parser → SQLite → Sheets.
+- ADR-025.
+
+### 🧠 Decisões
+
+- Ausência canônica = `undefined`. Sentinelas só em portal (entrada) e Sheets (UX). Merge/SQLite/mapper de negócio intactos.
+
+### 📂 Arquivos impactados
+
+- `src/utils/portal-optional-field.ts` (+ teste)
+- `src/parsers/agenda-parser.ts` (+ teste)
+- `src/parsers/portal-ausencia-fluxo.test.ts`
+- `fixtures/agenda/campos-nao-informado.html`
+- `docs/DECISOES.md`, `docs/MODELO_DOMINIO.md`, `CHANGELOG.md`
+
+---
+
+## 📅 25/07/2026 • 16:57
+
+### 🎯 Objetivo
+
+Exibir `(não informado)` em Telefone, E-mail e Categoria vazios na planilha, sem contaminar o domínio.
+
+### ✅ O que mudou
+
+- `SHEET_PLACEHOLDER` + `formatOptionalFieldForSheet` / `parseOptionalFieldFromSheet`.
+- Mapper: escrita após normalize; leitura devolve `undefined` ao domínio.
+
+### 🧠 Decisões
+
+- Só apresentação Sheets; parser/merge/sync/SQLite intactos. Inverso na leitura evita rewrite loop.
+
+### 📂 Arquivos impactados
+
+- `src/utils/sheet-optional-field.ts` (+ teste)
+- `src/repositories/agenda-sheet-mapper.ts` (+ teste)
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `CHANGELOG.md`
 
 ---
 
