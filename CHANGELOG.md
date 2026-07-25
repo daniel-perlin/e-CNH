@@ -4,12 +4,34 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-24 21:25 BRT
-> **Última sessão executada:** 24/07/2026 • 21:25 — Merge portal → ativos (Tipo/Categoria)
+> **Última atualização:** 2026-07-24 21:30 BRT
+> **Última sessão executada:** 24/07/2026 • 21:30 — Logs DIAG merge Tipo/Categoria
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 24/07/2026 • 21:30
+
+### 🎯 Objetivo
+
+Instrumentar diagnóstico temporário no Railway para descobrir por que Tipo/Categoria seguem vazios após o merge.
+
+### ✅ O que mudou
+
+- Logs `agenda.sheets.diag.merge.*` com contadores de portal, merges e amostras (CPF mascarado).
+- Sem correção de comportamento.
+
+### 🧠 Decisões
+
+- Diagnóstico only; remover após análise em produção.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `CHANGELOG.md`
 
 ---
 

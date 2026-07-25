@@ -27,6 +27,7 @@ import {
   CABECALHOS_ABA_AGENDA_OFICIAL_V8,
   FAIXA_COLUNAS_LEITURA_ABA_AGENDA,
   INDICE_COLUNA_TECNICA_CPF,
+  indiceCabecalhoAgenda,
   NOME_ABA_AGENDA_PADRAO,
   normalizeTextoCabecalho,
   resolverIndiceColunaTecnicaCpf,
@@ -228,6 +229,27 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         'Resumo pré-classificação de linhas novas vs existentes'
       );
 
+      // --- Diagnóstico temporário (merge Tipo/Categoria) — procurar no Railway por este event ---
+      const portalComTipoProcesso = agenda.itens.filter(
+        (item) => (item.tipoProcesso?.trim() ?? '').length > 0
+      ).length;
+      const portalComCategoria = agenda.itens.filter(
+        (item) => (item.categoria?.trim() ?? '').length > 0
+      ).length;
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.diag.merge.portal_campos',
+          diagnosticoTemporario: true,
+          dataConsulta,
+          itensPortalCount: agenda.itens.length,
+          itensPortalComTipoProcesso: portalComTipoProcesso,
+          itensPortalComCategoria: portalComCategoria,
+          cpfsAtivosNaPlanilha: cpfsAtivos.size,
+          ativosCount: ativos.length
+        },
+        'DIAG merge: campos tipo/categoria no ItemAgenda do portal'
+      );
+
       const indiceAtivoPorCpf = new Map<string, number>();
       for (let indice = 0; indice < ativos.length; indice += 1) {
         const registro = ativos[indice];
@@ -243,13 +265,34 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       const dataInclusao = formatSyncTimestamp(referencia);
       const novasLinhas: string[][] = [];
       let linhasAtivasAtualizadasDoPortal = 0;
+      let mergesInvocados = 0;
+      let mergesComAlteracao = 0;
+      let mergesSemAlteracao = 0;
+      let portalItensComCpfAtivo = 0;
+      let portalItensNovos = 0;
 
-      if (
+      const portalIncluivel =
         agendaOperacionalPolicy.deveIncluirAgendamentoDoPortalNaAgendaOperacional(
           dataConsulta,
           referencia
-        )
-      ) {
+        );
+
+      if (!portalIncluivel) {
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.diag.merge.portal_fora_da_policy',
+            diagnosticoTemporario: true,
+            dataConsulta,
+            itensPortalCount: agenda.itens.length,
+            itensPortalComTipoProcesso: portalComTipoProcesso,
+            itensPortalComCategoria: portalComCategoria,
+            motivo: 'dataConsulta_nao_incluivel_hoje_ou_futuro'
+          },
+          'DIAG merge: portal NÃO processado (policy bloqueou a data) — merge e novas linhas omitidos'
+        );
+      }
+
+      if (portalIncluivel) {
         for (const item of agenda.itens) {
           const cpfOriginalPortal = item.paciente.cpf?.trim() ?? '';
           const chave = normalizeCpfKey(cpfOriginalPortal);
@@ -258,14 +301,17 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
           // CPF já ativo: merge do estado do portal na linha existente (sem nova inclusão).
           if (indiceAtivo !== undefined) {
+            portalItensComCpfAtivo += 1;
             const registroAtual = ativos[indiceAtivo];
             if (registroAtual === undefined) {
               continue;
             }
+            mergesInvocados += 1;
             const mesclado = mesclarItemPortalEmRegistroAtivo(registroAtual, item);
             if (mesclado.alterouProjecao) {
               ativos[indiceAtivo] = mesclado.registro;
               linhasAtivasAtualizadasDoPortal += 1;
+              mergesComAlteracao += 1;
               this.logger?.warn(
                 {
                   event: 'agenda.sheets.classificacao.linha_ativa_atualizada',
@@ -275,6 +321,8 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
                 },
                 'Registro ativo atualizado com campos do portal'
               );
+            } else {
+              mergesSemAlteracao += 1;
             }
             continue;
           }
@@ -283,6 +331,8 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           if (existiaEmCpfsAtivos) {
             continue;
           }
+
+          portalItensNovos += 1;
 
           const registroExistenteMesmoCpf =
             chave === undefined
@@ -339,8 +389,58 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         }
       }
 
+      const ativosComTipoAposMerge = ativos.filter(
+        (registro) => (registro.item.tipoProcesso?.trim() ?? '').length > 0
+      ).length;
+      const ativosComCategoriaAposMerge = ativos.filter(
+        (registro) => (registro.item.categoria?.trim() ?? '').length > 0
+      ).length;
+
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.diag.merge.pos_merge',
+          diagnosticoTemporario: true,
+          dataConsulta,
+          portalIncluivel,
+          itensPortalCount: agenda.itens.length,
+          itensPortalComTipoProcesso: portalComTipoProcesso,
+          itensPortalComCategoria: portalComCategoria,
+          cpfsAtivosNaPlanilha: cpfsAtivos.size,
+          portalItensComCpfAtivo,
+          portalItensNovos,
+          mergesInvocados,
+          mergesComAlteracao,
+          mergesSemAlteracao,
+          linhasAtivasAtualizadasDoPortal,
+          ativosCount: ativos.length,
+          ativosComTipoProcessoAposMerge: ativosComTipoAposMerge,
+          ativosComCategoriaAposMerge: ativosComCategoriaAposMerge
+        },
+        'DIAG merge: contadores após processar portal vs ativos'
+      );
+
       const linhasAtivas: string[][] = [];
+      let amostraItemAntesProjecaoRegistrada = false;
       for (const registro of ativos) {
+        if (!amostraItemAntesProjecaoRegistrada) {
+          amostraItemAntesProjecaoRegistrada = true;
+          this.logger?.warn(
+            {
+              event: 'agenda.sheets.diag.merge.amostra_item_antes_projecao',
+              diagnosticoTemporario: true,
+              dataConsulta,
+              pacienteNome: registro.item.paciente.nome ?? '',
+              cpfMascarado: mascararCpf(registro.item.paciente.cpf ?? ''),
+              tipoProcesso: registro.item.tipoProcesso ?? null,
+              categoria: registro.item.categoria ?? null,
+              horario: registro.item.horario ?? null,
+              dataConsultaLinha: registro.dataConsulta,
+              dataInclusao: registro.dataInclusao ?? null
+            },
+            'DIAG merge: amostra ItemAgenda imediatamente antes de projetarLinhaComCpfTecnico (1º ativo)'
+          );
+        }
+
         const unidadePreservada = registro.unidadeOperacional?.trim() ?? '';
         const mesmoProfissional =
           registro.profissional === profissional ||
@@ -364,6 +464,39 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         }
       }
 
+      // Preferir amostra com tipo/categoria preenchidos, se existir entre os ativos.
+      const amostraComCampos = ativos.find(
+        (registro) =>
+          (registro.item.tipoProcesso?.trim() ?? '').length > 0 ||
+          (registro.item.categoria?.trim() ?? '').length > 0
+      );
+      if (amostraComCampos !== undefined) {
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.diag.merge.amostra_item_com_tipo_ou_categoria',
+            diagnosticoTemporario: true,
+            dataConsulta,
+            pacienteNome: amostraComCampos.item.paciente.nome ?? '',
+            cpfMascarado: mascararCpf(amostraComCampos.item.paciente.cpf ?? ''),
+            tipoProcesso: amostraComCampos.item.tipoProcesso ?? null,
+            categoria: amostraComCampos.item.categoria ?? null
+          },
+          'DIAG merge: existe ao menos um ativo com tipo/categoria após merge'
+        );
+      } else {
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.diag.merge.nenhum_ativo_com_tipo_ou_categoria',
+            diagnosticoTemporario: true,
+            dataConsulta,
+            ativosCount: ativos.length,
+            mergesInvocados,
+            itensPortalComTipoProcesso: portalComTipoProcesso
+          },
+          'DIAG merge: NENHUM ativo ficou com tipoProcesso/categoria após merge'
+        );
+      }
+
       this.logger?.warn(
         {
           event: 'agenda.sheets.classificacao.resumo_pos',
@@ -374,6 +507,9 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           novasLinhasCount: novasLinhas.length,
           linhasAtivasCount: linhasAtivas.length,
           linhasAtivasAtualizadasDoPortal,
+          mergesInvocados,
+          mergesComAlteracao,
+          mergesSemAlteracao,
           linhasRemovidasCount: linhasRemovidas,
           possivelDessincronizacaoIndiceCpf: linhasCorpoIgnoradasEstimate > 0
         },
@@ -415,7 +551,16 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
             durationMs: Date.now() - salvarStartedAt,
             dataConsulta,
             itemCount: agenda.itens.length,
-            rowCountExistente: matriz.length
+            rowCountExistente: matriz.length,
+            diagnosticoTemporario: true,
+            itensPortalComTipoProcesso: portalComTipoProcesso,
+            itensPortalComCategoria: portalComCategoria,
+            mergesInvocados,
+            mergesComAlteracao,
+            mergesSemAlteracao,
+            portalItensComCpfAtivo,
+            ativosComTipoProcessoAposMerge: ativosComTipoAposMerge,
+            ativosComCategoriaAposMerge: ativosComCategoriaAposMerge
           },
           'Persistência Sheets omitida: nenhuma linha nova, remoção nem atualização de ativos'
         );
@@ -440,6 +585,48 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       }
 
       const reescreverStartedAt = Date.now();
+      const amostraLinhaEscrita =
+        linhasAtivas.find(
+          (linha) =>
+            (linha[indiceCabecalhoAgenda('Tipo de Processo')] ?? '').trim().length > 0 ||
+            (linha[indiceCabecalhoAgenda('Categoria')] ?? '').trim().length > 0
+        ) ??
+        linhasAtivas[0] ??
+        novasLinhas[0];
+      if (amostraLinhaEscrita !== undefined) {
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.diag.merge.amostra_linha_antes_updateValues',
+            diagnosticoTemporario: true,
+            dataConsulta,
+            pacienteNome: amostraLinhaEscrita[indiceCabecalhoAgenda('PACIENTE')] ?? '',
+            cpfMascarado: mascararCpf(
+              amostraLinhaEscrita[INDICE_COLUNA_TECNICA_CPF] ?? ''
+            ),
+            tipoProcesso:
+              amostraLinhaEscrita[indiceCabecalhoAgenda('Tipo de Processo')] ?? '',
+            categoria: amostraLinhaEscrita[indiceCabecalhoAgenda('Categoria')] ?? '',
+            horario: amostraLinhaEscrita[indiceCabecalhoAgenda('HORÁRIO')] ?? '',
+            dataAgendamento:
+              amostraLinhaEscrita[indiceCabecalhoAgenda('AGENDAMENTO DO DETRAN')] ?? '',
+            dataInclusao:
+              amostraLinhaEscrita[indiceCabecalhoAgenda('DATA DE INCLUSÃO')] ?? '',
+            columnCount: amostraLinhaEscrita.length,
+            valoresFinaisRowCount: valoresFinais.length
+          },
+          'DIAG merge: amostra de linha imediatamente antes de updateValues'
+        );
+      } else {
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.diag.merge.sem_linha_para_updateValues',
+            diagnosticoTemporario: true,
+            dataConsulta,
+            valoresFinaisRowCount: valoresFinais.length
+          },
+          'DIAG merge: nenhuma linha de dados a enviar ao updateValues'
+        );
+      }
       this.logger?.warn(
         {
           event: 'agenda.pipeline.step.start',
