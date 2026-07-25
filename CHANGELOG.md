@@ -4,12 +4,36 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-24 21:10 BRT
-> **Última sessão executada:** 24/07/2026 • 21:10 — Migração Sheets 8→10 (Tipo/Categoria)
+> **Última atualização:** 2026-07-24 21:25 BRT
+> **Última sessão executada:** 24/07/2026 • 21:25 — Merge portal → ativos (Tipo/Categoria)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 24/07/2026 • 21:25
+
+### 🎯 Objetivo
+
+Corrigir células vazias de Tipo de Processo / Categoria em pacientes já ativos: merge do `ItemAgenda` do portal sem quebrar deduplicação.
+
+### ✅ O que mudou
+
+- CPF ativo deixa de descartar o item do portal; faz merge (`mesclarItemPortalEmRegistroAtivo`).
+- Atualiza Tipo de Processo, Categoria, telefone, e-mail e nome (só se a projeção mudar).
+- Preserva DATA DE INCLUSÃO, AGENDAMENTO, PROFISSIONAL, UNIDADE, horário e CPF técnico.
+- Noop só ocorre se não houver linhas novas, remoções **nem** atualização de ativos.
+
+### 🧠 Decisões
+
+- Horário e data de agendamento da linha ativa não mudam com um novo aparecimento no portal (registro operacional, não reescrita do atendimento).
+
+### 📂 Arquivos impactados
+
+- `src/repositories/google-sheets-agenda-repository.ts` (+ teste)
+- `CHANGELOG.md`
 
 ---
 

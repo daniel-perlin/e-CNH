@@ -714,4 +714,96 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(linhaB[COL.dataInclusao], dataInclusaoB);
     assert.notEqual(linhaA[COL.dataInclusao], linhaB[COL.dataInclusao]);
   });
+
+  it('CPF ativo: atualiza Tipo de Processo e Categoria do portal sem nova linha nem mudar DATA DE INCLUSÃO', async () => {
+    const { sheets, repository } = criarRepositorio();
+    const dataInclusao = '15/07/2026 08:00';
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [...CABECALHOS_ABA_AGENDA],
+      [
+        'LIMÃO',
+        '21/07/2026',
+        '08:00',
+        'Paciente',
+        '(11) 900000001',
+        'antigo@example.test',
+        '',
+        '',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        dataInclusao,
+        '000.000.000-00'
+      ]
+    ]);
+
+    const resultado = await repository.salvarAgenda(
+      {
+        dataConsulta: '25/07/2026',
+        itens: [
+          {
+            horario: '14:00',
+            paciente: {
+              nome: 'PACIENTE ATUALIZADO',
+              cpf: '000.000.000-00',
+              telefone: '(11) 988887777',
+              email: 'novo@example.test'
+            },
+            tipoProcesso: 'Renovação',
+            categoria: 'AB'
+          }
+        ]
+      },
+      {
+        profissional: 'Profissional Alpha',
+        unidadeOperacional: 'LIMÃO',
+        perfilId: 'psicologo'
+      }
+    );
+
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.linhasGravadas, 0);
+    assert.equal(resultado.linhasRemovidas, 0);
+
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.equal(matriz.length, 2);
+    assert.equal(matriz[1]?.[COL.cpfTecnico], '000.000.000-00');
+    assert.equal(matriz[1]?.[COL.dataInclusao], dataInclusao);
+    assert.equal(matriz[1]?.[COL.dataAgendamento], '21/07/2026');
+    assert.equal(matriz[1]?.[COL.tipoProcesso], 'Renovação');
+    assert.equal(matriz[1]?.[COL.categoria], 'AB');
+    // Contato do portal atualizado; horário da linha ativa preservado.
+    assert.equal(matriz[1]?.[indiceCabecalhoAgenda('HORÁRIO')], '08:00');
+    assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
+    assert.equal(matriz[1]?.[indiceCabecalhoAgenda('TELEFONE')], '(11) 988887777');
+    assert.equal(matriz[1]?.[COL.email], 'novo@example.test');
+    assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
+    assert.equal(matriz[1]?.[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
+  });
+
+  it('CPF ativo com mesmos Tipo/Categoria: permanece noop (sem rewrite)', async () => {
+    let updates = 0;
+    const base = new InMemoryGoogleSheetsValues();
+    const sheets: InMemoryGoogleSheetsValues = Object.assign(base, {
+      updateValues: async (range: string, values: string[][]): Promise<void> => {
+        updates += 1;
+        return InMemoryGoogleSheetsValues.prototype.updateValues.call(base, range, values);
+      }
+    });
+    const repository = new GoogleSheetsAgendaRepository({ sheets, agora: HOJE_FIXO });
+
+    await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+    const updatesAposPrimeira = updates;
+
+    const segunda = await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+
+    assert.equal(segunda.sucesso, true);
+    assert.equal(segunda.linhasGravadas, 0);
+    assert.equal(updates, updatesAposPrimeira);
+  });
 });

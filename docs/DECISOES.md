@@ -187,7 +187,8 @@
   - hidratar CPF técnico com `resolverIndiceColunaTecnicaCpf(cabecalhoLido)` (V8→8; canônico→10), nunca com índice fixo cego do layout novo ao ler o antigo;
   - índices de coluna nos testes/código derivados de `indiceCabecalhoAgenda` / `CABECALHOS_ABA_AGENDA.length`;
   - **não** persistir Tipo/Categoria no SQLite/`pessoas` nesta entrega (projeção operacional Sheets; store relacional continua focado em identidade/histórico de pessoa).
-- **Consequência:** planilhas em produção migram sem intervenção manual; filtros/views por índice de coluna (ex.: G=PROFISSIONAL no V8) precisam ser revisados após a primeira sync; linhas já ativas migradas ficam com Tipo/Categoria vazios até eventual inclusão nova do portal (ativos não são reatualizados campo a campo).
+- **Consequência:** planilhas em produção migram sem intervenção manual; filtros/views por índice de coluna (ex.: G=PROFISSIONAL no V8) precisam ser revisados após a primeira sync; linhas já ativas migradas ficam com Tipo/Categoria vazios até a próxima sync em que o mesmo CPF reapareça no portal (merge em registro ativo — ver evolução abaixo).
+- **Evolução (24/07/2026):** CPF já ativo não descarta o `ItemAgenda` do portal. `mesclarItemPortalEmRegistroAtivo` atualiza Tipo de Processo, Categoria e contato (telefone/e-mail/nome quando a projeção muda); preserva DATA DE INCLUSÃO, AGENDAMENTO, PROFISSIONAL, UNIDADE, horário e CPF técnico. Deduplicação e inclusão de pacientes novos inalteradas.
 
 ## ADR-023 — Política de domínio da Agenda operacional
 

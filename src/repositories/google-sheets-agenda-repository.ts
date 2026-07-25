@@ -1,9 +1,12 @@
-import type { Agenda, ItemAgenda } from '../models/agenda.js';
+import type { Agenda, ItemAgenda, Paciente } from '../models/agenda.js';
 import type { GoogleSheetsValuesPort } from '../client/google-sheets-client.js';
 import { agendaOperacionalPolicy } from '../domain/agenda-operacional-policy.js';
 import type { StructuredLogger } from '../types/logger.js';
 import { normalizeCpfKey } from '../utils/cpf.js';
+import { normalizeEmail } from '../utils/email.js';
+import { formatPatientName } from '../utils/format-patient-name.js';
 import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
+import { normalizePhone } from '../utils/phone.js';
 import { mascararCpf } from '../utils/cpf-mask.js';
 import {
   PIPELINE_STEPS,
@@ -225,33 +228,21 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         'Resumo pré-classificação de linhas novas vs existentes'
       );
 
-      const linhasAtivas: string[][] = [];
-      for (const registro of ativos) {
-        const unidadePreservada = registro.unidadeOperacional?.trim() ?? '';
-        const mesmoProfissional =
-          registro.profissional === profissional ||
-          registro.profissional === profissionalExibicao;
-        const unidadeLinha =
-          unidadePreservada.length > 0
-            ? unidadePreservada
-            : mesmoProfissional
-              ? unidadeOperacional
-              : '';
-        // Regravação: não reformata PROFISSIONAL (valor já projetado na planilha).
-        const linha = this.projetarLinhaComCpfTecnico(
-          registro.item,
-          registro.dataConsulta,
-          registro.profissional,
-          unidadeLinha,
-          registro.dataInclusao ?? ''
-        );
-        if (linha !== undefined) {
-          linhasAtivas.push(linha);
+      const indiceAtivoPorCpf = new Map<string, number>();
+      for (let indice = 0; indice < ativos.length; indice += 1) {
+        const registro = ativos[indice];
+        if (registro === undefined) {
+          continue;
+        }
+        const chave = normalizeCpfKey(registro.item.paciente.cpf ?? '');
+        if (chave !== undefined && !indiceAtivoPorCpf.has(chave)) {
+          indiceAtivoPorCpf.set(chave, indice);
         }
       }
 
       const dataInclusao = formatSyncTimestamp(referencia);
       const novasLinhas: string[][] = [];
+      let linhasAtivasAtualizadasDoPortal = 0;
 
       if (
         agendaOperacionalPolicy.deveIncluirAgendamentoDoPortalNaAgendaOperacional(
@@ -262,6 +253,32 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         for (const item of agenda.itens) {
           const cpfOriginalPortal = item.paciente.cpf?.trim() ?? '';
           const chave = normalizeCpfKey(cpfOriginalPortal);
+          const indiceAtivo =
+            chave !== undefined ? indiceAtivoPorCpf.get(chave) : undefined;
+
+          // CPF já ativo: merge do estado do portal na linha existente (sem nova inclusão).
+          if (indiceAtivo !== undefined) {
+            const registroAtual = ativos[indiceAtivo];
+            if (registroAtual === undefined) {
+              continue;
+            }
+            const mesclado = mesclarItemPortalEmRegistroAtivo(registroAtual, item);
+            if (mesclado.alterouProjecao) {
+              ativos[indiceAtivo] = mesclado.registro;
+              linhasAtivasAtualizadasDoPortal += 1;
+              this.logger?.warn(
+                {
+                  event: 'agenda.sheets.classificacao.linha_ativa_atualizada',
+                  dataConsulta,
+                  cpfMascarado: mascararCpf(cpfOriginalPortal),
+                  camposAtualizados: mesclado.camposAtualizados
+                },
+                'Registro ativo atualizado com campos do portal'
+              );
+            }
+            continue;
+          }
+
           const existiaEmCpfsAtivos = chave !== undefined && cpfsAtivos.has(chave);
           if (existiaEmCpfsAtivos) {
             continue;
@@ -322,6 +339,31 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         }
       }
 
+      const linhasAtivas: string[][] = [];
+      for (const registro of ativos) {
+        const unidadePreservada = registro.unidadeOperacional?.trim() ?? '';
+        const mesmoProfissional =
+          registro.profissional === profissional ||
+          registro.profissional === profissionalExibicao;
+        const unidadeLinha =
+          unidadePreservada.length > 0
+            ? unidadePreservada
+            : mesmoProfissional
+              ? unidadeOperacional
+              : '';
+        // Regravação: não reformata PROFISSIONAL (valor já projetado na planilha).
+        const linha = this.projetarLinhaComCpfTecnico(
+          registro.item,
+          registro.dataConsulta,
+          registro.profissional,
+          unidadeLinha,
+          registro.dataInclusao ?? ''
+        );
+        if (linha !== undefined) {
+          linhasAtivas.push(linha);
+        }
+      }
+
       this.logger?.warn(
         {
           event: 'agenda.sheets.classificacao.resumo_pos',
@@ -331,6 +373,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           cpfsAtivosCount: cpfsAtivos.size,
           novasLinhasCount: novasLinhas.length,
           linhasAtivasCount: linhasAtivas.length,
+          linhasAtivasAtualizadasDoPortal,
           linhasRemovidasCount: linhasRemovidas,
           possivelDessincronizacaoIndiceCpf: linhasCorpoIgnoradasEstimate > 0
         },
@@ -345,6 +388,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           itemCount: novasLinhas.length,
           linhasAtivasCount: linhasAtivas.length,
           linhasNovasCount: novasLinhas.length,
+          linhasAtivasAtualizadasDoPortal,
           linhasRemovidasCount: linhasRemovidas,
           registrosExistentesCount: registrosExistentes.length
         },
@@ -358,7 +402,12 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         this.cabecalhosIguais(cabecalhoAtual, CABECALHOS_ABA_AGENDA);
 
       // Sem mudança efetiva e layout já canônico: evita writes desnecessários.
-      if (novasLinhas.length === 0 && linhasRemovidas === 0 && cabecalhoJaOficial) {
+      if (
+        novasLinhas.length === 0 &&
+        linhasRemovidas === 0 &&
+        linhasAtivasAtualizadasDoPortal === 0 &&
+        cabecalhoJaOficial
+      ) {
         this.logger?.warn(
           {
             event: 'agenda.sheets.salvar.skipped_noop',
@@ -368,7 +417,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
             itemCount: agenda.itens.length,
             rowCountExistente: matriz.length
           },
-          'Persistência Sheets omitida: nenhuma linha nova nem remoção'
+          'Persistência Sheets omitida: nenhuma linha nova, remoção nem atualização de ativos'
         );
         this.logger?.warn(
           {
@@ -871,4 +920,117 @@ function classificarMotivoLinhaNova(input: {
     return 'cpf_em_registro_inativo_reinserido_como_novo';
   }
   return 'cpf_nao_encontrado_em_registros_existentes';
+}
+
+/**
+ * Mescla estado atual do portal em um registro já ativo na planilha.
+ *
+ * Atualiza (quando o portal traz valor e a projeção muda): Tipo de Processo, Categoria,
+ * nome, telefone e e-mail. Comparações usam as mesmas normalizações do mapper
+ * (formatPatientName / normalizePhone / normalizeEmail) para não forçar rewrite inútil.
+ *
+ * Preserva: CPF, horário e metadados da linha (dataConsulta, dataInclusao, profissional, unidade)
+ * — o horário permanece atado ao AGENDAMENTO já persistido.
+ */
+export function mesclarItemPortalEmRegistroAtivo(
+  registro: LinhaAgendaPersistida,
+  portal: ItemAgenda
+): {
+  registro: LinhaAgendaPersistida;
+  alterouProjecao: boolean;
+  camposAtualizados: string[];
+} {
+  const atual = registro.item;
+  const pacienteAtual = atual.paciente;
+  const camposAtualizados: string[] = [];
+
+  const tipoProcesso = escolherValorPortal(portal.tipoProcesso, atual.tipoProcesso);
+  const categoria = escolherValorPortal(portal.categoria, atual.categoria);
+  const nomePortal = portal.paciente.nome?.trim();
+  const telefonePortal = portal.paciente.telefone?.trim();
+  const emailPortal = portal.paciente.email?.trim();
+
+  let nome = pacienteAtual.nome;
+  if (nomePortal !== undefined && nomePortal.length > 0) {
+    if (formatPatientName(nomePortal) !== formatPatientName(pacienteAtual.nome ?? '')) {
+      nome = nomePortal;
+      camposAtualizados.push('nome');
+    }
+  }
+
+  let telefone = pacienteAtual.telefone;
+  if (telefonePortal !== undefined && telefonePortal.length > 0) {
+    if (normalizePhone(telefonePortal) !== normalizePhone(pacienteAtual.telefone ?? '')) {
+      telefone = telefonePortal;
+      camposAtualizados.push('telefone');
+    }
+  }
+
+  let email = pacienteAtual.email;
+  if (emailPortal !== undefined && emailPortal.length > 0) {
+    if (normalizeEmail(emailPortal) !== normalizeEmail(pacienteAtual.email ?? '')) {
+      email = emailPortal;
+      camposAtualizados.push('email');
+    }
+  }
+
+  if (normalizarComparacao(tipoProcesso) !== normalizarComparacao(atual.tipoProcesso)) {
+    camposAtualizados.push('tipoProcesso');
+  }
+  if (normalizarComparacao(categoria) !== normalizarComparacao(atual.categoria)) {
+    camposAtualizados.push('categoria');
+  }
+
+  if (camposAtualizados.length === 0) {
+    return { registro, alterouProjecao: false, camposAtualizados };
+  }
+
+  const pacienteMesclado: Paciente = {
+    ...pacienteAtual,
+    ...(nome !== undefined ? { nome } : {}),
+    ...(telefone !== undefined ? { telefone } : {}),
+    ...(email !== undefined ? { email } : {})
+  };
+  if (pacienteAtual.cpf !== undefined) {
+    pacienteMesclado.cpf = pacienteAtual.cpf;
+  }
+
+  const itemMesclado: ItemAgenda = {
+    paciente: pacienteMesclado,
+    ...(atual.horario !== undefined ? { horario: atual.horario } : {}),
+    ...(tipoProcesso !== undefined ? { tipoProcesso } : {}),
+    ...(categoria !== undefined ? { categoria } : {}),
+    ...(atual.statusExameMedico !== undefined
+      ? { statusExameMedico: atual.statusExameMedico }
+      : {}),
+    ...(atual.statusExamePsicologico !== undefined
+      ? { statusExamePsicologico: atual.statusExamePsicologico }
+      : {})
+  };
+
+  return {
+    registro: { ...registro, item: itemMesclado },
+    alterouProjecao: true,
+    camposAtualizados
+  };
+}
+
+/** Prefere valor do portal quando presente (não vazio); senão mantém o da planilha. */
+function escolherValorPortal(
+  portal: string | undefined,
+  atual: string | undefined
+): string | undefined {
+  const candidato = portal?.trim();
+  if (candidato !== undefined && candidato.length > 0) {
+    return candidato;
+  }
+  const existente = atual?.trim();
+  if (existente !== undefined && existente.length > 0) {
+    return existente;
+  }
+  return undefined;
+}
+
+function normalizarComparacao(valor: string | undefined): string {
+  return valor?.trim() ?? '';
 }
