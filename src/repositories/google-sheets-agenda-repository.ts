@@ -21,10 +21,12 @@ import {
   CABECALHO_DATA_INCLUSAO_LEGADO,
   CABECALHOS_ABA_AGENDA,
   CABECALHOS_ABA_AGENDA_LEGADO,
+  CABECALHOS_ABA_AGENDA_OFICIAL_V8,
   FAIXA_COLUNAS_LEITURA_ABA_AGENDA,
   INDICE_COLUNA_TECNICA_CPF,
   NOME_ABA_AGENDA_PADRAO,
   normalizeTextoCabecalho,
+  resolverIndiceColunaTecnicaCpf,
   ULTIMA_COLUNA_PERSISTENCIA_ABA_AGENDA
 } from './agenda-sheet-headers.js';
 import { AgendaSheetMapper, type LinhaAgendaPersistida } from './agenda-sheet-mapper.js';
@@ -173,7 +175,8 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
           ? []
           : this.hidratarCpfTecnico(
               this.mapper.linhasParaRegistros(corpo, cabecalhoAtual),
-              corpo
+              corpo,
+              cabecalhoAtual
             );
 
       const ativos: LinhaAgendaPersistida[] = [];
@@ -472,7 +475,8 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
     const corpo = matriz.slice(1);
     const registros = this.hidratarCpfTecnico(
       this.mapper.linhasParaRegistros(corpo, cabecalho),
-      corpo
+      corpo,
+      cabecalho
     );
     const profissionalExibicao = formatProfessionalDisplayName(
       profissional,
@@ -486,7 +490,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   }
 
   /**
-   * Projeção oficial (8 colunas) + CPF técnico na coluna seguinte (fora do contrato visual).
+   * Projeção oficial (10 colunas) + CPF técnico na coluna seguinte (fora do contrato visual).
    * Com `perfilId`, formata PROFISSIONAL na escrita de linhas novas.
    */
   private projetarLinhaComCpfTecnico(
@@ -515,18 +519,23 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
   /**
    * Reinjeta CPF da coluna técnica (ou mantém o CPF legado já mapeado) no domínio.
    * Usa `registro.rowIndex` (índice na matriz original), nunca o índice do array filtrado.
+   * O índice da coluna técnica depende do layout lido (V8 → 8; canônico → 10).
    */
   private hidratarCpfTecnico(
     registros: LinhaAgendaPersistida[],
-    corpo: readonly (readonly string[])[]
+    corpo: readonly (readonly string[])[],
+    cabecalho: readonly string[] | undefined
   ): LinhaAgendaPersistida[] {
+    const indiceCpfTecnico = resolverIndiceColunaTecnicaCpf(cabecalho);
+
     if (registros.length !== corpo.length) {
       this.logger?.warn(
         {
           event: 'agenda.sheets.hidratar_cpf.indice_dessincronizado',
           registrosCount: registros.length,
           corpoLinhasCount: corpo.length,
-          delta: corpo.length - registros.length
+          delta: corpo.length - registros.length,
+          indiceCpfTecnico
         },
         'Possível dessincronização de índice entre registros parseados e linhas do corpo'
       );
@@ -536,7 +545,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
       if (registro.item.paciente.cpf !== undefined) {
         return registro;
       }
-      const cpfTecnico = corpo[registro.rowIndex]?.[INDICE_COLUNA_TECNICA_CPF]?.trim() ?? '';
+      const cpfTecnico = corpo[registro.rowIndex]?.[indiceCpfTecnico]?.trim() ?? '';
       if (cpfTecnico.length === 0) {
         return registro;
       }
@@ -724,6 +733,8 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
     return [
       [...CABECALHOS_ABA_AGENDA],
+      // Layout oficial anterior (8 colunas) — migração automática na primeira escrita.
+      [...CABECALHOS_ABA_AGENDA_OFICIAL_V8],
       legado,
       this.substituirCabecalho(legado, 'Data de Agendamento', CABECALHO_DATA_AGENDAMENTO_LEGADO),
       this.substituirCabecalho(legado, 'Data de inclusão', CABECALHO_DATA_INCLUSAO_LEGADO),

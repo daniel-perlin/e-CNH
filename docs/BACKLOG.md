@@ -129,11 +129,11 @@ Novas unidades: adicionar apenas no registro centralizado do resolver.
 | Status | ⏳ Pendente |
 | Prioridade | 🟢 Baixa |
 
-**Contexto (v1.0):** o contrato visual da aba `Agenda` tem 8 colunas operacionais (`CABECALHOS_ABA_AGENDA`), sem CPF. O CPF permanece a chave de negócio (B004/B005). Para preservar a deduplicação entre sincronizações, a implementação atual mantém o CPF em **coluna técnica adjacente**, fora do cabeçalho oficial. Essa coluna técnica é decisão de implementação da **v1.0**, não um objetivo arquitetural permanente (ver ADR-018).
+**Contexto (v1.0+):** o contrato visual da aba `Agenda` tem 10 colunas operacionais (`CABECALHOS_ABA_AGENDA`), sem CPF. O CPF permanece a chave de negócio (B004/B005). Para preservar a deduplicação entre sincronizações, a implementação atual mantém o CPF em **coluna técnica adjacente**, fora do cabeçalho oficial. Essa coluna técnica é decisão de implementação da **v1.0**, não um objetivo arquitetural permanente (ver ADR-018 / ADR-024).
 
 **Objetivo futuro:** separar claramente:
 
-- **projeção operacional** — planilha usada pela clínica (somente as 8 colunas);
+- **projeção operacional** — planilha usada pela clínica (colunas oficiais de `CABECALHOS_ABA_AGENDA`);
 - **metadados técnicos de sincronização** — identidade/deduplicação e demais dados que o sync precisa e a clínica não deve ver no layout operacional.
 
 **Alternativas a avaliar (não decidir agora):**

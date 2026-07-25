@@ -56,7 +56,7 @@ export interface LinhaAgendaPersistida {
 /**
  * Converte modelos de domínio em linhas da planilha (e o inverso).
  * Camada pura: sem I/O, sem googleapis, sem regras de negócio.
- * Projeta apenas `CABECALHOS_ABA_AGENDA` — demais campos do domínio são omitidos na escrita.
+ * Projeta apenas `CABECALHOS_ABA_AGENDA` — CPF e status de exames ficam fora da escrita visual.
  */
 export class AgendaSheetMapper {
   /**
@@ -68,7 +68,7 @@ export class AgendaSheetMapper {
 
   /**
    * Converte uma agenda tipada em linhas de dados (sem cabeçalho).
-   * Agenda vazia produz zero linhas. CPF e metadados de exame não são gravados.
+   * Agenda vazia produz zero linhas. CPF e status de exames não são gravados.
    */
   public agendaParaLinhas(agenda: Agenda, contexto: ContextoLinhaAgenda): string[][] {
     const profissionalBruto = contexto.profissional.trim();
@@ -153,16 +153,20 @@ export class AgendaSheetMapper {
     dataConsulta: string,
     dataInclusao: string
   ): string[] {
-    return [
-      unidadeOperacional,
-      dataConsulta,
-      item.horario ?? '',
-      formatPatientName(item.paciente.nome ?? ''),
-      normalizePhone(item.paciente.telefone ?? ''),
-      normalizeEmail(item.paciente.email ?? ''),
-      profissional,
-      dataInclusao
-    ];
+    const valores: Record<CabecalhoAbaAgenda, string> = {
+      UNIDADE: unidadeOperacional,
+      'AGENDAMENTO DO DETRAN': dataConsulta,
+      HORÁRIO: item.horario ?? '',
+      PACIENTE: formatPatientName(item.paciente.nome ?? ''),
+      TELEFONE: normalizePhone(item.paciente.telefone ?? ''),
+      EMAIL: normalizeEmail(item.paciente.email ?? ''),
+      'Tipo de Processo': item.tipoProcesso?.trim() ?? '',
+      Categoria: item.categoria?.trim() ?? '',
+      PROFISSIONAL: profissional,
+      'DATA DE INCLUSÃO': dataInclusao
+    };
+
+    return CABECALHOS_ABA_AGENDA.map((titulo) => valores[titulo]);
   }
 
   private linhaParaItem(
@@ -190,9 +194,17 @@ export class AgendaSheetMapper {
 
     const item: ItemAgenda = { paciente };
     const horario = this.celula(linha, indices, 'HORÁRIO');
+    const tipoProcesso = this.celula(linha, indices, 'Tipo de Processo');
+    const categoria = this.celula(linha, indices, 'Categoria');
 
     if (horario !== undefined) {
       item.horario = horario;
+    }
+    if (tipoProcesso !== undefined) {
+      item.tipoProcesso = tipoProcesso;
+    }
+    if (categoria !== undefined) {
+      item.categoria = categoria;
     }
 
     return item;

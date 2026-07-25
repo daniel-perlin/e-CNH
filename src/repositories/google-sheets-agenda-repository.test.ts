@@ -3,19 +3,29 @@ import { describe, it } from 'node:test';
 
 import type { Agenda } from '../models/agenda.js';
 
+import {
+  CABECALHOS_ABA_AGENDA,
+  CABECALHOS_ABA_AGENDA_OFICIAL_V8,
+  indiceCabecalhoAgenda,
+  INDICE_COLUNA_TECNICA_CPF
+} from './agenda-sheet-headers.js';
 import { GoogleSheetsAgendaRepository } from './google-sheets-agenda-repository.js';
 import { InMemoryGoogleSheetsValues } from './in-memory-google-sheets-values.js';
 
 /** 20/07/2026 15:00 UTC = 12:00 em America/Sao_Paulo. */
 const HOJE_FIXO = new Date('2026-07-20T15:00:00.000Z');
 
-/** Índices do layout oficial (CABECALHOS_ABA_AGENDA). */
+/** Índices do layout oficial atual (derivados de CABECALHOS_ABA_AGENDA). */
 const COL = {
-  unidade: 0,
-  dataAgendamento: 1,
-  paciente: 3,
-  profissional: 6,
-  dataInclusao: 7
+  unidade: indiceCabecalhoAgenda('UNIDADE'),
+  dataAgendamento: indiceCabecalhoAgenda('AGENDAMENTO DO DETRAN'),
+  paciente: indiceCabecalhoAgenda('PACIENTE'),
+  email: indiceCabecalhoAgenda('EMAIL'),
+  tipoProcesso: indiceCabecalhoAgenda('Tipo de Processo'),
+  categoria: indiceCabecalhoAgenda('Categoria'),
+  profissional: indiceCabecalhoAgenda('PROFISSIONAL'),
+  dataInclusao: indiceCabecalhoAgenda('DATA DE INCLUSÃO'),
+  cpfTecnico: INDICE_COLUNA_TECNICA_CPF
 } as const;
 
 const RANGE_LEITURA = "'Agenda'!A:Z";
@@ -91,16 +101,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(resultado.linhasRemovidas, 1);
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 1);
-    assert.deepEqual(matriz[0], [
-      'UNIDADE',
-      'AGENDAMENTO DO DETRAN',
-      'HORÁRIO',
-      'PACIENTE',
-      'TELEFONE',
-      'EMAIL',
-      'PROFISSIONAL',
-      'DATA DE INCLUSÃO'
-    ]);
+    assert.deepEqual(matriz[0], [...CABECALHOS_ABA_AGENDA]);
   });
 
   it('agendamento de hoje é mantido (policy: hoje ou futuro)', async () => {
@@ -116,6 +117,8 @@ describe('GoogleSheetsAgendaRepository', () => {
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 2);
     assert.equal(matriz[1]?.[COL.dataAgendamento], '20/07/2026');
+    assert.equal(matriz[1]?.[COL.tipoProcesso], 'Primeira Habilitação');
+    assert.equal(matriz[1]?.[COL.categoria], 'B');
   });
 
   it('agendamento futuro é mantido', async () => {
@@ -145,17 +148,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     const { sheets, repository } = criarRepositorio();
 
     await sheets.updateValues(RANGE_LEITURA, [
-      [
-        'UNIDADE',
-        'AGENDAMENTO DO DETRAN',
-        'HORÁRIO',
-        'PACIENTE',
-        'TELEFONE',
-        'EMAIL',
-        'PROFISSIONAL',
-        'DATA DE INCLUSÃO',
-        '000.000.000-00'
-      ],
+      [...CABECALHOS_ABA_AGENDA_OFICIAL_V8],
       [
         'LIMÃO',
         '19/07/2026',
@@ -191,6 +184,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.ok(datas.includes('20/07/2026'));
     assert.ok(datas.includes('21/07/2026'));
     assert.equal(datas.includes('19/07/2026'), false);
+    assert.deepEqual(matriz[0], [...CABECALHOS_ABA_AGENDA]);
   });
 
   it('nenhum paciente: não grava linhas de dados', async () => {
@@ -292,6 +286,110 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
   });
 
+  it('migra planilha oficial V8 (8 colunas) para 10 na primeira sync preservando CPF técnico', async () => {
+    const { sheets, repository } = criarRepositorio();
+    const dataInclusao = '15/07/2026 08:00';
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [...CABECALHOS_ABA_AGENDA_OFICIAL_V8],
+      [
+        'LIMÃO',
+        '21/07/2026',
+        '08:00',
+        'Paciente',
+        '',
+        'paciente@example.test',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        dataInclusao,
+        '111.111.111-11'
+      ]
+    ]);
+
+    const resultado = await repository.salvarAgenda(
+      {
+        dataConsulta: '22/07/2026',
+        itens: [
+          {
+            horario: '09:00',
+            paciente: { nome: 'OUTRO', cpf: '222.222.222-22' },
+            tipoProcesso: 'Renovação',
+            categoria: 'A'
+          }
+        ]
+      },
+      {
+        profissional: 'Profissional Alpha',
+        unidadeOperacional: 'LIMÃO',
+        perfilId: 'psicologo'
+      }
+    );
+
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.linhasGravadas, 1);
+
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.deepEqual(matriz[0], [...CABECALHOS_ABA_AGENDA]);
+    assert.equal(matriz[0]?.length, 10);
+
+    const linhaMigrada = matriz.find((row) => row[COL.cpfTecnico] === '111.111.111-11');
+    assert.ok(linhaMigrada, 'CPF técnico do layout V8 deve migrar para o índice canônico');
+    assert.equal(linhaMigrada[COL.email], 'paciente@example.test');
+    assert.equal(linhaMigrada[COL.tipoProcesso], '');
+    assert.equal(linhaMigrada[COL.categoria], '');
+    assert.equal(linhaMigrada[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
+    assert.equal(linhaMigrada[COL.dataInclusao], dataInclusao);
+    // No canônico, índice 8 é PROFISSIONAL — não o CPF técnico (agora em COL.cpfTecnico).
+    assert.equal(linhaMigrada[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
+    assert.notEqual(linhaMigrada[COL.profissional], '111.111.111-11');
+
+    const linhaNova = matriz.find((row) => row[COL.cpfTecnico] === '222.222.222-22');
+    assert.ok(linhaNova);
+    assert.equal(linhaNova[COL.tipoProcesso], 'Renovação');
+    assert.equal(linhaNova[COL.categoria], 'A');
+  });
+
+  it('após migrar V8→10, segunda sync com o mesmo paciente não duplica (CPF no índice 10)', async () => {
+    const { sheets, repository } = criarRepositorio();
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [...CABECALHOS_ABA_AGENDA_OFICIAL_V8],
+      [
+        'LIMÃO',
+        '21/07/2026',
+        '08:00',
+        'Paciente',
+        '',
+        '',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        '15/07/2026 08:00',
+        '000.000.000-00'
+      ]
+    ]);
+
+    const primeira = await repository.salvarAgenda(
+      agendaFixture('25/07/2026', '11:00', 'PACIENTE RENOMEADO', '00000000000'),
+      { profissional: 'Profissional Beta', unidadeOperacional: 'CAPÃO REDONDO', perfilId: 'psicologo' }
+    );
+    assert.equal(primeira.sucesso, true);
+    assert.equal(primeira.linhasGravadas, 0);
+
+    const matrizAposMigracao = await sheets.getValues(RANGE_LEITURA);
+    assert.deepEqual(matrizAposMigracao[0], [...CABECALHOS_ABA_AGENDA]);
+    assert.equal(matrizAposMigracao[1]?.[COL.cpfTecnico], '000.000.000-00');
+
+    const segunda = await repository.salvarAgenda(
+      agendaFixture('26/07/2026', '12:00', 'PACIENTE RENOMEADO', '000.000.000-00'),
+      { profissional: 'Profissional Beta', unidadeOperacional: 'CAPÃO REDONDO', perfilId: 'psicologo' }
+    );
+    assert.equal(segunda.sucesso, true);
+    assert.equal(segunda.linhasGravadas, 0);
+    assert.equal(segunda.linhasRemovidas, 0);
+
+    const matrizFinal = await sheets.getValues(RANGE_LEITURA);
+    assert.equal(matrizFinal.length, 2);
+    assert.equal(matrizFinal[1]?.[COL.cpfTecnico], '000.000.000-00');
+  });
+
   it('CPF impede duplicidade enquanto o paciente permanece ativo (projeção sem coluna CPF)', async () => {
     const { sheets, repository } = criarRepositorio();
 
@@ -301,11 +399,10 @@ describe('GoogleSheetsAgendaRepository', () => {
     );
     const matrizInicial = await sheets.getValues(RANGE_LEITURA);
     const dataInclusao = matrizInicial[1]?.[COL.dataInclusao];
-    assert.equal(matrizInicial[0]?.length, 8);
+    assert.equal(matrizInicial[0]?.length, 10);
     assert.equal(matrizInicial[1]?.[COL.paciente], 'Paciente');
     assert.equal(matrizInicial[1]?.[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
-    // CPF técnico fora do contrato visual (coluna após as 8 oficiais)
-    assert.equal(matrizInicial[1]?.[8], '000.000.000-00');
+    assert.equal(matrizInicial[1]?.[COL.cpfTecnico], '000.000.000-00');
 
     const segunda = await repository.salvarAgenda(
       agendaFixture('25/07/2026', '11:00', 'PACIENTE RENOMEADO', '00000000000'),
@@ -365,6 +462,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(matriz[0]?.[COL.unidade], 'UNIDADE');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
     assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
+    assert.equal(matriz[1]?.[COL.categoria], 'B');
   });
 
   it('pacientes diferentes continuam sendo inseridos normalmente', async () => {
@@ -422,7 +520,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(semData.motivoFalha, 'data-consulta-ausente');
   });
 
-  it('aceita cabeçalho oficial com quebra de linha e espaços extras no título', async () => {
+  it('aceita cabeçalho oficial V8 com quebra de linha e migra para canônico', async () => {
     const { sheets, repository } = criarRepositorio();
 
     await sheets.updateValues(RANGE_LEITURA, [
@@ -447,6 +545,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(resultado.linhasGravadas, 1);
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz[0]?.[COL.dataAgendamento], 'AGENDAMENTO DO DETRAN');
+    assert.equal(matriz[0]?.length, 10);
     assert.equal(matriz[1]?.[COL.dataAgendamento], '21/07/2026');
   });
 
@@ -550,16 +649,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     const dataInclusaoB = '16/07/2026 09:00';
 
     await sheets.updateValues(RANGE_LEITURA, [
-      [
-        'UNIDADE',
-        'AGENDAMENTO DO DETRAN',
-        'HORÁRIO',
-        'PACIENTE',
-        'TELEFONE',
-        'EMAIL',
-        'PROFISSIONAL',
-        'DATA DE INCLUSÃO'
-      ],
+      [...CABECALHOS_ABA_AGENDA_OFICIAL_V8],
       [
         'LIMÃO',
         '21/07/2026',
@@ -610,11 +700,14 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(resultado.linhasGravadas, 0);
 
     const matriz = await sheets.getValues(RANGE_LEITURA);
-    const linhasDados = matriz.slice(1).filter((row) => (row[6] ?? '').trim().length > 0);
+    assert.deepEqual(matriz[0], [...CABECALHOS_ABA_AGENDA]);
+    const linhasDados = matriz
+      .slice(1)
+      .filter((row) => (row[COL.profissional] ?? '').trim().length > 0);
     assert.equal(linhasDados.length, 2);
 
-    const linhaA = linhasDados.find((row) => row[8] === '111.111.111-11');
-    const linhaB = linhasDados.find((row) => row[8] === '222.222.222-22');
+    const linhaA = linhasDados.find((row) => row[COL.cpfTecnico] === '111.111.111-11');
+    const linhaB = linhasDados.find((row) => row[COL.cpfTecnico] === '222.222.222-22');
     assert.ok(linhaA);
     assert.ok(linhaB);
     assert.equal(linhaA[COL.dataInclusao], dataInclusaoA);

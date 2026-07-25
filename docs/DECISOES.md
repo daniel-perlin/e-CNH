@@ -149,6 +149,7 @@
   - preservar o CPF em **coluna técnica adjacente** (fora de `CABECALHOS_ABA_AGENDA`, sem título no cabeçalho oficial) exclusivamente para a deduplicação entre syncs;
   - **não** tratar essa coluna técnica como objetivo arquitetural permanente nem como parte do produto operacional.
 - **Consequência:** B004/B005 permanecem válidos na v1.0 sem expor o CPF no layout da clínica. A separação futura entre projeção operacional e metadados técnicos fica registrada em **B014** (aba técnica, store auxiliar ou equivalente — a solução não é escolhida agora).
+- **Evolução (ADR-024):** o layout oficial passou de 8 para 10 colunas; a coluna técnica de CPF permanece adjacente ao canônico (`INDICE_COLUNA_TECNICA_CPF`), com resolução por layout na leitura.
 
 ## ADR-019 — Atualização inteligente de credenciais
 
@@ -174,6 +175,19 @@
   - manter `job:agenda` para desenvolvimento/local (Opção B); não exigir `AGENDA_SYNC_CRON` no serviço Cron do Railway;
   - documentar em `docs/DEPLOY_RAILWAY.md` + `railway.toml`.
 - **Consequência:** custo alinhado a uma execução diária; o `AgendaSyncJob`/lock existentes são reutilizados; processo que não encerra bloqueia o próximo tick do Cron da plataforma.
+
+## ADR-024 — Layout oficial da Agenda com Tipo de Processo e Categoria (10 colunas)
+
+- **Status:** aceito e implementado
+- **Contexto:** `tipoProcesso` e `categoria` já eram extraídos do HTML (`table#agenda`) e existiam no domínio, mas a projeção Sheets omitia esses campos (layout V8 com 8 colunas). A clínica precisa vê-los na planilha operacional, imediatamente após `EMAIL`.
+- **Decisão:**
+  - expandir `CABECALHOS_ABA_AGENDA` para 10 colunas (`Tipo de Processo`, `Categoria` após `EMAIL`);
+  - manter `CABECALHOS_ABA_AGENDA_OFICIAL_V8` como variante aceita na leitura;
+  - na primeira sync pós-deploy, reescrever a aba no canônico 10 + CPF técnico no índice 10;
+  - hidratar CPF técnico com `resolverIndiceColunaTecnicaCpf(cabecalhoLido)` (V8→8; canônico→10), nunca com índice fixo cego do layout novo ao ler o antigo;
+  - índices de coluna nos testes/código derivados de `indiceCabecalhoAgenda` / `CABECALHOS_ABA_AGENDA.length`;
+  - **não** persistir Tipo/Categoria no SQLite/`pessoas` nesta entrega (projeção operacional Sheets; store relacional continua focado em identidade/histórico de pessoa).
+- **Consequência:** planilhas em produção migram sem intervenção manual; filtros/views por índice de coluna (ex.: G=PROFISSIONAL no V8) precisam ser revisados após a primeira sync; linhas já ativas migradas ficam com Tipo/Categoria vazios até eventual inclusão nova do portal (ativos não são reatualizados campo a campo).
 
 ## ADR-023 — Política de domínio da Agenda operacional
 

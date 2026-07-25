@@ -4,12 +4,39 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-24 18:05 BRT
-> **Última sessão executada:** 24/07/2026 • 18:05 — SQLite opcional no deploy Railway
+> **Última atualização:** 2026-07-24 21:10 BRT
+> **Última sessão executada:** 24/07/2026 • 21:10 — Migração Sheets 8→10 (Tipo/Categoria)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 24/07/2026 • 21:10
+
+### 🎯 Objetivo
+
+Incluir `Tipo de Processo` e `Categoria` na projeção oficial da aba Agenda, com migração segura 8→10 e preservação do CPF técnico.
+
+### ✅ O que mudou
+
+- `CABECALHOS_ABA_AGENDA` passa a 10 colunas; V8 permanece como variante de leitura (`CABECALHOS_ABA_AGENDA_OFICIAL_V8`).
+- Mapper grava/lê Tipo de Processo e Categoria; hidratação do CPF técnico é layout-aware (`resolverIndiceColunaTecnicaCpf`).
+- Índices derivados via `indiceCabecalhoAgenda` / constantes do layout (sem literais mágicos no caminho de produção).
+- Testes explícitos de migração V8→10 + suite existente passando.
+
+### 🧠 Decisões
+
+- **ADR-024:** migração por reescrita canônica na primeira sync; sem alteração Railway/SQLite nesta entrega.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-sheet-headers.ts` (+ teste)
+- `src/repositories/agenda-sheet-mapper.ts` (+ teste)
+- `src/repositories/google-sheets-agenda-repository.ts` (+ teste)
+- `docs/DECISOES.md`, `MODELO_DOMINIO.md`, `BACKLOG.md`
+- `CHANGELOG.md`
 
 ---
 
