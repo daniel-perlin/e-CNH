@@ -4,12 +4,35 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-24 21:30 BRT
-> **Última sessão executada:** 24/07/2026 • 21:30 — Logs DIAG merge Tipo/Categoria
+> **Última atualização:** 2026-07-24 21:45 BRT
+> **Última sessão executada:** 24/07/2026 • 21:45 — Fix cabeçalho case-insensitive
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 24/07/2026 • 21:45
+
+### 🎯 Objetivo
+
+Desbloquear persistência abortada por `cabecalho-incompativel` quando a planilha tem `Profissional` em vez de `PROFISSIONAL`.
+
+### ✅ O que mudou
+
+- `normalizeTextoCabecalho` passa a fazer case-fold (`pt-BR`) além de colapsar whitespace.
+- Testes cobrem Title Case + coluna `CPF` extra no final (cenário de produção).
+
+### 🧠 Decisões
+
+- Correção só na normalização usada por `cabecalhoCompativel` / `cabecalhosIguais`; parser, mapper, merge e sync intactos.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-sheet-headers.ts` (+ teste)
+- `src/repositories/google-sheets-agenda-repository.ts` (comentário) (+ teste)
+- `CHANGELOG.md`
 
 ---
 

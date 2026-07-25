@@ -7,6 +7,7 @@ import {
   indiceCabecalhoAgenda,
   INDICE_COLUNA_TECNICA_CPF,
   normalizeTextoCabecalho,
+  prefixoCabecalhoCompativel,
   resolverAliasCabecalho,
   resolverIndiceColunaTecnicaCpf
 } from './agenda-sheet-headers.js';
@@ -15,11 +16,24 @@ describe('normalizeTextoCabecalho', () => {
   it('colapsa quebras de linha e espaços múltiplos', () => {
     assert.equal(
       normalizeTextoCabecalho('AGENDAMENTO\nDO DETRAN'),
-      'AGENDAMENTO DO DETRAN'
+      'agendamento do detran'
     );
     assert.equal(
       normalizeTextoCabecalho('AGENDAMENTO \r\n  DO\tDETRAN  '),
-      'AGENDAMENTO DO DETRAN'
+      'agendamento do detran'
+    );
+  });
+
+  it('trata maiúsculas e Title Case como equivalentes', () => {
+    assert.equal(normalizeTextoCabecalho('PROFISSIONAL'), 'profissional');
+    assert.equal(normalizeTextoCabecalho('Profissional'), 'profissional');
+    assert.equal(
+      normalizeTextoCabecalho('PROFISSIONAL'),
+      normalizeTextoCabecalho('Profissional')
+    );
+    assert.equal(
+      normalizeTextoCabecalho('DATA DE INCLUSÃO'),
+      normalizeTextoCabecalho('Data de inclusão')
     );
   });
 });
@@ -36,6 +50,12 @@ describe('resolverAliasCabecalho', () => {
   it('reconhece Tipo de Processo e Categoria', () => {
     assert.equal(resolverAliasCabecalho('Tipo de Processo'), 'Tipo de Processo');
     assert.equal(resolverAliasCabecalho('Categoria'), 'Categoria');
+  });
+
+  it('reconhece PROFISSIONAL independentemente do case', () => {
+    assert.equal(resolverAliasCabecalho('PROFISSIONAL'), 'PROFISSIONAL');
+    assert.equal(resolverAliasCabecalho('Profissional'), 'PROFISSIONAL');
+    assert.equal(resolverAliasCabecalho('profissional'), 'PROFISSIONAL');
   });
 });
 
@@ -67,5 +87,23 @@ describe('índices derivados do layout oficial', () => {
     );
     assert.equal(resolverIndiceColunaTecnicaCpf([...CABECALHOS_ABA_AGENDA]), 10);
     assert.equal(resolverIndiceColunaTecnicaCpf(undefined), 10);
+  });
+
+  it('aceita layout canônico com Profissional (Title Case) e coluna CPF extra', () => {
+    const cabecalhoProducao = [
+      'UNIDADE',
+      'AGENDAMENTO DO DETRAN',
+      'HORÁRIO',
+      'PACIENTE',
+      'TELEFONE',
+      'EMAIL',
+      'Tipo de Processo',
+      'Categoria',
+      'Profissional',
+      'DATA DE INCLUSÃO',
+      'CPF'
+    ];
+    assert.equal(prefixoCabecalhoCompativel(cabecalhoProducao, [...CABECALHOS_ABA_AGENDA]), true);
+    assert.equal(resolverIndiceColunaTecnicaCpf(cabecalhoProducao), 10);
   });
 });

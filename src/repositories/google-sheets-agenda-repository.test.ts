@@ -603,6 +603,51 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(diagnostico.colunaDivergente.encontrado, 'COLUNA ERRADA');
   });
 
+  it('aceita cabeçalho canônico com Profissional (Title Case) e coluna CPF nomeada no final', async () => {
+    const { sheets, repository } = criarRepositorio();
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [
+        'UNIDADE',
+        'AGENDAMENTO DO DETRAN',
+        'HORÁRIO',
+        'PACIENTE',
+        'TELEFONE',
+        'EMAIL',
+        'Tipo de Processo',
+        'Categoria',
+        'Profissional',
+        'DATA DE INCLUSÃO',
+        'CPF'
+      ],
+      [
+        'LIMÃO',
+        '21/07/2026',
+        '08:00',
+        'Paciente',
+        '',
+        '',
+        '',
+        '',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        '15/07/2026 08:00',
+        '555.555.555-55'
+      ]
+    ]);
+
+    const resultado = await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
+    );
+
+    assert.equal(resultado.sucesso, true);
+    assert.notEqual(resultado.motivoFalha, 'cabecalho-incompativel');
+    assert.equal(resultado.linhasGravadas, 0);
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.deepEqual(matriz[0], [...CABECALHOS_ABA_AGENDA]);
+    assert.equal(matriz[1]?.[COL.cpfTecnico], '555.555.555-55');
+  });
+
   it('omite rewrite quando não há linhas novas nem remoções (noop)', async () => {
     let updates = 0;
     let clears = 0;

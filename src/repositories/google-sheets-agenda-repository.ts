@@ -1027,7 +1027,7 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
   /**
    * Localiza a primeira coluna divergente em relação a uma variante esperada
-   * (após normalização de whitespace).
+   * (após normalização de whitespace e case-fold).
    */
   private primeiraDivergenciaCabecalho(
     atual: readonly string[],

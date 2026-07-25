@@ -144,11 +144,11 @@ export const FAIXA_COLUNAS_LEITURA_ABA_AGENDA = 'A:Z';
 
 /**
  * Normaliza rótulo de cabeçalho para comparação semântica.
- * Colapsa qualquer sequência de whitespace (espaços, tabs, `\n`, `\r\n`) em um espaço
- * e remove bordas — sem alterar o significado do texto.
+ * Colapsa whitespace (espaços, tabs, `\n`, `\r\n`), remove bordas e
+ * aplica case-fold (`pt-BR`) — `PROFISSIONAL` e `Profissional` são equivalentes.
  */
 export function normalizeTextoCabecalho(valor: string): string {
-  return valor.replace(/\s+/g, ' ').trim();
+  return valor.replace(/\s+/g, ' ').trim().toLocaleLowerCase('pt-BR');
 }
 
 /** Compara prefixo do cabeçalho lido com um layout esperado (tolerante a whitespace). */
