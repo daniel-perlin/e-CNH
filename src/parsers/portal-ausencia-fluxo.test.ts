@@ -114,6 +114,7 @@ describe('fluxo ausência portal (NÃO INFORMADO → undefined)', () => {
         dataInclusao: '15/07/2026 08:00',
         profissional: 'Psicólogo: PROFISSIONAL ALPHA',
         unidadeOperacional: 'LIMÃO',
+        rowIndex: 0,
         item: {
           horario: '08:00',
           paciente: {

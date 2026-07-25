@@ -852,4 +852,70 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(segunda.linhasGravadas, 0);
     assert.equal(updates, updatesAposPrimeira);
   });
+
+  it('backfill: reprojeta placeholders e força updateValues sem remover linhas passadas', async () => {
+    let updates = 0;
+    const base = new InMemoryGoogleSheetsValues();
+    const sheets: InMemoryGoogleSheetsValues = Object.assign(base, {
+      updateValues: async (range: string, values: string[][]): Promise<void> => {
+        updates += 1;
+        return InMemoryGoogleSheetsValues.prototype.updateValues.call(base, range, values);
+      }
+    });
+    const repository = new GoogleSheetsAgendaRepository({ sheets, agora: HOJE_FIXO });
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [...CABECALHOS_ABA_AGENDA],
+      [
+        'LIMÃO',
+        '19/07/2026',
+        '08:00',
+        'Paciente Passado',
+        '',
+        'não informado',
+        'Renovação',
+        '',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        '10/07/2026 08:00',
+        '000.000.000-00'
+      ],
+      [
+        'LIMÃO',
+        '21/07/2026',
+        '09:00',
+        'Paciente Futuro',
+        'NÃO INFORMADO',
+        '',
+        'Renovação',
+        'não informado',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        '15/07/2026 08:00',
+        '111.111.111-11'
+      ]
+    ]);
+    const updatesAposSeed = updates;
+
+    const resultado = await repository.reescreverProjecaoVisual();
+
+    assert.equal(resultado.sucesso, true);
+    assert.equal(resultado.linhasLidas, 2);
+    assert.equal(resultado.linhasReescritas, 2);
+    assert.ok(updates > updatesAposSeed);
+
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.equal(matriz.length, 3);
+    assert.deepEqual(matriz[0], [...CABECALHOS_ABA_AGENDA]);
+
+    assert.equal(matriz[1]?.[COL.dataAgendamento], '19/07/2026');
+    assert.equal(matriz[1]?.[indiceCabecalhoAgenda('TELEFONE')], SHEET_PLACEHOLDER);
+    assert.equal(matriz[1]?.[COL.email], SHEET_PLACEHOLDER);
+    assert.equal(matriz[1]?.[COL.categoria], SHEET_PLACEHOLDER);
+    assert.equal(matriz[1]?.[COL.cpfTecnico], '000.000.000-00');
+
+    assert.equal(matriz[2]?.[COL.dataAgendamento], '21/07/2026');
+    assert.equal(matriz[2]?.[indiceCabecalhoAgenda('TELEFONE')], SHEET_PLACEHOLDER);
+    assert.equal(matriz[2]?.[COL.email], SHEET_PLACEHOLDER);
+    assert.equal(matriz[2]?.[COL.categoria], SHEET_PLACEHOLDER);
+    assert.equal(matriz[2]?.[COL.cpfTecnico], '111.111.111-11');
+  });
 });

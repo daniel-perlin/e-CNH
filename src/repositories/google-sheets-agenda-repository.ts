@@ -17,6 +17,7 @@ import { formatSyncTimestamp } from '../utils/sync-timestamp.js';
 import type {
   AgendaRepository,
   ContextoPersistenciaAgenda,
+  MotivoFalhaPersistenciaAgenda,
   ResultadoPersistenciaAgenda
 } from './agenda-repository.js';
 import {
@@ -54,6 +55,14 @@ export interface GoogleSheetsAgendaRepositoryOptions {
   agora?: Date;
   /** Logger opcional para diagnóstico de cabeçalho incompatível (sem PII). */
   logger?: StructuredLogger;
+}
+
+/** Resultado do backfill de projeção visual (sem portal / sem policy). */
+export interface ResultadoBackfillProjecaoAgenda {
+  linhasLidas: number;
+  linhasReescritas: number;
+  motivoFalha?: MotivoFalhaPersistenciaAgenda;
+  sucesso: boolean;
 }
 
 /**
@@ -685,6 +694,111 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
         'Falha de infraestrutura na persistência Google Sheets'
       );
       return { sucesso: false, motivoFalha: 'erro-infraestrutura' };
+    }
+  }
+
+  /**
+   * Reescreve a aba Agenda aplicando só a projeção visual atual do mapper
+   * (`itemParaLinha` via `agendaParaLinhas`: placeholders, normalizações).
+   *
+   * Não consulta o portal, não aplica policy de remoção, não faz merge e
+   * **ignora** o noop de `salvarAgenda` — sempre chama `updateValues`.
+   */
+  public async reescreverProjecaoVisual(): Promise<ResultadoBackfillProjecaoAgenda> {
+    const startedAt = Date.now();
+    this.logger?.warn(
+      {
+        event: 'agenda.sheets.backfill_projecao.started',
+        sheetName: this.sheetName
+      },
+      'Backfill de projeção visual da Agenda iniciado'
+    );
+
+    try {
+      const matriz = await this.lerMatriz();
+      const cabecalhoAtual = matriz[0];
+      const corpo = matriz.length > 0 ? matriz.slice(1) : [];
+
+      if (cabecalhoAtual !== undefined && !this.cabecalhoCompativel(cabecalhoAtual)) {
+        this.registrarCabecalhoIncompativel(cabecalhoAtual);
+        this.logger?.warn(
+          {
+            event: 'agenda.sheets.backfill_projecao.failed',
+            durationMs: Date.now() - startedAt,
+            motivoFalha: 'cabecalho-incompativel',
+            rowCount: matriz.length
+          },
+          'Backfill interrompido por cabeçalho incompatível'
+        );
+        return {
+          sucesso: false,
+          linhasLidas: corpo.length,
+          linhasReescritas: 0,
+          motivoFalha: 'cabecalho-incompativel'
+        };
+      }
+
+      const registros =
+        cabecalhoAtual === undefined
+          ? []
+          : this.hidratarCpfTecnico(
+              this.mapper.linhasParaRegistros(corpo, cabecalhoAtual),
+              corpo,
+              cabecalhoAtual
+            );
+
+      const linhasReprojetadas: string[][] = [];
+      for (const registro of registros) {
+        const unidadeLinha = registro.unidadeOperacional?.trim() ?? '';
+        // Sem perfilId: preserva PROFISSIONAL já projetado (mesma regra da regravação de ativos).
+        const linha = this.projetarLinhaComCpfTecnico(
+          registro.item,
+          registro.dataConsulta,
+          registro.profissional,
+          unidadeLinha,
+          registro.dataInclusao ?? ''
+        );
+        if (linha !== undefined) {
+          linhasReprojetadas.push(linha);
+        }
+      }
+
+      const valoresFinais = [this.mapper.cabecalho(), ...linhasReprojetadas];
+      await this.reescreverAba(valoresFinais, matriz.length);
+
+      this.logger?.warn(
+        {
+          event: 'agenda.sheets.backfill_projecao.completed',
+          durationMs: Date.now() - startedAt,
+          linhasLidas: registros.length,
+          linhasReescritas: linhasReprojetadas.length,
+          previousRowCount: matriz.length,
+          rowCountFinal: valoresFinais.length
+        },
+        'Backfill de projeção visual da Agenda concluído'
+      );
+
+      return {
+        sucesso: true,
+        linhasLidas: registros.length,
+        linhasReescritas: linhasReprojetadas.length
+      };
+    } catch (error) {
+      this.logger?.error(
+        {
+          event: 'agenda.sheets.backfill_projecao.failed',
+          durationMs: Date.now() - startedAt,
+          motivoFalha: 'erro-infraestrutura',
+          error: serializarErroObservabilidade(error)
+        },
+        'Falha de infraestrutura no backfill de projeção visual'
+      );
+      return {
+        sucesso: false,
+        linhasLidas: 0,
+        linhasReescritas: 0,
+        motivoFalha: 'erro-infraestrutura'
+      };
     }
   }
 

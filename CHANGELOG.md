@@ -4,12 +4,36 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-25 17:27 BRT
-> **Última sessão executada:** 25/07/2026 • 17:27 — Docs: normalização de ausência no domínio
+> **Última atualização:** 2026-07-25 17:52 BRT
+> **Última sessão executada:** 25/07/2026 • 17:52 — Backfill visual de placeholders na Agenda
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 25/07/2026 • 17:52
+
+### 🎯 Objetivo
+
+Comando one-shot para reaplicar a projeção visual da planilha (`(não informado)`), sem portal e sem alterar noop/merge.
+
+### ✅ O que mudou
+
+- `GoogleSheetsAgendaRepository.reescreverProjecaoVisual()` — lê, reprojeta via mapper, `updateValues` forçado.
+- Script `npm run backfill:agenda-placeholders`.
+
+### 🧠 Decisões
+
+- Fora do caminho de sync: não remove pacientes, não faz merge, ignora noop. Só UX/normalização da aba.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/google-sheets-agenda-repository.ts` (+ teste)
+- `src/scripts/backfill-agenda-placeholders.ts`
+- `package.json`
+- `CHANGELOG.md`
 
 ---
 

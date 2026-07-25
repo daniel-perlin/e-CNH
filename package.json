@@ -29,6 +29,7 @@
     "validate:sheets": "tsx src/scripts/validate-sheets.ts",
     "sync:agenda": "tsx src/scripts/sync-agenda.ts",
     "sync:agenda:prod": "node dist/index.js",
+    "backfill:agenda-placeholders": "tsx src/scripts/backfill-agenda-placeholders.ts",
     "job:agenda": "tsx src/scripts/job-agenda.ts",
     "job:agenda:prod": "node dist/scripts/job-agenda.js",
     "refresh:credenciais": "tsx src/scripts/refresh-credentials.ts",
