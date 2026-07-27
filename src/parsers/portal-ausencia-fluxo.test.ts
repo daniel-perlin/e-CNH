@@ -143,6 +143,38 @@ describe('fluxo ausência portal (NÃO INFORMADO → undefined)', () => {
     assert.equal(mesclado.registro.item.categoria, 'B');
   });
 
+  it('merge atualiza nome quando o completo do portal difere do da planilha', () => {
+    const mesclado = mesclarItemPortalEmRegistroAtivo(
+      {
+        dataConsulta: '21/07/2026',
+        dataInclusao: '15/07/2026 08:00',
+        profissional: 'Psicólogo: PROFISSIONAL ALPHA',
+        unidadeOperacional: 'LIMÃO',
+        rowIndex: 0,
+        item: {
+          horario: '08:00',
+          paciente: {
+            nome: 'Jose',
+            cpf: '000.000.000-00'
+          },
+          tipoProcesso: 'Renovação'
+        }
+      },
+      {
+        horario: '08:00',
+        paciente: {
+          nome: 'Jose da Silva',
+          cpf: '000.000.000-00'
+        },
+        tipoProcesso: 'Renovação'
+      }
+    );
+
+    assert.equal(mesclado.alterouProjecao, true);
+    assert.deepEqual(mesclado.camposAtualizados, ['nome']);
+    assert.equal(mesclado.registro.item.paciente.nome, 'Jose da Silva');
+  });
+
   it('dedupe por CPF + noop quando portal só traz ausência já projetada', async () => {
     let updates = 0;
     const base = new InMemoryGoogleSheetsValues();

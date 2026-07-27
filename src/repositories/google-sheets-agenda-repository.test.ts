@@ -283,7 +283,8 @@ describe('GoogleSheetsAgendaRepository', () => {
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 2);
     assert.equal(matriz[0]?.[COL.unidade], 'UNIDADE');
-    assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
+    // Merge atualiza nome completo quando difere (após trim).
+    assert.equal(matriz[1]?.[COL.paciente], 'Paciente Renomeado');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
   });
 
@@ -401,7 +402,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     const matrizInicial = await sheets.getValues(RANGE_LEITURA);
     const dataInclusao = matrizInicial[1]?.[COL.dataInclusao];
     assert.equal(matrizInicial[0]?.length, 10);
-    assert.equal(matrizInicial[1]?.[COL.paciente], 'Paciente');
+    assert.equal(matrizInicial[1]?.[COL.paciente], 'Paciente Original');
     assert.equal(matrizInicial[1]?.[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
     assert.equal(matrizInicial[1]?.[COL.cpfTecnico], '000.000.000-00');
 
@@ -413,7 +414,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(segunda.linhasGravadas, 0);
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz.length, 2);
-    assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
+    assert.equal(matriz[1]?.[COL.paciente], 'Paciente Renomeado');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
     assert.equal(matriz[1]?.[COL.dataInclusao], dataInclusao);
   });
@@ -462,7 +463,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     const matriz = await sheets.getValues(RANGE_LEITURA);
     assert.equal(matriz[0]?.[COL.unidade], 'UNIDADE');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
-    assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
+    assert.equal(matriz[1]?.[COL.paciente], 'Paciente Legado');
     assert.equal(matriz[1]?.[COL.categoria], 'B');
   });
 
@@ -677,8 +678,9 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(primeira.linhasGravadas, 1);
     const updatesAposPrimeira = updates;
 
+    // 2ª sync: nome como na planilha (Title Case). Portal em MAIÚSCULAS diferiria no merge (trim exato).
     const segunda = await repository.salvarAgenda(
-      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      agendaFixture('21/07/2026', '08:00', 'Paciente X', '555.555.555-55'),
       { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
     assert.equal(segunda.sucesso, true);
@@ -817,9 +819,9 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(matriz[1]?.[COL.dataAgendamento], '21/07/2026');
     assert.equal(matriz[1]?.[COL.tipoProcesso], 'Renovação');
     assert.equal(matriz[1]?.[COL.categoria], 'AB');
-    // Contato do portal atualizado; horário da linha ativa preservado.
+    // Contato e nome do portal atualizados; horário da linha ativa preservado.
     assert.equal(matriz[1]?.[indiceCabecalhoAgenda('HORÁRIO')], '08:00');
-    assert.equal(matriz[1]?.[COL.paciente], 'Paciente');
+    assert.equal(matriz[1]?.[COL.paciente], 'Paciente Atualizado');
     assert.equal(matriz[1]?.[indiceCabecalhoAgenda('TELEFONE')], '11988887777');
     assert.equal(matriz[1]?.[COL.email], 'novo@example.test');
     assert.equal(matriz[1]?.[COL.unidade], 'LIMÃO');
@@ -844,7 +846,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     const updatesAposPrimeira = updates;
 
     const segunda = await repository.salvarAgenda(
-      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      agendaFixture('21/07/2026', '08:00', 'Paciente X', '555.555.555-55'),
       { profissional: 'Profissional Alpha', unidadeOperacional: 'LIMÃO', perfilId: 'psicologo' }
     );
 

@@ -65,7 +65,7 @@ describe('AgendaSheetMapper', () => {
       'LIMÃO',
       '13/07/2026',
       '08:00',
-      'Paciente',
+      'Paciente Fixture Um',
       '11900000001',
       'paciente1@example.test',
       'Primeira Habilitação',
@@ -97,7 +97,7 @@ describe('AgendaSheetMapper', () => {
       unidadeOperacional: 'LIMÃO',
       dataInclusao: timestampFixo
     });
-    assert.equal(comPerfil[0]?.[indicePaciente], 'Antônio');
+    assert.equal(comPerfil[0]?.[indicePaciente], 'Antônio Carlos Silva');
     assert.equal(comPerfil[0]?.[indiceProfissional], 'Médico: ITALO FACELLA');
 
     const semPerfil = mapper.agendaParaLinhas(agenda, {

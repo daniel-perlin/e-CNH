@@ -211,9 +211,12 @@
   - portal = fonte da verdade do atendimento; domínio (`ItemAgenda`) = representação canônica; SQLite = histórico do domínio;
   - a planilha **pode descartar** informação inútil à operação (ex.: telefones fixos);
   - telefone na planilha: só celulares, só dígitos, DDD preservado ou `11` se ausente (`formatPhoneForSheet`); ausência → `(não informado)`;
-  - parser, `ItemAgenda`, merge, `normalizePhone` e SQLite **não** mudam por causa da UX da planilha;
+  - PACIENTE na planilha: nome completo em Title Case (`formatPatientNameForSheet`);
+  - merge de nome: compara o nome completo do domínio (trim), sem a formatação visual;
+  - parser, `ItemAgenda`, `normalizePhone` e SQLite **não** mudam por causa da UX da planilha;
   - rewrite ocasional no sync quando o portal traz fixo (ou fixo+celular) e a planilha só tem o recorte operacional é **aceitável**.
 - **Consequência:** UX alinhada à clínica; domínio permanece fiel ao Detran; backfill/`reescreverProjecaoVisual` reaplica a projeção sem portal.
+- **Evolução (27/07/2026):** coluna PACIENTE com nome completo; merge compara nome completo (trim); Title Case só na projeção Sheets.
 - **Documentação:** [MODELO_DOMINIO.md — Google Sheets como projeção operacional](./MODELO_DOMINIO.md#google-sheets-como-projeção-operacional).
 
 ## ADR-023 — Política de domínio da Agenda operacional

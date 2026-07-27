@@ -76,7 +76,9 @@ A aba Agenda **não** é um espelho reversível do domínio. É uma visão otimi
 
 **Telefone na planilha:** apenas celulares, somente dígitos, DDD preservado (ou `11` se ausente). Fixos são descartados na projeção (`formatPhoneForSheet`). Sem celular útil → `(não informado)`.
 
-O domínio e o merge continuam com o valor original do portal (`normalizePhone` só para comparação). Perda de informação na planilha (e possível rewrite ocasional no sync) é decisão consciente de UX.
+**PACIENTE na planilha:** nome completo em Title Case (`formatPatientNameForSheet`); partículas `da`/`de`/`do`/`das`/`dos`/`e` em minúsculas. O merge compara o nome canônico do domínio (trim), sem essa formatação visual — se a planilha tiver Title Case e o portal MAIÚSCULAS, um sync pode reescrever o nome (aceitável na projeção operacional).
+
+O domínio e o merge continuam com o valor original do portal (`normalizePhone` só para comparação de telefone). Perda de informação na planilha (e possível rewrite ocasional no sync) é decisão consciente de UX.
 
 ## Profissional
 

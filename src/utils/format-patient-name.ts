@@ -1,6 +1,6 @@
 /**
- * Formata o nome do paciente para a coluna PACIENTE da aba Agenda.
- * Apenas o primeiro token, em Title Case (pt-BR).
+ * Reduz o nome ao primeiro token em Title Case (pt-BR).
+ * Utilitário legado de formatação; a projeção Sheets e o merge usam o nome completo.
  */
 export function formatPatientName(nomeCompleto: string): string {
   const primeiro = nomeCompleto.trim().split(/\s+/).find((token) => token.length > 0);

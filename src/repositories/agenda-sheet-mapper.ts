@@ -1,12 +1,12 @@
 import type { PerfilProfissionalId } from '../client/perfil-profissional-portal.js';
 import type { Agenda, ItemAgenda, Paciente } from '../models/agenda.js';
-import { formatPatientName } from '../utils/format-patient-name.js';
 import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
 import { normalizeEmail } from '../utils/email.js';
 import {
   formatOptionalFieldForSheet,
   parseOptionalFieldFromSheet
 } from '../utils/sheet-optional-field.js';
+import { formatPatientNameForSheet } from '../utils/sheet-patient-name.js';
 import { formatPhoneForSheet } from '../utils/sheet-phone.js';
 
 import {
@@ -161,7 +161,7 @@ export class AgendaSheetMapper {
       UNIDADE: unidadeOperacional,
       'AGENDAMENTO DO DETRAN': dataConsulta,
       HORÁRIO: item.horario ?? '',
-      PACIENTE: formatPatientName(item.paciente.nome ?? ''),
+      PACIENTE: formatPatientNameForSheet(item.paciente.nome ?? ''),
       TELEFONE: formatOptionalFieldForSheet(formatPhoneForSheet(item.paciente.telefone ?? '')),
       EMAIL: formatOptionalFieldForSheet(normalizeEmail(item.paciente.email ?? '')),
       'Tipo de Processo': item.tipoProcesso?.trim() ?? '',

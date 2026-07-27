@@ -4,7 +4,6 @@ import { agendaOperacionalPolicy } from '../domain/agenda-operacional-policy.js'
 import type { StructuredLogger } from '../types/logger.js';
 import { normalizeCpfKey } from '../utils/cpf.js';
 import { normalizeEmail } from '../utils/email.js';
-import { formatPatientName } from '../utils/format-patient-name.js';
 import { formatProfessionalDisplayName } from '../utils/format-professional-display-name.js';
 import { normalizePhone } from '../utils/phone.js';
 import { mascararCpf } from '../utils/cpf-mask.js';
@@ -1227,8 +1226,8 @@ function classificarMotivoLinhaNova(input: {
  * Mescla estado atual do portal em um registro já ativo na planilha.
  *
  * Atualiza (quando o portal traz valor e a projeção muda): Tipo de Processo, Categoria,
- * nome, telefone e e-mail. Comparações usam as mesmas normalizações do mapper
- * (formatPatientName / normalizePhone / normalizeEmail) para não forçar rewrite inútil.
+ * nome, telefone e e-mail. Comparações de contato usam trim (nome) e as normalizações
+ * `normalizePhone` / `normalizeEmail` para não forçar rewrite inútil.
  *
  * Preserva: CPF, horário e metadados da linha (dataConsulta, dataInclusao, profissional, unidade)
  * — o horário permanece atado ao AGENDAMENTO já persistido.
@@ -1253,7 +1252,7 @@ export function mesclarItemPortalEmRegistroAtivo(
 
   let nome = pacienteAtual.nome;
   if (nomePortal !== undefined && nomePortal.length > 0) {
-    if (formatPatientName(nomePortal) !== formatPatientName(pacienteAtual.nome ?? '')) {
+    if (nomePortal !== (pacienteAtual.nome?.trim() ?? '')) {
       nome = nomePortal;
       camposAtualizados.push('nome');
     }

@@ -4,12 +4,85 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-25 18:06 BRT
-> **Última sessão executada:** 25/07/2026 • 18:06 — Telefone na planilha: só celulares (projeção)
+> **Última atualização:** 2026-07-27 11:20 BRT
+> **Última sessão executada:** 27/07/2026 • 11:20 — Title Case na coluna PACIENTE (projeção)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 27/07/2026 • 11:20
+
+### 🎯 Objetivo
+
+Title Case na coluna PACIENTE (projeção Sheets), sem alterar domínio/merge.
+
+### ✅ O que mudou
+
+- `formatPatientNameForSheet` + uso em `itemParaLinha`.
+- Partículas `da`/`de`/`do`/`das`/`dos`/`e` em minúsculas.
+
+### 🧠 Decisões
+
+- Só borda visual (ADR-026). Merge continua com nome canônico trimado.
+
+### 📂 Arquivos impactados
+
+- `src/utils/sheet-patient-name.ts` (+ teste)
+- `src/repositories/agenda-sheet-mapper.ts` (+ teste)
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `docs/DECISOES.md`, `docs/MODELO_DOMINIO.md`, `CHANGELOG.md`
+
+---
+
+## 📅 27/07/2026 • 11:03
+
+### 🎯 Objetivo
+
+Alinhar o merge de `nome` à projeção: comparar nome completo (trim), não o 1º token.
+
+### ✅ O que mudou
+
+- `mesclarItemPortalEmRegistroAtivo` deixa de usar `formatPatientName`.
+- Testes de dedupe/merge e docs ADR-026/MODELO.
+
+### 🧠 Decisões
+
+- Sync com portal passa a restaurar nomes completos em linhas antigas só com 1º nome.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/google-sheets-agenda-repository.ts` (+ teste)
+- `src/parsers/portal-ausencia-fluxo.test.ts`
+- `src/utils/format-patient-name.ts`
+- `docs/DECISOES.md`, `docs/MODELO_DOMINIO.md`, `CHANGELOG.md`
+
+---
+
+## 📅 27/07/2026 • 10:45
+
+### 🎯 Objetivo
+
+Exibir o nome completo do paciente na coluna PACIENTE da planilha (projeção operacional).
+
+### ✅ O que mudou
+
+- Mapper grava `paciente.nome` trimado, sem `formatPatientName`.
+- `formatPatientName` permanece só na comparação do merge.
+- Docs ADR-026 / MODELO atualizados.
+
+### 🧠 Decisões
+
+- Só borda Sheets; parser/domínio/merge/SQLite intactos. Linhas já gravadas com 1º nome: backfill ou rewrite de sync.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-sheet-mapper.ts` (+ teste)
+- `src/utils/format-patient-name.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `docs/DECISOES.md`, `docs/MODELO_DOMINIO.md`, `CHANGELOG.md`
 
 ---
 
