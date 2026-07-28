@@ -4,12 +4,38 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-27 11:20 BRT
-> **Última sessão executada:** 27/07/2026 • 11:20 — Title Case na coluna PACIENTE (projeção)
+> **Última atualização:** 2026-07-28 17:31 BRT
+> **Última sessão executada:** 28/07/2026 • 17:31 — Correção cabecalho-incompativel (A1=unidade)
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 28/07/2026 • 17:31
+
+### 🎯 Objetivo
+
+Desbloquear persistência Railway com `motivoFalhaPersistencia: cabecalho-incompativel` e melhorar o diagnóstico.
+
+### ✅ O que mudou
+
+- **Causa raiz (evidência na planilha):** A1=`CAPÃO REDONDO` em vez de `UNIDADE`; colunas B–J canônicas; K=`CPF` (extra aceita). Não relacionado a Title Case/telefone.
+- `repararCabecalhoUnidadeSubstituidaPorValor` + uso antes da validação; escrita força canônico (noop não omite reparo).
+- Logs: `cabecalhoEsperado`, `cabecalhoEncontrado`, `colunasFaltando`, `colunasExtras` em `cabecalho_incompativel` e `salvar.failed`.
+
+### 🧠 Decisões
+
+- Validação mantida; só repara o padrão “valor de unidade em A1 + resto canônico/V8”.
+- Comparação de “já oficial” usa o cabeçalho bruto em disco, não o reparado em memória.
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-sheet-headers.ts` (+ teste)
+- `src/repositories/google-sheets-agenda-repository.ts` (+ teste)
+- `docs/DECISOES.md` (ADR-024)
+- `CHANGELOG.md`
 
 ---
 

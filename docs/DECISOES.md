@@ -189,6 +189,7 @@
   - **não** persistir Tipo/Categoria no SQLite/`pessoas` nesta entrega (projeção operacional Sheets; store relacional continua focado em identidade/histórico de pessoa).
 - **Consequência:** planilhas em produção migram sem intervenção manual; filtros/views por índice de coluna (ex.: G=PROFISSIONAL no V8) precisam ser revisados após a primeira sync; linhas já ativas migradas ficam com Tipo/Categoria vazios até a próxima sync em que o mesmo CPF reapareça no portal (merge em registro ativo — ver evolução abaixo).
 - **Evolução (24/07/2026):** CPF já ativo não descarta o `ItemAgenda` do portal. `mesclarItemPortalEmRegistroAtivo` atualiza Tipo de Processo, Categoria e contato (telefone/e-mail/nome quando a projeção muda); preserva DATA DE INCLUSÃO, AGENDAMENTO, PROFISSIONAL, UNIDADE, horário e CPF técnico. Deduplicação e inclusão de pacientes novos inalteradas.
+- **Evolução (28/07/2026):** evidência em produção — A1 com valor de unidade (`CAPÃO REDONDO`) no lugar do rótulo `UNIDADE`, restante do canônico 10 intacto + coluna `CPF` extra. `repararCabecalhoUnidadeSubstituidaPorValor` restaura A1 só nesse padrão; a validação de cabeçalho permanece; a escrita seguinte grava o canônico (noop não omite quando o bruto em disco ainda não é oficial). Diagnóstico de incompatibilidade passa a incluir `colunasFaltando` / `colunasExtras`.
 
 ## ADR-025 — Ausência canônica no domínio (`undefined`); sentinelas só nas fronteiras
 

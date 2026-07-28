@@ -4,10 +4,12 @@ import { describe, it } from 'node:test';
 import {
   CABECALHOS_ABA_AGENDA,
   CABECALHOS_ABA_AGENDA_OFICIAL_V8,
+  diagnosticarDiferencaCabecalho,
   indiceCabecalhoAgenda,
   INDICE_COLUNA_TECNICA_CPF,
   normalizeTextoCabecalho,
   prefixoCabecalhoCompativel,
+  repararCabecalhoUnidadeSubstituidaPorValor,
   resolverAliasCabecalho,
   resolverIndiceColunaTecnicaCpf
 } from './agenda-sheet-headers.js';
@@ -105,5 +107,86 @@ describe('índices derivados do layout oficial', () => {
     ];
     assert.equal(prefixoCabecalhoCompativel(cabecalhoProducao, [...CABECALHOS_ABA_AGENDA]), true);
     assert.equal(resolverIndiceColunaTecnicaCpf(cabecalhoProducao), 10);
+  });
+});
+
+describe('diagnosticarDiferencaCabecalho', () => {
+  it('lista faltando e extras em relação ao canônico', () => {
+    const encontrado = [
+      'CAPÃO REDONDO',
+      'AGENDAMENTO DO DETRAN',
+      'HORÁRIO',
+      'PACIENTE',
+      'TELEFONE',
+      'EMAIL',
+      'Tipo de Processo',
+      'Categoria',
+      'PROFISSIONAL',
+      'DATA DE INCLUSÃO',
+      'CPF'
+    ];
+    const { colunasFaltando, colunasExtras } = diagnosticarDiferencaCabecalho(
+      encontrado,
+      [...CABECALHOS_ABA_AGENDA]
+    );
+    assert.deepEqual(colunasFaltando, ['UNIDADE']);
+    assert.deepEqual(colunasExtras, ['CAPÃO REDONDO', 'CPF']);
+  });
+});
+
+describe('repararCabecalhoUnidadeSubstituidaPorValor', () => {
+  it('restaura A1 quando o restante bate com o canônico 10', () => {
+    const bruto = [
+      'CAPÃO REDONDO',
+      'AGENDAMENTO DO DETRAN',
+      'HORÁRIO',
+      'PACIENTE',
+      'TELEFONE',
+      'EMAIL',
+      'Tipo de Processo',
+      'Categoria',
+      'PROFISSIONAL',
+      'DATA DE INCLUSÃO',
+      'CPF'
+    ];
+    const reparado = repararCabecalhoUnidadeSubstituidaPorValor(bruto);
+    assert.ok(reparado);
+    assert.equal(reparado[0], 'UNIDADE');
+    assert.equal(reparado[1], 'AGENDAMENTO DO DETRAN');
+    assert.equal(prefixoCabecalhoCompativel(reparado, [...CABECALHOS_ABA_AGENDA]), true);
+  });
+
+  it('restaura A1 no layout V8', () => {
+    const bruto = [
+      'LIMÃO',
+      ...CABECALHOS_ABA_AGENDA_OFICIAL_V8.slice(1)
+    ];
+    const reparado = repararCabecalhoUnidadeSubstituidaPorValor(bruto);
+    assert.ok(reparado);
+    assert.equal(reparado[0], 'UNIDADE');
+    assert.equal(prefixoCabecalhoCompativel(reparado, [...CABECALHOS_ABA_AGENDA_OFICIAL_V8]), true);
+  });
+
+  it('não repara quando outra coluna diverge', () => {
+    const bruto = [
+      'CAPÃO REDONDO',
+      'COLUNA ERRADA',
+      'HORÁRIO',
+      'PACIENTE',
+      'TELEFONE',
+      'EMAIL',
+      'Tipo de Processo',
+      'Categoria',
+      'PROFISSIONAL',
+      'DATA DE INCLUSÃO'
+    ];
+    assert.equal(repararCabecalhoUnidadeSubstituidaPorValor(bruto), undefined);
+  });
+
+  it('não altera cabeçalho já correto', () => {
+    assert.equal(
+      repararCabecalhoUnidadeSubstituidaPorValor([...CABECALHOS_ABA_AGENDA]),
+      undefined
+    );
   });
 });

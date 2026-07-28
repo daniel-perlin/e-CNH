@@ -594,6 +594,8 @@ describe('GoogleSheetsAgendaRepository', () => {
           event: string;
           cabecalhoEsperado: string[];
           cabecalhoEncontrado: string[];
+          colunasFaltando: string[];
+          colunasExtras: string[];
           colunaDivergente: { indice: number; esperado: string; encontrado: string };
         }
       | undefined;
@@ -603,6 +605,76 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(diagnostico.colunaDivergente.indice, 1);
     assert.equal(diagnostico.colunaDivergente.esperado, 'AGENDAMENTO DO DETRAN');
     assert.equal(diagnostico.colunaDivergente.encontrado, 'COLUNA ERRADA');
+    assert.ok(diagnostico.colunasFaltando.includes('AGENDAMENTO DO DETRAN'));
+    assert.ok(diagnostico.colunasExtras.includes('COLUNA ERRADA'));
+
+    const falhaSalvar = warnings.find(
+      (item) => (item as { event?: string }).event === 'agenda.sheets.salvar.failed'
+    ) as { colunasFaltando?: string[]; colunasExtras?: string[] } | undefined;
+    assert.ok(falhaSalvar?.colunasFaltando?.includes('AGENDAMENTO DO DETRAN'));
+    assert.ok(falhaSalvar?.colunasExtras?.includes('COLUNA ERRADA'));
+  });
+
+  it('repara A1 com valor de unidade no lugar do rótulo e persiste o canônico', async () => {
+    const warnings: object[] = [];
+    const sheets = new InMemoryGoogleSheetsValues();
+    const repository = new GoogleSheetsAgendaRepository({
+      sheets,
+      agora: HOJE_FIXO,
+      logger: {
+        debug: () => undefined,
+        info: () => undefined,
+        error: () => undefined,
+        warn: (bindings: object) => {
+          warnings.push(bindings);
+        }
+      }
+    });
+
+    await sheets.updateValues(RANGE_LEITURA, [
+      [
+        'CAPÃO REDONDO',
+        'AGENDAMENTO DO DETRAN',
+        'HORÁRIO',
+        'PACIENTE',
+        'TELEFONE',
+        'EMAIL',
+        'Tipo de Processo',
+        'Categoria',
+        'PROFISSIONAL',
+        'DATA DE INCLUSÃO',
+        'CPF'
+      ],
+      [
+        'CAPÃO REDONDO',
+        '21/07/2026',
+        '08:00',
+        'Paciente',
+        '',
+        '',
+        '',
+        '',
+        'Psicólogo: PROFISSIONAL ALPHA',
+        '15/07/2026 08:00',
+        '555.555.555-55'
+      ]
+    ]);
+
+    const resultado = await repository.salvarAgenda(
+      agendaFixture('21/07/2026', '08:00', 'PACIENTE X', '555.555.555-55'),
+      { profissional: 'Profissional Alpha', unidadeOperacional: 'CAPÃO REDONDO', perfilId: 'psicologo' }
+    );
+
+    assert.equal(resultado.sucesso, true);
+    assert.notEqual(resultado.motivoFalha, 'cabecalho-incompativel');
+    const reparo = warnings.find(
+      (item) => (item as { event?: string }).event === 'agenda.sheets.cabecalho_reparado'
+    ) as { valorA1Encontrado?: string } | undefined;
+    assert.equal(reparo?.valorA1Encontrado, 'CAPÃO REDONDO');
+    const matriz = await sheets.getValues(RANGE_LEITURA);
+    assert.equal(matriz[0]?.[COL.unidade], 'UNIDADE');
+    assert.equal(matriz[1]?.[COL.unidade], 'CAPÃO REDONDO');
+    assert.equal(matriz[1]?.[COL.cpfTecnico], '555.555.555-55');
   });
 
   it('aceita cabeçalho canônico com Profissional (Title Case) e coluna CPF nomeada no final', async () => {

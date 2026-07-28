@@ -166,6 +166,91 @@ export function prefixoCabecalhoCompativel(
 }
 
 /**
+ * Diagnóstico de incompatibilidade: rótulos esperados ausentes e rótulos extras
+ * (comparação por texto normalizado, ordem irrelevante para faltando/extras).
+ */
+export function diagnosticarDiferencaCabecalho(
+  encontrado: readonly string[],
+  esperado: readonly string[]
+): { colunasFaltando: string[]; colunasExtras: string[] } {
+  const encontradosNorm = new Map<string, string>();
+  for (const titulo of encontrado) {
+    const norm = normalizeTextoCabecalho(titulo);
+    if (norm.length === 0) {
+      continue;
+    }
+    if (!encontradosNorm.has(norm)) {
+      encontradosNorm.set(norm, titulo);
+    }
+  }
+
+  const esperadosNorm = new Map<string, string>();
+  for (const titulo of esperado) {
+    const norm = normalizeTextoCabecalho(titulo);
+    if (!esperadosNorm.has(norm)) {
+      esperadosNorm.set(norm, titulo);
+    }
+  }
+
+  const colunasFaltando: string[] = [];
+  for (const [norm, titulo] of esperadosNorm) {
+    if (!encontradosNorm.has(norm)) {
+      colunasFaltando.push(titulo);
+    }
+  }
+
+  const colunasExtras: string[] = [];
+  for (const [norm, titulo] of encontradosNorm) {
+    if (!esperadosNorm.has(norm)) {
+      colunasExtras.push(titulo);
+    }
+  }
+
+  return { colunasFaltando, colunasExtras };
+}
+
+/**
+ * Recupera cabeçalho em que A1 foi substituído por um valor de unidade
+ * (ex.: `CAPÃO REDONDO` no lugar de `UNIDADE`), desde que o restante do
+ * prefixo bate com o layout canônico (10) ou oficial V8 (8).
+ *
+ * Retorna o cabeçalho com A1 restaurado para leitura; `undefined` se o
+ * padrão não se aplica (outros layouts quebrados continuam rejeitados).
+ */
+export function repararCabecalhoUnidadeSubstituidaPorValor(
+  atual: readonly string[]
+): string[] | undefined {
+  const layouts: readonly (readonly string[])[] = [
+    CABECALHOS_ABA_AGENDA,
+    CABECALHOS_ABA_AGENDA_OFICIAL_V8
+  ];
+
+  for (const layout of layouts) {
+    if (atual.length < layout.length) {
+      continue;
+    }
+
+    const rotuloUnidade = layout[0] ?? 'UNIDADE';
+    const a0 = normalizeTextoCabecalho(atual[0] ?? '');
+    if (a0 === normalizeTextoCabecalho(rotuloUnidade)) {
+      continue;
+    }
+
+    const restoCompativel = layout.slice(1).every(
+      (titulo, index) =>
+        normalizeTextoCabecalho(atual[index + 1] ?? '') === normalizeTextoCabecalho(titulo)
+    );
+    if (!restoCompativel) {
+      continue;
+    }
+
+    return [rotuloUnidade, ...atual.slice(1)];
+  }
+
+  return undefined;
+}
+
+/**
  * Resolve o índice da coluna técnica de CPF conforme o cabeçalho **lido**.
  * Planilhas V8 (8 oficiais) → índice 8; layout atual (10) → índice 10.
  * Layouts legados com coluna `CPF` nomeada não dependem deste índice (mapper hidrata pelo alias).
