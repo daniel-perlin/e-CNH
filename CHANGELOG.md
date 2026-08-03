@@ -4,12 +4,40 @@
 >
 > **Fase atual:** 010 — Persistência relacional + AgendaOperacionalPolicy (ADR-023)
 > **Próxima prioridade:** Postgres no Railway (`DATABASE_URL`) + validação E2E do histórico
-> **Última atualização:** 2026-07-28 17:31 BRT
-> **Última sessão executada:** 28/07/2026 • 17:31 — Correção cabecalho-incompativel (A1=unidade)
+> **Última atualização:** 2026-08-03 17:17 BRT
+> **Última sessão executada:** 03/08/2026 • 17:17 — Reordenar PROFISSIONAL após EMAIL
 
 Este arquivo registra, em ordem cronológica inversa, cada sessão concluída no projeto. O histórico nunca deve ser apagado ou sobrescrito.
 
 > **Recomendação de nomenclatura:** `DIARIO_DE_BORDO.md` representa melhor a função atual do arquivo. O nome `CHANGELOG.md` deve ser mantido por enquanto para preservar referências existentes; uma eventual renomeação deve ocorrer em tarefa própria, com atualização coordenada de toda a documentação.
+
+---
+
+## 📅 03/08/2026 • 17:17
+
+### 🎯 Objetivo
+
+Mover a coluna PROFISSIONAL na projeção Agenda para imediatamente após EMAIL.
+
+### ✅ O que mudou
+
+- `CABECALHOS_ABA_AGENDA`: EMAIL → PROFISSIONAL → Tipo de Processo → Categoria → DATA DE INCLUSÃO.
+- Layout 10 anterior preservado como `CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL` (leitura + migração).
+- Mapper continua alinhado via `CABECALHOS_ABA_AGENDA.map(...)`; índices derivados atualizados nos testes.
+
+### 🧠 Decisões
+
+- Só reordenação do contrato visual; domínio, merge, CPF técnico e regras de sync intactos.
+- Planilhas em produção no layout antigo migram na próxima escrita (como V8→10).
+
+### 📂 Arquivos impactados
+
+- `src/repositories/agenda-sheet-headers.ts` (+ teste)
+- `src/repositories/google-sheets-agenda-repository.ts`
+- `src/repositories/agenda-sheet-mapper.test.ts`
+- `src/repositories/google-sheets-agenda-repository.test.ts`
+- `src/parsers/portal-ausencia-fluxo.test.ts`
+- `docs/MODELO_DOMINIO.md`, `docs/DECISOES.md`, `CHANGELOG.md`
 
 ---
 

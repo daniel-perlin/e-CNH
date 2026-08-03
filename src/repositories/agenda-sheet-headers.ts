@@ -22,10 +22,11 @@ export const CABECALHOS_ABA_AGENDA_OFICIAL_V8 = [
 ] as const;
 
 /**
- * Layout oficial atual (10 colunas).
- * `Tipo de Processo` e `Categoria` ficam logo após `EMAIL`.
+ * Layout oficial 10 colunas anterior à reordenação de `PROFISSIONAL`
+ * (Tipo de Processo / Categoria vinham logo após `EMAIL`).
+ * Ainda aceito na leitura para migração automática na primeira escrita.
  */
-export const CABECALHOS_ABA_AGENDA = [
+export const CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL = [
   'UNIDADE',
   'AGENDAMENTO DO DETRAN',
   'HORÁRIO',
@@ -35,6 +36,24 @@ export const CABECALHOS_ABA_AGENDA = [
   'Tipo de Processo',
   'Categoria',
   'PROFISSIONAL',
+  'DATA DE INCLUSÃO'
+] as const;
+
+/**
+ * Layout oficial atual (10 colunas).
+ * `PROFISSIONAL` fica imediatamente após `EMAIL`; em seguida Tipo de Processo e Categoria.
+ * Coluna técnica CPF permanece no índice 10 (fora do contrato visual).
+ */
+export const CABECALHOS_ABA_AGENDA = [
+  'UNIDADE',
+  'AGENDAMENTO DO DETRAN',
+  'HORÁRIO',
+  'PACIENTE',
+  'TELEFONE',
+  'EMAIL',
+  'PROFISSIONAL',
+  'Tipo de Processo',
+  'Categoria',
   'DATA DE INCLUSÃO'
 ] as const;
 
@@ -222,6 +241,7 @@ export function repararCabecalhoUnidadeSubstituidaPorValor(
 ): string[] | undefined {
   const layouts: readonly (readonly string[])[] = [
     CABECALHOS_ABA_AGENDA,
+    CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL,
     CABECALHOS_ABA_AGENDA_OFICIAL_V8
   ];
 
@@ -252,7 +272,7 @@ export function repararCabecalhoUnidadeSubstituidaPorValor(
 
 /**
  * Resolve o índice da coluna técnica de CPF conforme o cabeçalho **lido**.
- * Planilhas V8 (8 oficiais) → índice 8; layout atual (10) → índice 10.
+ * Planilhas V8 (8 oficiais) → índice 8; layouts oficiais 10 → índice 10.
  * Layouts legados com coluna `CPF` nomeada não dependem deste índice (mapper hidrata pelo alias).
  */
 export function resolverIndiceColunaTecnicaCpf(
@@ -263,6 +283,14 @@ export function resolverIndiceColunaTecnicaCpf(
   }
   if (prefixoCabecalhoCompativel(cabecalho, CABECALHOS_ABA_AGENDA)) {
     return CABECALHOS_ABA_AGENDA.length;
+  }
+  if (
+    prefixoCabecalhoCompativel(
+      cabecalho,
+      CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL
+    )
+  ) {
+    return CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL.length;
   }
   if (prefixoCabecalhoCompativel(cabecalho, CABECALHOS_ABA_AGENDA_OFICIAL_V8)) {
     return CABECALHOS_ABA_AGENDA_OFICIAL_V8.length;

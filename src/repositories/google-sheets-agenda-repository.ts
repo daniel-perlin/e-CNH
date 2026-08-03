@@ -24,6 +24,7 @@ import {
   CABECALHO_DATA_INCLUSAO_LEGADO,
   CABECALHOS_ABA_AGENDA,
   CABECALHOS_ABA_AGENDA_LEGADO,
+  CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL,
   CABECALHOS_ABA_AGENDA_OFICIAL_V8,
   diagnosticarDiferencaCabecalho,
   FAIXA_COLUNAS_LEITURA_ABA_AGENDA,
@@ -1173,6 +1174,8 @@ export class GoogleSheetsAgendaRepository implements AgendaRepository {
 
     return [
       [...CABECALHOS_ABA_AGENDA],
+      // Layout 10 colunas anterior (Tipo/Categoria antes de PROFISSIONAL).
+      [...CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL],
       // Layout oficial anterior (8 colunas) — migração automática na primeira escrita.
       [...CABECALHOS_ABA_AGENDA_OFICIAL_V8],
       legado,

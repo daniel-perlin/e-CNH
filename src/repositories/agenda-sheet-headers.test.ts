@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 
 import {
   CABECALHOS_ABA_AGENDA,
+  CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL,
   CABECALHOS_ABA_AGENDA_OFICIAL_V8,
   diagnosticarDiferencaCabecalho,
   indiceCabecalhoAgenda,
@@ -66,9 +67,9 @@ describe('índices derivados do layout oficial', () => {
     assert.equal(CABECALHOS_ABA_AGENDA.length, 10);
     assert.equal(CABECALHOS_ABA_AGENDA_OFICIAL_V8.length, 8);
     assert.equal(indiceCabecalhoAgenda('EMAIL'), 5);
-    assert.equal(indiceCabecalhoAgenda('Tipo de Processo'), 6);
-    assert.equal(indiceCabecalhoAgenda('Categoria'), 7);
-    assert.equal(indiceCabecalhoAgenda('PROFISSIONAL'), 8);
+    assert.equal(indiceCabecalhoAgenda('PROFISSIONAL'), 6);
+    assert.equal(indiceCabecalhoAgenda('Tipo de Processo'), 7);
+    assert.equal(indiceCabecalhoAgenda('Categoria'), 8);
     assert.equal(INDICE_COLUNA_TECNICA_CPF, 10);
   });
 
@@ -88,6 +89,12 @@ describe('índices derivados do layout oficial', () => {
       8
     );
     assert.equal(resolverIndiceColunaTecnicaCpf([...CABECALHOS_ABA_AGENDA]), 10);
+    assert.equal(
+      resolverIndiceColunaTecnicaCpf([
+        ...CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL
+      ]),
+      10
+    );
     assert.equal(resolverIndiceColunaTecnicaCpf(undefined), 10);
   });
 
@@ -99,14 +106,24 @@ describe('índices derivados do layout oficial', () => {
       'PACIENTE',
       'TELEFONE',
       'EMAIL',
+      'Profissional',
       'Tipo de Processo',
       'Categoria',
-      'Profissional',
       'DATA DE INCLUSÃO',
       'CPF'
     ];
     assert.equal(prefixoCabecalhoCompativel(cabecalhoProducao, [...CABECALHOS_ABA_AGENDA]), true);
     assert.equal(resolverIndiceColunaTecnicaCpf(cabecalhoProducao), 10);
+  });
+
+  it('aceita layout 10 colunas anterior (Tipo/Categoria antes de PROFISSIONAL)', () => {
+    assert.equal(
+      prefixoCabecalhoCompativel(
+        [...CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL, 'CPF'],
+        [...CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL]
+      ),
+      true
+    );
   });
 });
 
@@ -119,9 +136,9 @@ describe('diagnosticarDiferencaCabecalho', () => {
       'PACIENTE',
       'TELEFONE',
       'EMAIL',
+      'PROFISSIONAL',
       'Tipo de Processo',
       'Categoria',
-      'PROFISSIONAL',
       'DATA DE INCLUSÃO',
       'CPF'
     ];
@@ -143,9 +160,9 @@ describe('repararCabecalhoUnidadeSubstituidaPorValor', () => {
       'PACIENTE',
       'TELEFONE',
       'EMAIL',
+      'PROFISSIONAL',
       'Tipo de Processo',
       'Categoria',
-      'PROFISSIONAL',
       'DATA DE INCLUSÃO',
       'CPF'
     ];
@@ -154,6 +171,23 @@ describe('repararCabecalhoUnidadeSubstituidaPorValor', () => {
     assert.equal(reparado[0], 'UNIDADE');
     assert.equal(reparado[1], 'AGENDAMENTO DO DETRAN');
     assert.equal(prefixoCabecalhoCompativel(reparado, [...CABECALHOS_ABA_AGENDA]), true);
+  });
+
+  it('restaura A1 no layout 10 anterior (Tipo antes de PROFISSIONAL)', () => {
+    const bruto = [
+      'CAPÃO REDONDO',
+      ...CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL.slice(1),
+      'CPF'
+    ];
+    const reparado = repararCabecalhoUnidadeSubstituidaPorValor(bruto);
+    assert.ok(reparado);
+    assert.equal(reparado[0], 'UNIDADE');
+    assert.equal(
+      prefixoCabecalhoCompativel(reparado, [
+        ...CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL
+      ]),
+      true
+    );
   });
 
   it('restaura A1 no layout V8', () => {
@@ -175,9 +209,9 @@ describe('repararCabecalhoUnidadeSubstituidaPorValor', () => {
       'PACIENTE',
       'TELEFONE',
       'EMAIL',
+      'PROFISSIONAL',
       'Tipo de Processo',
       'Categoria',
-      'PROFISSIONAL',
       'DATA DE INCLUSÃO'
     ];
     assert.equal(repararCabecalhoUnidadeSubstituidaPorValor(bruto), undefined);

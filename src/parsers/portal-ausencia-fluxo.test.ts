@@ -194,9 +194,9 @@ describe('fluxo ausência portal (NÃO INFORMADO → undefined)', () => {
         'PACIENTE SEM CONTATO',
         SHEET_PLACEHOLDER,
         SHEET_PLACEHOLDER,
+        'Psicólogo: PROFISSIONAL ALPHA',
         'Renovação',
         SHEET_PLACEHOLDER,
-        'Psicólogo: PROFISSIONAL ALPHA',
         '15/07/2026 08:00',
         '333.333.333-33'
       ]

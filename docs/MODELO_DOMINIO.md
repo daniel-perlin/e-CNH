@@ -184,16 +184,16 @@ O contexto de persistência inclui `profissional` (coluna **PROFISSIONAL**) e `u
 4. PACIENTE  
 5. TELEFONE  
 6. EMAIL  
-7. Tipo de Processo  
-8. Categoria  
-9. PROFISSIONAL  
+7. PROFISSIONAL  
+8. Tipo de Processo  
+9. Categoria  
 10. DATA DE INCLUSÃO  
 
 CPF e status de exames permanecem no **domínio** (`Paciente` / `ItemAgenda`) e na extração HTML; o CPF **não** faz parte do contrato visual. Tipo de processo e categoria já existiam no domínio/parser e passam a constar na projeção operacional.
 
 **Regra de negócio (B004/B005):** a aba `Agenda` é um cadastro de **pacientes ativos**. Em cada sincronização, permanecem linhas cujo agendamento DETRAN é **hoje ou futuro** (calendário `America/Sao_Paulo`; datas passadas saem). A decisão vive em `AgendaOperacionalPolicy` (`src/domain/agenda-operacional-policy.ts`), não em utilitários de data. O **CPF normalizado continua sendo a chave única** do paciente enquanto ele está ativo. Se o paciente sair (data passada) e voltar depois, a reinclusão gera nova DATA DE INCLUSÃO.
 
-**Implementação da projeção:** o mapper grava as 10 colunas de `CABECALHOS_ABA_AGENDA`. Planilhas no layout oficial anterior (`CABECALHOS_ABA_AGENDA_OFICIAL_V8`, 8 colunas) são aceitas na leitura e migradas automaticamente na primeira escrita. Para a deduplicação por CPF continuar funcionando entre sincronizações sem colocar o CPF no contrato visual, o repositório preserva o valor em coluna técnica adjacente (sem título no cabeçalho oficial) — índice resolvido conforme o layout lido (V8 → 8; canônico → 10).
+**Implementação da projeção:** o mapper grava as 10 colunas de `CABECALHOS_ABA_AGENDA`. Planilhas no layout V8 (8 colunas) ou no layout 10 anterior (`CABECALHOS_ABA_AGENDA_OFICIAL_V10_TIPO_ANTES_PROFISSIONAL`, com Tipo/Categoria antes de PROFISSIONAL) são aceitas na leitura e migradas automaticamente na primeira escrita. Para a deduplicação por CPF continuar funcionando entre sincronizações sem colocar o CPF no contrato visual, o repositório preserva o valor em coluna técnica adjacente (sem título no cabeçalho oficial) — índice resolvido conforme o layout lido (V8 → 8; canônicos 10 → 10).
 
 **Coluna UNIDADE (B013):** cada linha recebe o nome operacional derivado do `CLINIC` do profissional sincronizado — não do HTML da agenda do paciente.
 

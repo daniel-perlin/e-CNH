@@ -340,7 +340,7 @@ describe('GoogleSheetsAgendaRepository', () => {
     assert.equal(linhaMigrada[COL.categoria], SHEET_PLACEHOLDER);
     assert.equal(linhaMigrada[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
     assert.equal(linhaMigrada[COL.dataInclusao], dataInclusao);
-    // No canônico, índice 8 é PROFISSIONAL — não o CPF técnico (agora em COL.cpfTecnico).
+    // No canônico, índice 6 é PROFISSIONAL — não o CPF técnico (agora em COL.cpfTecnico).
     assert.equal(linhaMigrada[COL.profissional], 'Psicólogo: PROFISSIONAL ALPHA');
     assert.notEqual(linhaMigrada[COL.profissional], '111.111.111-11');
 
@@ -848,9 +848,9 @@ describe('GoogleSheetsAgendaRepository', () => {
         'Paciente',
         '(11) 900000001',
         'antigo@example.test',
-        '',
-        '',
         'Psicólogo: PROFISSIONAL ALPHA',
+        '',
+        '',
         dataInclusao,
         '000.000.000-00'
       ]
@@ -947,9 +947,9 @@ describe('GoogleSheetsAgendaRepository', () => {
         'Paciente Passado',
         '',
         'não informado',
+        'Psicólogo: PROFISSIONAL ALPHA',
         'Renovação',
         '',
-        'Psicólogo: PROFISSIONAL ALPHA',
         '10/07/2026 08:00',
         '000.000.000-00'
       ],
@@ -960,9 +960,9 @@ describe('GoogleSheetsAgendaRepository', () => {
         'Paciente Futuro',
         'NÃO INFORMADO',
         '',
+        'Psicólogo: PROFISSIONAL ALPHA',
         'Renovação',
         'não informado',
-        'Psicólogo: PROFISSIONAL ALPHA',
         '15/07/2026 08:00',
         '111.111.111-11'
       ]

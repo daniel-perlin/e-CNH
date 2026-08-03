@@ -25,6 +25,7 @@ describe('AgendaSheetMapper', () => {
       'AGENDAMENTO DO DETRAN'
     );
     assert.equal(mapper.cabecalho()[indiceCabecalhoAgenda('EMAIL')], 'EMAIL');
+    assert.equal(mapper.cabecalho()[indiceCabecalhoAgenda('PROFISSIONAL')], 'PROFISSIONAL');
     assert.equal(
       mapper.cabecalho()[indiceCabecalhoAgenda('Tipo de Processo')],
       'Tipo de Processo'
@@ -32,6 +33,10 @@ describe('AgendaSheetMapper', () => {
     assert.equal(mapper.cabecalho()[indiceCabecalhoAgenda('Categoria')], 'Categoria');
     assert.equal(mapper.cabecalho().at(-1), 'DATA DE INCLUSÃO');
     assert.equal(mapper.cabecalho().length, 10);
+    assert.deepEqual(
+      mapper.cabecalho().slice(5, 9),
+      ['EMAIL', 'PROFISSIONAL', 'Tipo de Processo', 'Categoria']
+    );
   });
 
   it('converte agenda tipada em linhas com Tipo de Processo e Categoria, sem CPF/status', () => {
@@ -68,9 +73,9 @@ describe('AgendaSheetMapper', () => {
       'Paciente Fixture Um',
       '11900000001',
       'paciente1@example.test',
+      'Psicólogo: GABRIELA MOURA',
       'Primeira Habilitação',
       'B',
-      'Psicólogo: GABRIELA MOURA',
       timestampFixo
     ]);
     assert.equal(linhas[0]?.includes('000.000.000-00'), false);
@@ -182,9 +187,9 @@ describe('AgendaSheetMapper', () => {
         'PACIENTE PLACEHOLDER',
         SHEET_PLACEHOLDER,
         'NÃO INFORMADO',
+        'Profissional Teste',
         'Renovação',
         SHEET_PLACEHOLDER,
-        'Profissional Teste',
         timestampFixo
       ]
     ];
@@ -247,9 +252,9 @@ describe('AgendaSheetMapper', () => {
         'PACIENTE UNIDADE',
         '',
         '',
+        'Profissional Teste',
         'Mudança de Categoria',
         'A',
-        'Profissional Teste',
         timestampFixo
       ]
     ];
@@ -296,9 +301,9 @@ describe('AgendaSheetMapper', () => {
         'PACIENTE A',
         '',
         '',
-        '',
-        '',
         'Profissional A',
+        '',
+        '',
         timestampFixo
       ],
       ['', '', '', '', '', '', '', '', '', ''],
@@ -309,9 +314,9 @@ describe('AgendaSheetMapper', () => {
         'PACIENTE B',
         '',
         '',
-        '',
-        '',
         'Profissional B',
+        '',
+        '',
         timestampFixo
       ]
     ];
